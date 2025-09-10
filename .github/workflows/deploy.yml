@@ -1,0 +1,112 @@
+# 워크플로우 이름
+name: Backend CI/CD
+
+# main 또는 develop 브랜치에 push될 때 실행
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+    
+jobs:
+  # --- 1단계: 빌드 및 Docker Hub 푸시 ---
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # 소스 코드를 체크아웃합니다.
+      - uses: actions/checkout@v4
+      
+      # Docker Hub에 로그인합니다. GitHub Secrets에 저장된 정보를 사용합니다.
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      # ⚠️ 수정: 이미지 태그를 latest와 Git Commit SHA로 구체화합니다.
+      # 이렇게 하면 어떤 코드가 어떤 이미지에 해당하는지 추적하기 쉬워집니다.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            risania/groo-backend:latest
+            risania/groo-backend:${{ github.sha }}
+
+  # --- 2단계: EC2 서버에 배포 ---
+  deploy:
+    # build-and-push 작업이 성공해야만 실행됩니다.
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # 1. 가상 네트워크 생성 (이미 있으면 에러 없이 넘어감)
+            docker network create groo-network || true
+
+            # 2. 기존 App/DB 컨테이너 중지 및 삭제 (무중단 배포를 위해서는 Blue/Green 등 다른 전략 필요)
+            docker stop groo-backend || true
+            docker rm groo-backend || true
+            docker stop groo-mysql || true
+            docker rm groo-mysql || true
+
+            # 3. 사용하지 않는 이전 Docker 이미지 정리 (선택 사항)
+            docker image prune -f
+
+            # 4. Docker Hub에서 최신 백엔드 이미지 다운로드
+            docker pull risania/groo-backend:latest
+
+            # 5. MySQL DB 컨테이너 실행
+            # ⚠️ 중요: -v 옵션으로 Docker 볼륨을 연결하여 DB 데이터를 영속적으로 보존합니다.
+            docker run -d \
+              --name groo-mysql \
+              --network groo-network \
+              -v groo-mysql-data:/var/lib/mysql \
+              -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }} \
+              -e MYSQL_DATABASE=kcc \
+              -e MYSQL_USER=kcc \
+              -e MYSQL_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              --restart unless-stopped \
+              mysql:8.0 --default-authentication-plugin=mysql_native_password
+
+            # 6. DB가 완전히 시작될 때까지 잠시 대기 (더 안정적인 방법은 health-check 스크립트 사용)
+            echo "Waiting for database to start..."
+            sleep 15
+
+            # 7. 백엔드 애플리케이션 컨테이너 실행
+            # ⚠️ 중요: DB 접속 정보는 GitHub Secrets를 통해 안전하게 주입합니다.
+            docker run -d \
+              --name groo-backend \
+              --network groo-network \
+              -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e spring.datasource.url=jdbc:mysql://groo-mysql:3306/kcc \
+              -e spring.datasource.username=kcc \
+              -e spring.datasource.password=${{ secrets.DB_PASSWORD }} \
+              -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_UPLOAD_ACCESS_KEY_ID }} \
+              -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_UPLOAD_SECRET_ACCESS_KEY }} \
+              -e AWS_REGION=${{ secrets.AWS_REGION }} \
+              -e AWS_S3_UPLOAD_BUCKET=${{ secrets.AWS_S3_UPLOAD_BUCKET }} \
+              --restart unless-stopped \
+              risania/groo-backend:latest
+            
+            # 8. 배포 확인 (EC2 호스트에서 직접 health check)
+            echo "Waiting for application to start..."
+            for i in {1..12}; do
+              # --fail 옵션은 HTTP 상태 코드가 200-399 범위가 아니면 에러를 반환합니다.
+              if curl --fail http://localhost:8080/actuator/health; then
+                echo "Application started successfully!"
+                exit 0
+              fi
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            done
+            echo "Application failed to start in 2 minutes."
+            exit 1
