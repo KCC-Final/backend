@@ -16,7 +16,6 @@
 ### 🎯 핵심 가치
 
 - **독서 동기 부여**: 독서 챌린지와 오늘의 문장으로 지속적인 독서 동기 제공
-- **생태계 순환**: 커뮤니티 및 중고거래를 통한 책 생태계 선순환 지원
 - **정보 접근성**: 가까운 도서관의 소장/대출 정보 확인 기능
 - **경험 공유**: 독후감을 통한 독서 경험 나눔과 공감대 형성
 
@@ -87,7 +86,7 @@
 backend/
 ├── src/
 │   ├── main/
-│   │   ├── java/com/kcc/kcc/
+│   │   ├── java/com/kcc/groo/
 │   │   │   ├── controller/          # REST 컨트롤러
 │   │   │   ├── service/             # 비즈니스 로직
 │   │   │   ├── dto/                 # 데이터 전송 객체
@@ -96,7 +95,7 @@ backend/
 │   │   └── resources/
 │   │       ├── mappers/             # MyBatis XML 매퍼
 │   │       ├── db/migration/        # Flyway 마이그레이션
-│   │       └── application.yml      # 애플리케이션 설정
+│   │       └── application.properties      # 애플리케이션 설정
 │   └── test/                        # 테스트 코드
 ├── .github/
 │   └── workflows/
@@ -104,7 +103,7 @@ backend/
 ├── Dockerfile                       # Docker 설정
 ├── README.md                        # 프로젝트 문서
 ├── CONTRIBUTING.md                  # 기여 가이드
-└── pom.xml                         # Maven 설정
+└── build.gradle                     # gradle 설정
 ```
 
 ## 📊 기대 효과
