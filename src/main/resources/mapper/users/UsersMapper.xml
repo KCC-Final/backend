@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.user.dao.IUsersRepository">
+
+<resultMap id="userMap" type="com.kcc.groo.user.data.model.Users">
+<id property="userId" column="user_id"/>
+<id property="password" column="password"/>
+<id property="email" column="email"/>
+<id property="nickname" column="nickname"/>
+<id property="profileImage" column="profile_image"/>
+<id property="introduction" column="introduction"/>
+<id property="gender" column="gender"/>
+<id property="birth" column="birth"/>
+<id property="createdAt" column="created_at"/>
+
+</resultMap>
+<!-- select -->
+<select id="selectUserByUserId" parameterType="string" resultMap="userMap">
+<![CDATA[
+SELECT user_id, password, email, nickname, profile_image, introduction, gender, birth, created_at
+FROM USERS WHERE user_id = #{userId}
+]]>
+</select>
+</mapper>
