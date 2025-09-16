@@ -20,17 +20,20 @@ public class SpringSecurityConfig {
 	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		
-		http.csrf((csrf)->csrf.disable());
-		
-		http.authorizeHttpRequests((authHttpReq)-> authHttpReq
-				.requestMatchers("/api/v1/auth/login", "/api/v1/members/signup").permitAll()
-			    .anyRequest().authenticated()
-			);
-		
-		http.sessionManagement((session)-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-		return http.build();
+	    
+	    http.csrf((csrf)->csrf.disable());
+	    
+	    http.authorizeHttpRequests((authHttpReq)-> authHttpReq
+	        .requestMatchers("/api/v1/auth/login", "/api/v1/members/signup").permitAll()
+	        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()  // 추가
+	        .requestMatchers("/actuator/**").permitAll()                      // 추가
+	        .anyRequest().authenticated()
+	    );
+	    
+	    http.sessionManagement((session)-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+	    http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+	    
+	    return http.build();
 	}
 
 }
