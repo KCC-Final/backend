@@ -67,6 +67,7 @@ jobs:
             # ⚠️ 중요: -v 옵션으로 Docker 볼륨을 연결하여 DB 데이터를 영속적으로 보존합니다.
             docker run -d \
               --name groo-mysql \
+              -p 3306:3306 \
               --network groo-network \
               -v groo-mysql-data:/var/lib/mysql \
               -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }} \
