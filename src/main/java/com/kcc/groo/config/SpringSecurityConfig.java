@@ -23,12 +23,26 @@ public class SpringSecurityConfig {
 	    
 	    http.csrf((csrf)->csrf.disable());
 	    
-	    http.authorizeHttpRequests((authHttpReq)-> authHttpReq
-	        .requestMatchers("/api/v1/auth/login", "/api/v1/members/signup").permitAll()
-	        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()  // 추가
-	        .requestMatchers("/actuator/**").permitAll()                      // 추가
-	        .anyRequest().authenticated()
+	    http.authorizeHttpRequests((authHttpReq) -> authHttpReq
+	            .requestMatchers(
+	                "/swagger-ui.html",
+	                "/swagger-ui/**",
+	                "/v3/api-docs/**",
+	                "/api-docs/**",
+	                "/actuator/**",
+	                "/api-docs/swagger-config"
+	            ).permitAll()
+	            
+	            // 로그인/회원가입 허용
+	            .requestMatchers(
+	                "/api/v1/auth/login",
+	                "/api/v1/members/signup"
+	            ).permitAll()
+	            
+	            // 나머지는 인증 필요
+	            .anyRequest().authenticated()
 	    );
+
 	    
 	    http.sessionManagement((session)-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 	    http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
