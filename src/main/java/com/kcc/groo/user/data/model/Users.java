@@ -12,14 +12,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Users {
 	
-	private String userId;
-	private String password;
-	private String email;
-	private String nickname;
-	private String profileImage;
-	private String introduction;
-	private char gender;
-	private LocalDate birth;
-	private LocalDateTime createdAt;
+	private String userId; //pk
+	private String password; //비밀번호
+	private String email; //이메일
+	private String nickname; //별명
+	private String profileImage; //프로필 이미지
+	private String introduction; //자기소개
+	private char gender; //성별
+	private LocalDate birth; //생년월일
+	private LocalDateTime createdAt; //계정 생성일
+	private boolean status; //탈퇴 상태
+	private LocalDateTime withdrawalDate; //탈퇴일
+	private LocalDateTime pwdChangedAt; //비밀변호 변경일
 
 }
