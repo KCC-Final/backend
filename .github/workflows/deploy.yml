@@ -48,10 +48,10 @@ jobs:
           port: 22
           script: |
             # 1. nginx 설정 디렉토리 및 파일 생성
-            mkdir -p /home/ubuntu/groo/nginx
+            sudo mkdir -p /home/ubuntu/groo/nginx
             
             # nginx.conf 생성 (올바른 경로로 수정)
-            cat > /home/ubuntu/groo/nginx/nginx.conf << 'EOF'
+            sudo tee /home/ubuntu/groo/nginx/nginx.conf > /dev/null << 'EOF'
             user nginx;
             worker_processes auto;
             error_log /var/log/nginx/error.log notice;
@@ -80,7 +80,7 @@ jobs:
             EOF
             
             # default.conf 생성 (컨테이너 이름을 groo-backend로 수정)
-            cat > /home/ubuntu/groo/nginx/default.conf << 'EOF'
+            sudo tee /home/ubuntu/groo/nginx/default.conf > /dev/null << 'EOF'
             server {
                 listen 80;
                 server_name localhost;
