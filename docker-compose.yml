@@ -18,6 +18,21 @@ services:
       - kcc-network
     command: --default-authentication-plugin=mysql_native_password
 
+  # -----------------------------------------------------------------
+  # Redis 서비스 (토큰 캐싱용)
+  # -----------------------------------------------------------------
+  redis:
+    image: redis:7.0-alpine
+    container_name: groo-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kcc-network
+    command: redis-server --appendonly yes --requirepass kccfinal
+
   # =================================================================
   # 🚀 배포(Production) 환경 서비스 - 기존 'app' 서비스
   # =================================================================
@@ -31,6 +46,7 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - redis
     networks:
       - kcc-network
   # =================================================================
@@ -49,11 +65,13 @@ services:
       - "8081:8080" # 포트 충돌을 피하려면 app 서비스와 동시에 실행하지 마세요.
     depends_on:
       - db
+      - redis
     networks:
       - kcc-network
 
 volumes:
   mysql_data:
+  redis_data:
 
 networks:
   kcc-network:
