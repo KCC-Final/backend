@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.kcc.groo.user.dao.IUsersRepository;
@@ -14,6 +15,9 @@ public class UserService implements IUserService{
 	
 	@Autowired
 	IUsersRepository usersRepository;
+	
+	@Autowired
+	PasswordEncoder passwordEncoder;
 
 	/**
 	 * @param userId
@@ -43,19 +47,30 @@ public class UserService implements IUserService{
 	 * @return
 	 */
 	@Override
-	public Users insertUser(String userId, String password, String email, String nickName, char gender, String name,
+	public Users insertUser(String userId, String rawPassword, String email, String nickName, char gender, String name,
 			LocalDate birth) {
 		// TODO Auto-generated method stub
+		
+		if(usersRepository.existsByUserId(userId) > 0) {
+		throw new IllegalArgumentException("already exist id");	
+		}
+		
 		Users user = new Users();
 		user.setUserId(userId);
-		user.setPassword(password);
+		user.setPassword(passwordEncoder.encode(rawPassword));
 		user.setEmail(email);
 		user.setNickname(nickName);
 		user.setGender(gender);
 		user.setName(name);
 		user.setBirth(birth);
 		
-		return usersRepository.insertUser(user);
+		int result =  usersRepository.insertUser(user);
+		
+		if (result > 0) {
+			return user;
+		} else {
+			throw new RuntimeException("failed signup");
+		}
 	}
 
 	@Override

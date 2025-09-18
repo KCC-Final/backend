@@ -53,17 +53,7 @@ public class UsersApiController {
 	@PostMapping("/users/signup")
 	public CommonResponse<Users> signup (@Valid @RequestBody SignupRequest signupReq, HttpServletRequest request) {
 		log.info("signup request: {}", signupReq);
-		
-		String signupId = signupReq.getUserId();
-		List<Users> userIds = userService.selectAllUserId();
-		
-		//id 중복 체크
-		for (int i = 0; i < userIds.size(); i++) {
-			if (signupId.equals(userIds.get(i))) {
-				throw new IllegalArgumentException("This ID already exists. Please enter a new ID.");
-			}
-		}
-		
+
 		//비밀번호 확인
 		if (!signupReq.getPassword1().equals(signupReq.getPassword2())) {
 			throw new IllegalArgumentException("The password does not match. Please re-enter it.");

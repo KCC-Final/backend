@@ -29,8 +29,10 @@ FROM users WHERE user_id = #{userId}
 </select>
 
 <insert id="insertUser" parameterType="com.kcc.groo.user.data.model.Users">
+<![CDATA[ 
 INSERT INTO users (user_id, password, email, nickname, gender, name, birth)
 VALUES (#{userId}, #{password}, #{email},#{nickname},#{gender},#{name},#{birth})
+]]>
 </insert>
 
 <select id="selectAllUserId" resultMap="userMap">
@@ -38,5 +40,14 @@ VALUES (#{userId}, #{password}, #{email},#{nickname},#{gender},#{name},#{birth})
 SELECT user_id FROM users
 ]]>
 </select>
+
+<select id="existsByUserId" parameterType="string" resultType="int">
+  <![CDATA[ 
+  SELECT COUNT(*) 
+    FROM users 
+    WHERE user_id = #{userId}
+    ]]>
+</select>
+
 </mapper>
 
