@@ -1,6 +1,7 @@
 package com.kcc.groo.user.controller;
 
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.data.dto.LoginRequest;
+import com.kcc.groo.user.data.dto.SignupRequest;
 import com.kcc.groo.user.data.model.Users;
 import com.kcc.groo.user.service.UserService;
 
@@ -47,6 +49,33 @@ public class UsersApiController {
 		}
 		return new CommonResponse<String>("Login Success", jwtTokenProvider.generateToken(users));
 	}
-
-
+	
+	@PostMapping("/users/signup")
+	public CommonResponse<Users> signup (@Valid @RequestBody SignupRequest signupReq, HttpServletRequest request) {
+		log.info("signup request: {}", signupReq);
+		
+		String signupId = signupReq.getUserId();
+		List<Users> userIds = userService.selectAllUserId();
+		
+		//id 중복 체크
+		for (int i = 0; i < userIds.size(); i++) {
+			if (signupId.equals(userIds.get(i))) {
+				throw new IllegalArgumentException("This ID already exists. Please enter a new ID.");
+			}
+		}
+		
+		//비밀번호 확인
+		if (!signupReq.getPassword1().equals(signupReq.getPassword2())) {
+			throw new IllegalArgumentException("The password does not match. Please re-enter it.");
+		}
+		try {
+			Users newUser = userService.insertUser(signupReq.getUserId(), signupReq.getPassword1(), signupReq.getEmail(), 
+					signupReq.getNickname(), signupReq.getGender(), signupReq.getName(), signupReq.getBirth());
+			
+			return new CommonResponse<Users>("Insert User Success", newUser);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonResponse<>(e.getMessage(), null);
+		}
+	}
 }

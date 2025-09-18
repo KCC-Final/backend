@@ -19,10 +19,12 @@ public class Users {
 	private String profileImage; //프로필 이미지
 	private String introduction; //자기소개
 	private char gender; //성별
+	private String name; //이름
 	private LocalDate birth; //생년월일
 	private LocalDateTime createdAt; //계정 생성일
 	private boolean status; //탈퇴 상태
 	private LocalDateTime withdrawalDate; //탈퇴일
 	private LocalDateTime pwdChangedAt; //비밀변호 변경일
+	private boolean emailVerify;
 
 }

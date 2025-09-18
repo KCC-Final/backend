@@ -36,7 +36,7 @@ public class SpringSecurityConfig {
 	            // 로그인/회원가입 허용
 	            .requestMatchers(
 	                "/api/v1/auth/login",
-	                "/api/v1/members/signup"
+	                "/api/v1/users/signup"
 	            ).permitAll()
 	            
 	            // 나머지는 인증 필요
