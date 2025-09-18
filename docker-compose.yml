@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   # -----------------------------------------------------------------
-  # DB 서비스 (MySQL 8.0) - 이 부분은 그대로 사용합니다.
+  # DB 서비스 (MySQL 8.0) - 기존 코드 그대로 유지
   # -----------------------------------------------------------------
   db:
     image: mysql:8.0
@@ -19,7 +19,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
 
   # -----------------------------------------------------------------
-  # Redis 서비스 (토큰 캐싱용)
+  # Redis 서비스 (토큰 캐싱용) - 기존 코드 그대로 유지
   # -----------------------------------------------------------------
   redis:
     image: redis:7.0-alpine
@@ -49,8 +49,9 @@ services:
       - redis
     networks:
       - kcc-network
+
   # =================================================================
-  # 🚗 개발(Development) 환경 서비스 - 새로 추가하는 부분!
+  # 🚗 개발(Development) 환경 서비스 - 기존 코드 그대로 유지
   # =================================================================
   app-dev:
     image: gradle:8.7.0-jdk21 # JDK와 Gradle이 포함된 이미지를 직접 사용합니다.
@@ -69,9 +70,38 @@ services:
     networks:
       - kcc-network
 
+  # =================================================================
+  # 🌐 nginx 리버스 프록시 서비스 (새로 추가)
+  # =================================================================
+  nginx:
+    # nginx 알파인 이미지 사용 (경량화)
+    image: nginx:alpine
+    container_name: kcc-nginx
+    restart: unless-stopped
+    ports:
+      # HTTP 포트 80을 호스트에 노출
+      - "80:80"
+      # HTTPS 포트 443도 미리 노출 (SSL 인증서 추가시 사용)
+      - "443:443"
+    volumes:
+      # 커스텀 nginx 설정 파일들을 컨테이너에 마운트
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      # nginx 로그를 호스트에 저장 (모니터링용)
+      - ./logs:/var/log/nginx
+    depends_on:
+      # Spring Boot 앱이 먼저 실행되어야 함
+      - app
+    networks:
+      # 다른 컨테이너들과 동일한 네트워크 사용
+      - kcc-network
+
+# =================================================================
+# 볼륨 및 네트워크 설정 (Redis 볼륨 추가)
+# =================================================================
 volumes:
-  mysql_data:
-  redis_data:
+  mysql_data:    # MySQL 데이터 영속화
+  redis_data:    # Redis 데이터 영속화
 
 networks:
   kcc-network:
