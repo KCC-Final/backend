@@ -10,5 +10,5 @@ import com.kcc.groo.user.data.model.Users;
 public interface IUsersRepository {
 	
 	Users selectUserByUserId (String userId);
-
+	int insertUser (Users user);
 }

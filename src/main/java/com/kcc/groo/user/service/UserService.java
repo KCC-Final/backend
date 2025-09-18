@@ -1,5 +1,7 @@
 package com.kcc.groo.user.service;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,11 @@ public class UserService implements IUserService{
 	@Autowired
 	IUsersRepository usersRepository;
 
+	/**
+	 * @param userId
+	 * @param password
+	 * @return
+	 */
 	@Override
 	public Users loginUser (String userId, String password) {
 		// TODO Auto-generated method stub
@@ -22,6 +29,23 @@ public class UserService implements IUserService{
 		}
 		
 		return user;
+	}
+
+	/**
+	 * @param userId
+	 * @param rawPassword
+	 * @param email
+	 * @param nickName
+	 * @param gender
+	 * @param name
+	 * @param birth
+	 * @return
+	 */
+	@Override
+	public Users insertUser(String userId, String rawPassword, String email, String nickName, char gender, String name,
+			LocalDate birth) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

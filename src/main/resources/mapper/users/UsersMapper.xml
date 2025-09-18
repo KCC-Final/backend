@@ -22,4 +22,7 @@ SELECT user_id, password, email, nickname, profile_image, introduction, gender, 
 FROM USERS WHERE user_id = #{userId}
 ]]>
 </select>
+
+<insert id="insertUser" parameterType="com.kcc.groo.user.data.model.Users">
+</insert>
 </mapper>
