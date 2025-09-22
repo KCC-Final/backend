@@ -1,23 +1,32 @@
 package com.kcc.groo.user.service;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.kcc.groo.user.dao.IUsersRepository;
+import com.kcc.groo.user.data.dto.SignupRequest;
 import com.kcc.groo.user.data.model.Users;
 
 @Service
 public class UserService implements IUserService{
-	
+
 	@Autowired
 	IUsersRepository usersRepository;
 	
 	@Autowired
 	PasswordEncoder passwordEncoder;
+
+    @Autowired
+    RedisTemplate<String, String> redisTemplate;
+    
+    @Autowired
+    JavaMailSender javaMailSender;
 
 	/**
 	 * @param userId
@@ -32,6 +41,12 @@ public class UserService implements IUserService{
 		if(user == null) {
 			throw new IllegalArgumentException("can not found account");
 		}
+		if (!user.isEmailVerified()) {
+			throw new IllegalStateException("need to verified email");
+		}
+		if(!passwordEncoder.matches(password, user.getPassword())) {
+	        throw new IllegalArgumentException("password does not match");
+	    }
 		
 		return user;
 	}
@@ -47,24 +62,31 @@ public class UserService implements IUserService{
 	 * @return
 	 */
 	@Override
-	public Users insertUser(String userId, String rawPassword, String email, String nickName, char gender, String name,
-			LocalDate birth) {
+	public Users insertUser(SignupRequest signupRequest) {
 		// TODO Auto-generated method stub
 		
-		if(usersRepository.existsByUserId(userId) > 0) {
+		if(usersRepository.existsByUserId(signupRequest.getUserId()) > 0) {
 		throw new IllegalArgumentException("already exist id");	
 		}
 		
-		Users user = new Users();
-		user.setUserId(userId);
-		user.setPassword(passwordEncoder.encode(rawPassword));
-		user.setEmail(email);
-		user.setNickname(nickName);
-		user.setGender(gender);
-		user.setName(name);
-		user.setBirth(birth);
+		int result = 0;
 		
-		int result =  usersRepository.insertUser(user);
+		Users user = new Users();
+		user.setUserId(signupRequest.getUserId());
+		
+		if (signupRequest.getPassword1().equals(signupRequest.getPassword2())) {
+			user.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
+		}
+		user.setEmail(signupRequest.getEmail());
+		user.setNickName(signupRequest.getNickName());
+		user.setGender(signupRequest.getGender());
+		user.setName(signupRequest.getName());
+		user.setBirth(signupRequest.getBirth());
+		user.setCheckPrivacy(signupRequest.isCheckPrivacy());
+		user.setCheckService(signupRequest.isCheckService());
+		user.setEmailVerified(false);
+		
+		result =  usersRepository.insertUser(user);
 		
 		if (result > 0) {
 			return user;
@@ -74,9 +96,18 @@ public class UserService implements IUserService{
 	}
 
 	@Override
+	public String verificationEmail(String email) {
+		// TODO Auto-generated method stub
+		
+		return null;
+	}
+	
+	@Override
 	public List<Users> selectAllUserId() {
 		// TODO Auto-generated method stub
 		return usersRepository.selectAllUserId();
 	}
+
+
 
 }

@@ -15,4 +15,5 @@ public interface IUsersRepository {
 	int insertUser (Users user);
 	List<Users> selectAllUserId(); //select all userId
 	int existsByUserId (String userId); //check userId in db
+	int updateEmailVerified(boolean emailVerified);
 }

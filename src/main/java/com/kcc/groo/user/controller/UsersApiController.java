@@ -1,9 +1,5 @@
 package com.kcc.groo.user.controller;
 
-
-import java.time.LocalDate;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,13 +50,9 @@ public class UsersApiController {
 	public CommonResponse<Users> signup (@Valid @RequestBody SignupRequest signupReq, HttpServletRequest request) {
 		log.info("signup request: {}", signupReq);
 
-		//비밀번호 확인
-		if (!signupReq.getPassword1().equals(signupReq.getPassword2())) {
-			throw new IllegalArgumentException("The password does not match. Please re-enter it.");
-		}
 		try {
 			Users newUser = userService.insertUser(signupReq.getUserId(), signupReq.getPassword1(), signupReq.getEmail(), 
-					signupReq.getNickname(), signupReq.getGender(), signupReq.getName(), signupReq.getBirth());
+					signupReq.getNickName(), signupReq.getGender(), signupReq.getName(), signupReq.getBirth(), signupReq.isCheckPrivacy(), signupReq.isCheckService(), signupReq.isEmailVerified());
 			
 			return new CommonResponse<Users>("Insert User Success", newUser);
 		} catch (Exception e) {

@@ -7,7 +7,7 @@
 <id property="userId" column="user_id"/>
 <id property="password" column="password"/>
 <id property="email" column="email"/>
-<id property="nickname" column="nickname"/>
+<id property="nickName" column="nickname"/>
 <id property="profileImage" column="profile_image"/>
 <id property="introduction" column="introduction"/>
 <id property="gender" column="gender"/>
@@ -17,8 +17,9 @@
 <id property="status" column="status"/>
 <id property="withdrawaDate" column="withdrawal_date"/>
 <id property="pwd_changedAt" column="pwd_changed_at"/>
-<id property="emailVerify" column="email_verify"/>
-
+<id property="checkPrivacy" column="check_privacy"/>
+<id property="checkService" column="check_service"/>
+<id property="emailVerified" column="email_Verified"/>
 </resultMap>
 <!-- select -->
 <select id="selectUserByUserId" parameterType="string" resultMap="userMap">
@@ -30,10 +31,16 @@ FROM users WHERE user_id = #{userId}
 
 <insert id="insertUser" parameterType="com.kcc.groo.user.data.model.Users">
 <![CDATA[ 
-INSERT INTO users (user_id, password, email, nickname, gender, name, birth)
-VALUES (#{userId}, #{password}, #{email},#{nickname},#{gender},#{name},#{birth})
+INSERT INTO users (user_id, password, email, nickname, gender, name, birth, check_privacy,check_service )
+VALUES (#{userId}, #{password}, #{email},#{nickName},#{gender},#{name},#{birth}, #{checkPrivacy}, #{checkService})
 ]]>
 </insert>
+
+<update id="updateEmailVerified">
+UPDATE users
+SET email_verified = #{emailVerified}
+WHERE user_id = #{userId}
+</update>
 
 <select id="selectAllUserId" resultMap="userMap">
 <![CDATA[
