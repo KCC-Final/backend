@@ -15,9 +15,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EmailVerification {
 	
-	private String userId; //fk
 	@Id
-	private String token; //verificatin token
+	private String email; //pk
+	private String code; //verificatin token
 	private LocalDateTime expires_at; //만료 시간 (5분)
 	private boolean isUsed; //토큰 사용 여부
 	private LocalDateTime createdAt; //토큰 생성일

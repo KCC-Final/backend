@@ -1,7 +1,7 @@
 package com.kcc.groo.user.data.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +20,7 @@ public class Users {
 	private String introduction; //자기소개
 	private char gender; //성별
 	private String name; //이름
-	private LocalDate birth; //생년월일
+	private Date birth; //생년월일
 	private LocalDateTime createdAt; //계정 생성일
 	private boolean status; //탈퇴 상태
 	private LocalDateTime withdrawalDate; //탈퇴일

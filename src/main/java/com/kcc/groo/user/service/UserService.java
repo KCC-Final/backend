@@ -1,11 +1,9 @@
 package com.kcc.groo.user.service;
 
+import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +21,10 @@ public class UserService implements IUserService{
 	PasswordEncoder passwordEncoder;
 
     @Autowired
-    RedisTemplate<String, String> redisTemplate;
+    EmailVerificationService emailVerificationService;
     
     @Autowired
-    JavaMailSender javaMailSender;
+    MailService mailService;
 
 	/**
 	 * @param userId
@@ -51,57 +49,56 @@ public class UserService implements IUserService{
 		return user;
 	}
 
-	/**
-	 * @param userId
-	 * @param rawPassword
-	 * @param email
-	 * @param nickName
-	 * @param gender
-	 * @param name
-	 * @param birth
-	 * @return
-	 */
+	
 	@Override
-	public Users insertUser(SignupRequest signupRequest) {
+	public Users requestInsertUser(SignupRequest signupRequest) {
 		// TODO Auto-generated method stub
+		
 		
 		if(usersRepository.existsByUserId(signupRequest.getUserId()) > 0) {
 		throw new IllegalArgumentException("already exist id");	
 		}
 		
-		int result = 0;
+		Users newUser = new Users();
+	    newUser.setUserId(signupRequest.getUserId());
+	    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
+	    newUser.setEmail(signupRequest.getEmail());
+	    newUser.setNickName(signupRequest.getNickName());
+	    newUser.setGender(signupRequest.getGender());
+	    newUser.setName(signupRequest.getName());
+	    newUser.setBirth(signupRequest.getBirth());
+	    newUser.setCheckPrivacy(signupRequest.isCheckPrivacy());
+	    newUser.setCheckService(signupRequest.isCheckService());
+	    newUser.setEmailVerified(true);
 		
-		Users user = new Users();
-		user.setUserId(signupRequest.getUserId());
-		
-		if (signupRequest.getPassword1().equals(signupRequest.getPassword2())) {
-			user.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
-		}
-		user.setEmail(signupRequest.getEmail());
-		user.setNickName(signupRequest.getNickName());
-		user.setGender(signupRequest.getGender());
-		user.setName(signupRequest.getName());
-		user.setBirth(signupRequest.getBirth());
-		user.setCheckPrivacy(signupRequest.isCheckPrivacy());
-		user.setCheckService(signupRequest.isCheckService());
-		user.setEmailVerified(false);
-		
-		result =  usersRepository.insertUser(user);
+		int result =  usersRepository.insertUser(newUser);
+		//String email = signupRequest.getEmail();
 		
 		if (result > 0) {
-			return user;
+			/*
+			 * String code = emailVerificationService.createVerificationCode(email);
+			 * mailService.sendVerificationEmail(email, code);
+			 */
+			return newUser;
 		} else {
 			throw new RuntimeException("failed signup");
 		}
 	}
 
-	@Override
-	public String verificationEmail(String email) {
-		// TODO Auto-generated method stub
-		
-		return null;
-	}
 	
+	@Override
+	public boolean confirmEmail(String email, String code) {
+		// TODO Auto-generated method stub
+		boolean verified = emailVerificationService.verifyCode(email, code);
+		if (!verified) {
+			return false;
+		}
+		
+		int updated = usersRepository.updateEmailVerified(email, verified);
+		
+		return updated > 0;
+	}
+
 	@Override
 	public List<Users> selectAllUserId() {
 		// TODO Auto-generated method stub

@@ -43,9 +43,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			response.getWriter().write("{\"error\":\"Unauthorized\"}");
 			return;
-		} /*
-			 * finally { SecurityContextHolder.clearContext(); }
-			 */
+		}
 		filterChain.doFilter(request, response);
 	}
 	
