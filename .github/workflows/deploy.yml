@@ -1,29 +1,33 @@
-# 워크플로우 이름
+# 워크플로우의 전체 이름을 정의합니다. GitHub Actions 탭에서 이 이름으로 표시됩니다.
 name: Backend CI/CD
 
-# main 또는 develop 브랜치에 push될 때 실행
+# 이 워크플로우가 언제 실행될지를 정의하는 트리거(trigger) 설정입니다.
 on:
+  # 'main' 또는 'develop' 브랜치에 코드가 푸시(push)될 때 실행됩니다.
   push:
     branches: [ "main", "develop" ]
-  pull_request:
-    branches: [ "main" ]
     
+# 워크플로우를 구성하는 실제 작업(job)들의 목록입니다.
 jobs:
-  # --- 1단계: 빌드 및 Docker Hub 푸시 ---
+  # --- 1단계: 소스 코드를 빌드하여 Docker 이미지로 만들고, Docker Hub에 푸시하는 작업 ---
   build-and-push:
+    # 이 작업이 실행될 가상 서버의 OS 환경을 지정합니다. (최신 우분투)
     runs-on: ubuntu-latest
+    # 이 작업에서 수행될 단계(step)들을 순서대로 나열합니다.
     steps:
-      # 소스 코드를 체크아웃합니다.
-      - uses: actions/checkout@v4
+      # 1-1. 레포지토리의 소스 코드를 가상 서버(Runner)의 작업 공간으로 다운로드합니다.
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
-      # Docker Hub에 로그인합니다. GitHub Secrets에 저장된 정보를 사용합니다.
+      # 1-2. GitHub Secrets에 저장된 정보를 사용하여 Docker Hub에 로그인합니다.
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      # 이미지 태그를 latest와 Git Commit SHA로 구체화합니다.
+      # 1-3. Dockerfile을 사용하여 이미지를 빌드하고, Docker Hub 레지스트리로 푸시합니다.
+      # 태그는 'latest'와 고유 식별을 위한 커밋 해시(SHA) 두 가지를 사용합니다.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -33,13 +37,21 @@ jobs:
             risania/groo-backend:latest
             risania/groo-backend:${{ github.sha }}
 
-  # --- 2단계: EC2 서버에 배포 ---
+  # --- 2단계: 빌드된 Docker 이미지를 EC2 서버에 배포하는 작업 ---
   deploy:
-    # build-and-push 작업이 성공해야만 실행됩니다.
+    # 'needs' 키워드는 이 작업이 어떤 작업에 의존하는지를 명시합니다.
+    # 즉, 'build-and-push' 작업이 성공적으로 완료되어야만 'deploy' 작업이 실행됩니다.
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to EC2
+      # 2-1. 레포지토리 코드를 runner에 체크아웃합니다.
+      # EC2 서버로 복사할 nginx 설정 파일에 접근하기 위해 반드시 필요합니다.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2-2. EC2 서버에 nginx 설정 파일을 저장할 디렉토리를 미리 생성합니다.
+      # 디렉토리가 없어서 파일 복사(scp)가 실패하는 것을 방지합니다.
+      - name: Create nginx directory on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -47,122 +59,44 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # 1. nginx 설정 디렉토리 및 파일 생성
             sudo mkdir -p /home/ubuntu/groo/nginx
-            
-            # nginx.conf 생성 (올바른 경로로 수정)
-            sudo tee /home/ubuntu/groo/nginx/nginx.conf > /dev/null << 'EOF'
-            user nginx;
-            worker_processes auto;
-            error_log /var/log/nginx/error.log notice;
-            pid /var/run/nginx.pid;
-            
-            events {
-                worker_connections 1024;
-            }
-            
-            http {
-                include /etc/nginx/mime.types;
-                default_type application/octet-stream;
-                
-                log_format main '$remote_addr - $remote_user [$time_local] "$request" '
-                                '$status $body_bytes_sent "$http_referer" '
-                                '"$http_user_agent" "$http_x_forwarded_for"';
-                
-                access_log /var/log/nginx/access.log main;
-                sendfile on;
-                tcp_nopush on;
-                keepalive_timeout 65;
-                gzip on;
-                
-                include /etc/nginx/conf.d/*.conf;
-            }
-            EOF
-            
-            # default.conf 생성 (컨테이너 이름을 groo-backend로 수정)
-            sudo tee /home/ubuntu/groo/nginx/default.conf > /dev/null << 'EOF'
-            server {
-                listen 80;
-                server_name localhost;
-                
-                # ALB 헬스체크 전용 경로
-                location /health {
-                    proxy_pass http://groo-backend:8080/actuator/health;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-                
-                # 정보나루 Open API 프록시 설정
-                location /api/library/ {
-                    proxy_pass http://data4library.kr/api/;
-                    proxy_set_header Host data4library.kr;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                    
-                    add_header 'Access-Control-Allow-Origin' '*' always;
-                    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-                    add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
-                }
-                
-                # 알라딘 Open API 프록시 설정
-                location /api/aladin/ {
-                    proxy_pass http://www.aladin.co.kr/ttb/api/;
-                    proxy_set_header Host www.aladin.co.kr;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                    
-                    add_header 'Access-Control-Allow-Origin' '*' always;
-                    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-                    add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
-                }
-                
-                # 백엔드 Spring Boot API 프록시 설정
-                location /api/ {
-                    proxy_pass http://groo-backend:8080/;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-                
-                # 정적 파일 서빙
-                location / {
-                    root /usr/share/nginx/html;
-                    index index.html index.htm;
-                    try_files $uri $uri/ /index.html;
-                }
-                
-                error_page 500 502 503 504 /50x.html;
-                location = /50x.html {
-                    root /usr/share/nginx/html;
-                }
-            }
-            EOF
 
-            # 2. 가상 네트워크 생성 (이미 있으면 에러 없이 넘어감)
+      # 2-3. 레포지토리의 nginx 설정 파일들을 EC2 서버로 복사합니다.
+      # 'source'는 레포지토리 내의 경로, 'target'은 EC2 서버 내의 경로입니다.
+      - name: Copy nginx config files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: "./nginx/*"  # 레포지토리 루트의 'nginx' 폴더 안 모든 파일
+          target: "/home/ubuntu/groo/nginx" # EC2의 '/home/ubuntu/groo/nginx' 폴더로 복사
+
+      # 2-4. EC2 서버에 접속하여 컨테이너들을 실행하는 메인 스크립트를 실행합니다.
+      - name: Deploy containers to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # 1. 컨테이너들이 서로 통신할 수 있는 가상 네트워크를 생성합니다. (이미 존재하면 넘어갑니다)
             docker network create groo-network || true
 
-            # 3. 기존 컨테이너들 중지 및 삭제
-            docker stop groo-nginx || true
-            docker rm groo-nginx || true
-            docker stop groo-backend || true
-            docker rm groo-backend || true
-            docker stop groo-mysql || true
-            docker rm groo-mysql || true
-            docker stop groo-redis || true
-            docker rm groo-redis || true
+            # 2. 배포 과정에서 충돌을 막기 위해 기존에 실행 중이던 모든 컨테이너를 중지하고 삭제합니다.
+            docker stop groo-nginx groo-backend groo-mysql groo-redis || true
+            docker rm groo-nginx groo-backend groo-mysql groo-redis || true
 
-            # 4. 사용하지 않는 이전 Docker 이미지 정리 (선택 사항)
+            # 3. 서버의 디스크 공간을 확보하기 위해 사용되지 않는 오래된 Docker 이미지를 삭제합니다.
             docker image prune -f
 
-            # 5. Docker Hub에서 최신 백엔드 이미지 다운로드
+            # 4. 1단계에서 빌드하여 Docker Hub에 올린 최신 백엔드 이미지를 다운로드합니다.
             docker pull risania/groo-backend:latest
 
-            # 6. MySQL DB 컨테이너 실행
+            # 5. MySQL 데이터베이스 컨테이너를 실행합니다.
+            # 볼륨(-v)을 연결하여 컨테이너가 삭제되어도 데이터가 유지되도록 합니다.
             docker run -d \
               --name groo-mysql \
               -p 3306:3306 \
@@ -175,7 +109,8 @@ jobs:
               --restart unless-stopped \
               mysql:8.0 --default-authentication-plugin=mysql_native_password
 
-            # 7. Redis 컨테이너 실행 (토큰 캐싱용)
+            # 6. Redis 캐시/세션 서버 컨테이너를 실행합니다.
+            # 볼륨(-v)을 연결하여 데이터 지속성을 확보합니다.
             docker run -d \
               --name groo-redis \
               -p 6379:6379 \
@@ -184,11 +119,12 @@ jobs:
               --restart unless-stopped \
               redis:7.0-alpine redis-server --appendonly yes --requirepass ${{ secrets.REDIS_PASSWORD }}
 
-            # 8. DB와 Redis가 완전히 시작될 때까지 대기
+            # 7. DB와 Redis가 완전히 준비될 시간을 벌기 위해 15초간 대기합니다.
             echo "Waiting for database and redis to start..."
             sleep 15
 
-            # 9. 백엔드 애플리케이션 컨테이너 실행
+            # 8. 스프링 부트 백엔드 애플리케이션 컨테이너를 실행합니다.
+            # DB, Redis 접속 정보 등을 환경변수(-e)로 주입합니다.
             docker run -d \
               --name groo-backend \
               --network groo-network \
@@ -206,11 +142,12 @@ jobs:
               --restart unless-stopped \
               risania/groo-backend:latest
 
-            # 10. 애플리케이션이 시작될 때까지 대기
+            # 9. 스프링 부트 애플리케이션이 시작될 시간을 벌기 위해 20초간 대기합니다.
             echo "Waiting for application to start..."
             sleep 20
 
-            # 11. nginx 컨테이너 실행 (올바른 경로로 마운트)
+            # 10. Nginx 컨테이너를 실행합니다. 외부의 80, 443 포트 요청을 받습니다.
+            # EC2 서버에 복사해 둔 설정 파일들을 Nginx 컨테이너 내부의 올바른 위치로 연결(마운트)합니다.
             docker run -d \
               --name groo-nginx \
               --network groo-network \
@@ -220,7 +157,8 @@ jobs:
               --restart unless-stopped \
               nginx:alpine
             
-            # 12. 배포 확인 (nginx를 통한 health check)
+            # 11. 최종 배포 성공 여부를 확인하기 위한 헬스 체크를 실행합니다.
+            # Nginx를 통해 백엔드 앱의 /health 엔드포인트가 정상 응답하는지 2분간 10초 간격으로 확인합니다.
             echo "Waiting for nginx to start..."
             sleep 10
             for i in {1..12}; do
