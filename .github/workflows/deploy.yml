@@ -76,7 +76,21 @@ jobs:
           port: 22
           source: "./nginx/*"  # 레포지토리 루트의 'nginx' 폴더 안 모든 파일
           target: "/home/ubuntu/groo/nginx" # EC2의 '/home/ubuntu/groo/nginx' 폴더로 복사
-
+          overwrite: true  # ✅ 기존 파일을 덮어쓰기 허용 (이 줄이 핵심 수정사항)
+      # ===============================================================
+      # ✅ 아래 디버깅 단계를 여기에 추가해주세요.
+      # =================================================================
+      - name: Verify copied files on EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "--- Checking contents of /home/ubuntu/groo ---"
+            ls -alR /home/ubuntu/groo
+            echo "--- Checking contents of /home/ubuntu/groo/nginx ---"
+            ls -alR /home/ubuntu/groo/nginx
       # 2-4. EC2 서버에 접속하여 컨테이너들을 실행하는 메인 스크립트를 실행합니다.
       - name: Deploy containers to EC2
         uses: appleboy/ssh-action@v1.0.0
