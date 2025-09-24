@@ -33,10 +33,12 @@ public class SpringSecurityConfig {
 	                "/api-docs/swagger-config"
 	            ).permitAll()
 	            
-	            // 로그인/회원가입 인증 허용
+	            // 로그인/회원가입 / 아이디 / 비밀번호 찾기 인증 허용
 	            .requestMatchers(
 	                "/api/v1/auth/login",
 	                "/api/v1/users/signup",
+	                "/api/v1/users/id",
+	                "/api/v1/email/find-id",
 	                "/api/v1/email/request",
 	                "/api/v1/email/verify"
 	            ).permitAll()

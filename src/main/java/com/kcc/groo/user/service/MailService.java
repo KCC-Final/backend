@@ -14,6 +14,13 @@ public class MailService {
 	@Autowired
 	JavaMailSender javaMailSender;
 	
+	/**
+	 * @param toEmail
+	 * @param code
+	 * @author kys
+	 * @created 2025-09-23
+	 * 이메일 인증번호 전송 및 이메일 내용
+	 */
 	public void sendVerificationEmail (String toEmail, String code) {
 		 String subject = "이메일 인증번호 안내";
 		 String content = """
@@ -42,6 +49,14 @@ public class MailService {
 		 sendHtmlMail (toEmail, subject, content);
 	}
 	
+	/**
+	 * @param toEmail
+	 * @param subject
+	 * @param content
+	 * @author kys
+	 * @created 2025-09-23
+	 * 이메일 전송
+	 */
 	private void sendHtmlMail (String toEmail, String subject, String content) {
 		try {
 			MimeMessage message = javaMailSender.createMimeMessage();

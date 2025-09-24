@@ -56,5 +56,27 @@ SELECT user_id FROM users
     ]]>
 </select>
 
+<select id="existsByUserName" parameterType="string" resultType="int">
+  <![CDATA[ 
+  SELECT COUNT(*) 
+    FROM users 
+    WHERE name = #{name}
+    ]]>
+</select>
+
+<select id="existsByUserEmail" parameterType="string" resultType="int">
+  <![CDATA[ 
+  SELECT COUNT(*) 
+    FROM users 
+    WHERE email = #{email}
+    ]]>
+</select>
+
+<select id="findUserIdByNameAndEmail" resultType="string">
+  <![CDATA[ 
+  SELECT user_id FROM users WHERE name=#{name} AND email=#{email}
+    ]]>
+</select>
+
 </mapper>
 

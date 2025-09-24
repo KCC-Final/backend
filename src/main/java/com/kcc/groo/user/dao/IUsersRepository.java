@@ -3,7 +3,7 @@ package com.kcc.groo.user.dao;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.springframework.data.repository.query.Param;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.kcc.groo.user.data.model.Users;
@@ -12,9 +12,76 @@ import com.kcc.groo.user.data.model.Users;
 @Mapper
 public interface IUsersRepository {
 	
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-09-15
+	 * 주어진 userId로 단일 회원 정보를 조회
+	 */
 	Users selectUserByUserId (String userId);
-	int insertUser (Users user);
+	
+	/**
+	 * @param user
+	 * @return
+	 * @author kys
+	 * @created 2025-09-23
+	 * 새로운 회원 정보 db에 저장
+	 */
+	int insertUser (Users user); //save user
+	
+	/**
+	 * @return
+	 * @author kys
+	 * @created 2025-09-15
+	 * 모든 회원의 userId 목록을 조회
+	 */
 	List<Users> selectAllUserId(); //select all userId
+	
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-09-23
+	 * 회원가입 시 중복 아이디 체크
+	 */
 	int existsByUserId (String userId); //check userId in db
-	int updateEmailVerified(@Param("email") String email, @Param("emailVerified") boolean emailVerified);
+	
+	/**
+	 * @param email
+	 * @param emailVerified
+	 * @return
+	 * @author kys
+	 * @created 2025-09-23
+	 * 이메일 인증 성공 여부 업데이트
+	 */
+	int updateEmailVerified(@Param("email") String email, @Param("emailVerified") boolean emailVerified); //update email verified column
+	
+	/**
+	 * @param name
+	 * @param email
+	 * @return
+	 * @author kys
+	 * @created 2025-09-24
+	 * 이메일, 이름을 통해 회원의 아이디 조회
+	 */
+	String findUserIdByNameAndEmail (@Param("name") String name,@Param("email") String email); //get userId
+	
+	/**
+	 * @param name
+	 * @return
+	 * @author kys
+	 * @created 2025-09-24
+	 * 특정 이름을 가진 회원이 존재하는지 확인
+	 */
+	int existsByUserName(String name); //check name in db
+	
+	/**
+	 * @param email
+	 * @return
+	 * @author kys
+	 * @created 2025-09-24
+	 * 특정 이메일이 DB에 등록되어 있는지 확인
+	 */
+	int existsByUserEmail(String email); //check email in db
 }
