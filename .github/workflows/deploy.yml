@@ -1,36 +1,38 @@
-# 워크플로우의 전체 이름을 정의합니다. GitHub Actions 탭에서 이 이름으로 표시됩니다.
+# ===============================================
+# Backend CI/CD 워크플로우
+# - main / develop / 테스트 브랜치에 push 시 동작
+# - main 브랜치로의 PR 시에도 동작
+# - 빌드 → Docker Hub 푸시 → EC2 배포 자동화
+# ===============================================
+
 name: Backend CI/CD
 
-# 이 워크플로우가 언제 실행될지를 정의하는 트리거(trigger) 설정입니다.
 on:
-  # 'main', 'develop' 또는 테스트 브랜치에 코드가 푸시(push)될 때 실행됩니다.
   push:
-    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] # ✅ 테스트 브랜치 추가
-  # 'main' 브랜치로 Pull Request가 생성될 때도 실행됩니다. (빌드 테스트 목적)
+    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] # ✅ main, develop, 테스트 브랜치에서 push 시 실행
   pull_request:
-    branches: [ "main" ]
-    
-# 워크플로우를 구성하는 실제 작업(job)들의 목록입니다.
+    branches: [ "main" ] # ✅ main 브랜치로 PR 생성 시 실행 (빌드 테스트 목적)
+
 jobs:
-  # --- 1단계: 소스 코드를 빌드하여 Docker 이미지로 만들고, Docker Hub에 푸시하는 작업 ---
+  # ------------------------------------------------------------
+  # 1단계: Backend 소스를 Docker 이미지로 빌드하고 Docker Hub에 푸시
+  # ------------------------------------------------------------
   build-and-push:
-    # 이 작업이 실행될 가상 서버의 OS 환경을 지정합니다. (최신 우분투)
     runs-on: ubuntu-latest
-    # 이 작업에서 수행될 단계(step)들을 순서대로 나열합니다.
     steps:
-      # 1-1. 레포지토리의 소스 코드를 가상 서버(Runner)의 작업 공간으로 다운로드합니다.
+      # (1) 레포지토리 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      # 1-2. GitHub Secrets에 저장된 정보를 사용하여 Docker Hub에 로그인합니다.
+
+      # (2) Docker Hub 로그인 (Secrets 사용)
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      # 1-3. Dockerfile을 사용하여 이미지를 빌드하고, Docker Hub 레지스트리로 푸시합니다.
-      # 태그는 'latest'와 고유 식별을 위한 커밋 해시(SHA) 두 가지를 사용합니다.
+
+      # (3) Docker 이미지 빌드 및 푸시
+      # latest 태그와 커밋 SHA 태그 두 가지를 함께 푸시
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -40,18 +42,18 @@ jobs:
             risania/groo-backend:latest
             risania/groo-backend:${{ github.sha }}
 
-  # --- 2단계: 빌드된 Docker 이미지를 EC2 서버에 배포하는 작업 ---
+  # ------------------------------------------------------------
+  # 2단계: EC2 서버에 배포 (Docker 컨테이너 실행)
+  # ------------------------------------------------------------
   deploy:
-    # 'needs' 키워드는 'build-and-push' 작업이 성공해야만 이 작업이 실행됨을 명시합니다.
-    needs: build-and-push
+    needs: build-and-push # ✅ build-and-push 성공 후에만 실행
     runs-on: ubuntu-latest
     steps:
-      # 2-1. 레포지토리 코드를 runner에 체크아웃합니다.
-      # EC2 서버로 복사할 nginx 설정 파일에 접근하기 위해 반드시 필요합니다.
+      # (1) 레포지토리 체크아웃 (nginx 설정 파일 접근 위해 필요)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ✅ 2-2. EC2에 nginx 설정 폴더를 생성하고, 파일 복사를 위한 권한을 부여합니다.
+      # (2) EC2에 nginx 디렉토리 생성 및 권한 부여
       - name: Create nginx directory and grant permission
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -60,19 +62,18 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # sudo로 디렉토리를 생성하면 소유자가 root가 됩니다.
             sudo mkdir -p /home/ubuntu/groo/nginx
-            # scp-action이 'ubuntu' 계정으로 파일을 쓸 수 있도록 디렉토리 소유권을 변경합니다.
             sudo chown -R ubuntu:ubuntu /home/ubuntu/groo/nginx
-      # =================================================================
-      # ✅ 'Copy' 단계 바로 위에 이 단계를 추가해야 합니다.
-      # =================================================================
+
+      # (3) Runner(액션 서버)에서 현재 작업 디렉토리 구조 확인 (디버깅용)
       - name: Check runner workspace files
         run: |
           echo "--- Runner Workspace Contents ---"
           ls -alR
-      # 2-3. 레포지토리의 nginx 설정 파일들을 EC2 서버로 복사합니다.
-      # 'source'는 레포지토리 내의 경로, 'target'은 EC2 서버 내의 경로입니다.
+
+      # (4) nginx 설정 파일들을 EC2로 복사
+      # ✅ nginx 디렉토리 전체를 /home/ubuntu/groo 하위로 전송
+      # 결과: /home/ubuntu/groo/nginx/nginx.conf, /home/ubuntu/groo/nginx/default.conf
       - name: Copy nginx config files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -80,12 +81,11 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          source: "./nginx/*"  # 레포지토리 루트의 'nginx' 폴더 안 모든 파일
-          target: "/home/ubuntu/groo" # EC2의 '/home/ubuntu/groo/nginx' 폴더로 복사
-          overwrite: true  # ✅ 기존 파일을 덮어쓰기 허용 (이 줄이 핵심 수정사항)
-      # ===============================================================
-      # ✅ 아래 디버깅 단계를 여기에 추가해주세요.
-      # =================================================================
+          source: "./nginx"   # nginx 디렉토리 전체
+          target: "/home/ubuntu/groo"
+          overwrite: true     # 기존 파일 덮어쓰기 허용
+
+      # (5) 복사된 파일 확인 (EC2 내부 디렉토리 구조 출력)
       - name: Verify copied files on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -97,7 +97,8 @@ jobs:
             ls -alR /home/ubuntu/groo
             echo "--- Checking contents of /home/ubuntu/groo/nginx ---"
             ls -alR /home/ubuntu/groo/nginx
-      # 2-4. EC2 서버에 접속하여 컨테이너들을 실행하는 메인 스크립트를 실행합니다.
+
+      # (6) EC2 서버에서 Docker 컨테이너 실행
       - name: Deploy containers to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -106,21 +107,20 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # 1. 컨테이너들이 서로 통신할 수 있는 가상 네트워크를 생성합니다. (이미 존재하면 넘어갑니다)
+            # 1) Docker 네트워크 생성 (이미 존재하면 무시)
             docker network create groo-network || true
 
-            # 2. 배포 과정에서 충돌을 막기 위해 기존에 실행 중이던 모든 컨테이너를 중지하고 삭제합니다.
+            # 2) 기존 컨테이너 중지 및 삭제
             docker stop groo-nginx groo-backend groo-mysql groo-redis || true
             docker rm groo-nginx groo-backend groo-mysql groo-redis || true
 
-            # 3. 서버의 디스크 공간을 확보하기 위해 사용되지 않는 오래된 Docker 이미지를 삭제합니다.
+            # 3) 오래된 이미지 정리
             docker image prune -f
 
-            # 4. 1단계에서 빌드하여 Docker Hub에 올린 최신 백엔드 이미지를 다운로드합니다.
+            # 4) 최신 backend 이미지 Pull
             docker pull risania/groo-backend:latest
 
-            # 5. MySQL 데이터베이스 컨테이너를 실행합니다.
-            # 볼륨(-v)을 연결하여 컨테이너가 삭제되어도 데이터가 유지되도록 합니다.
+            # 5) MySQL 컨테이너 실행
             docker run -d \
               --name groo-mysql \
               -p 3306:3306 \
@@ -133,8 +133,7 @@ jobs:
               --restart unless-stopped \
               mysql:8.0 --default-authentication-plugin=mysql_native_password
 
-            # 6. Redis 캐시/세션 서버 컨테이너를 실행합니다.
-            # 볼륨(-v)을 연결하여 데이터 지속성을 확보합니다.
+            # 6) Redis 컨테이너 실행
             docker run -d \
               --name groo-redis \
               -p 6379:6379 \
@@ -143,12 +142,11 @@ jobs:
               --restart unless-stopped \
               redis:7.0-alpine redis-server --appendonly yes --requirepass ${{ secrets.REDIS_PASSWORD }}
 
-            # 7. DB와 Redis가 완전히 준비될 시간을 벌기 위해 15초간 대기합니다.
+            # 7) DB와 Redis 기동 대기
             echo "Waiting for database and redis to start..."
             sleep 15
 
-            # 8. 스프링 부트 백엔드 애플리케이션 컨테이너를 실행합니다.
-            # DB, Redis 접속 정보 등을 환경변수(-e)로 주입합니다.
+            # 8) Backend(Spring Boot) 컨테이너 실행
             docker run -d \
               --name groo-backend \
               --network groo-network \
@@ -166,12 +164,11 @@ jobs:
               --restart unless-stopped \
               risania/groo-backend:latest
 
-            # 9. 스프링 부트 애플리케이션이 시작될 시간을 벌기 위해 20초간 대기합니다.
+            # 9) Backend 기동 대기
             echo "Waiting for application to start..."
             sleep 20
 
-            # 10. Nginx 컨테이너를 실행합니다. 외부의 80, 443 포트 요청을 받습니다.
-            # EC2 서버에 복사해 둔 설정 파일들을 Nginx 컨테이너 내부의 올바른 위치로 연결(마운트)합니다.
+            # 10) Nginx 컨테이너 실행 (설정파일 마운트)
             docker run -d \
               --name groo-nginx \
               --network groo-network \
@@ -180,9 +177,8 @@ jobs:
               -v /home/ubuntu/groo/nginx/default.conf:/etc/nginx/conf.d/default.conf \
               --restart unless-stopped \
               nginx:alpine
-            
-            # 11. 최종 배포 성공 여부를 확인하기 위한 헬스 체크를 실행합니다.
-            # Nginx를 통해 백엔드 앱의 /health 엔드포인트가 정상 응답하는지 2분간 10초 간격으로 확인합니다.
+
+            # 11) 헬스 체크 (최대 2분, 10초 간격)
             echo "Waiting for nginx to start..."
             sleep 10
             for i in {1..12}; do
