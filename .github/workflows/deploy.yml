@@ -8,6 +8,7 @@
 name: Backend CI/CD
 
 on:
+  # 'main', 'develop' 또는 테스트 브랜치에 코드가 푸시(push)될 때 실행됩니다.
   push:
     branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] # ✅ main, develop, 테스트 브랜치에서 push 시 실행
   pull_request:
@@ -18,7 +19,9 @@ jobs:
   # 1단계: Backend 소스를 Docker 이미지로 빌드하고 Docker Hub에 푸시
   # ------------------------------------------------------------
   build-and-push:
+    # 이 작업이 실행될 가상 서버의 OS 환경을 지정합니다. (최신 우분투)
     runs-on: ubuntu-latest
+    # 이 작업에서 수행될 단계(step)들을 순서대로 나열합니다.
     steps:
       # (1) 레포지토리 체크아웃
       - name: Checkout repository
