@@ -1,6 +1,5 @@
 package com.kcc.groo.user.service;
 
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +25,6 @@ public class UserService implements IUserService{
     @Autowired
     MailService mailService;
 
-	/**
-	 * @param userId
-	 * @param password
-	 * @return
-	 */
 	@Override
 	public Users loginUser (String userId, String password) {
 		// TODO Auto-generated method stub
@@ -72,13 +66,8 @@ public class UserService implements IUserService{
 	    newUser.setEmailVerified(true);
 		
 		int result =  usersRepository.insertUser(newUser);
-		//String email = signupRequest.getEmail();
 		
 		if (result > 0) {
-			/*
-			 * String code = emailVerificationService.createVerificationCode(email);
-			 * mailService.sendVerificationEmail(email, code);
-			 */
 			return newUser;
 		} else {
 			throw new RuntimeException("failed signup");
@@ -87,23 +76,47 @@ public class UserService implements IUserService{
 
 	
 	@Override
-	public boolean confirmEmail(String email, String code) {
-		// TODO Auto-generated method stub
-		boolean verified = emailVerificationService.verifyCode(email, code);
-		if (!verified) {
-			return false;
+	public boolean confirmEmail(String purpose, String email, String code) {
+		return emailVerificationService.verifyCode(purpose, email, code);
+	}
+	
+	public int updatedEmailVerified (String purpose,String email, boolean verified, String code) {
+		if (!confirmEmail("signup", email, code)) {
+			throw new IllegalArgumentException("failed verification");
 		}
 		
-		int updated = usersRepository.updateEmailVerified(email, verified);
-		
-		return updated > 0;
+		return usersRepository.updateEmailVerified(email, verified);
 	}
+	
+	@Override
+	public String findUserIdByNameAndEmail(String name, String email) {
+	    String userId = usersRepository.findUserIdByNameAndEmail(name, email);
+
+	    if (userId == null) {
+	        throw new IllegalArgumentException("can not found name or email");
+	    }
+	    return userId;
+	}
+
+	
 
 	@Override
 	public List<Users> selectAllUserId() {
 		// TODO Auto-generated method stub
 		return usersRepository.selectAllUserId();
 	}
+
+
+	@Override
+	public int existsByUserName(String name) {
+		// TODO Auto-generated method stub
+		return usersRepository.existsByUserName(name);
+	}
+
+
+
+	
+	
 
 
 
