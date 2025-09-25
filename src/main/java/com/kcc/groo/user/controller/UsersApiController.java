@@ -133,7 +133,9 @@ public class UsersApiController {
 		} 		
 
 			Users newUser = userService.requestInsertUser(signupRequest);
-			emailVerificationService.clearVerified("signup", signupRequest.getEmail());
+			if (newUser != null) {
+				emailVerificationService.clearVerified("signup", signupRequest.getEmail());
+			}
 			return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("Signup success", newUser));
 	}
 
