@@ -14,6 +14,7 @@ import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.data.dto.FindUserIdRequest;
 import com.kcc.groo.user.data.dto.LoginRequest;
+import com.kcc.groo.user.data.dto.ResetPasswordRequest;
 import com.kcc.groo.user.data.dto.SignupRequest;
 import com.kcc.groo.user.data.model.Users;
 import com.kcc.groo.user.service.EmailVerificationService;
@@ -72,32 +73,21 @@ public class UsersApiController {
 	 * @created 2025-09-23
 	 * 회원가입 시 입력된 이메일에 인증 코드를 전송
 	 * 
-	 * @modified 2025-09-24 아이디 찾기 시 이메일 인증과의 분리를 위해 api 추가 아이디 찾기 시 이메일 인증을 위한 메서드명 구분
+	 * @modified 2025-09-25 회원가입 시 인증 / 아이디 찾기 인증 경우에 따라 purpose(String)를 통해 구분 가능하도록 분기
 	 */
-	@PostMapping("/email/signup")
-	public ResponseEntity<CommonResponse<?>> sendSignupCode(@RequestParam("email") String email) {
-		String code = emailVerificationService.createVerificationCode("signup", email);
+	@PostMapping("/email")
+	public ResponseEntity<CommonResponse<?>> sendCode(@RequestParam("email") String email, @RequestParam("purpose") String purpose) {
+		
+		String code = emailVerificationService.createVerificationCode(purpose, email);
 		mailService.sendVerificationEmail(email, code);
 
-		return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", null));
-
-	}
-
-	/**
-	 * @param email
-	 * @return CommonResponse
-	 * @author kys
-	 * @created 2025-09-24
-	 * 아이디 찾기를 위해 입력된 이메일에 인증 코드를 전송
-	 * 
-	 */
-	@PostMapping("/email/find-id")
-	public ResponseEntity<CommonResponse<?>> sendFindIdCodeAndCheckName(@RequestParam("email") String email) {
-		String code = emailVerificationService.createVerificationCode("findId", email);
-		mailService.sendVerificationEmail(email, code);
-
-		return ResponseEntity.ok(new CommonResponse<>("FindId verification code sent", null));
-
+		if (purpose.equals("signup")) {
+			return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", code));
+		} else if (purpose.equals("findId")) {
+			return ResponseEntity.ok(new CommonResponse<>("FindId verification code sent", code));
+		} else {
+			return  ResponseEntity.badRequest().body(new CommonResponse<>("Email sending failed", null));
+		}
 	}
 
 	/**
@@ -119,6 +109,23 @@ public class UsersApiController {
 			return ResponseEntity.ok(new CommonResponse<>("Email verification success", null));
 		} else {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification failed", null));
+		}
+	}
+	
+	/**
+	 * @param userId
+	 * @return CommonResponse
+	 * @author kys
+	 * @created 2025-09-25
+	 * db에 아이디가 존재하는지 확인
+	 */
+	@PostMapping("users/id/verify")
+	public ResponseEntity<CommonResponse<?>> checkId (@RequestParam("userId") String userId) {
+		int checkId = userService.existsByUserId(userId);
+		if (checkId <= 0) {
+			return ResponseEntity.ok(new CommonResponse<>("you can use this id", checkId));
+		} else {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("already exist id", checkId));
 		}
 	}
 
@@ -181,12 +188,35 @@ public class UsersApiController {
 
 	    try {
 	        String userId = userService.findUserIdByNameAndEmail(name, email);
+	        request.getSession().setAttribute("findUserId", userId); //userId session에 저장 (pw 재설정을 위해)
 	        return ResponseEntity.ok(new CommonResponse<>("Find userId success", userId));
 	    } catch (IllegalArgumentException e) {
 	        return ResponseEntity.badRequest()
 	                .body(new CommonResponse<>(e.getMessage(), null));
 	    }
 	}
+	
+	/**
+	 * @param resetPasswordRequest
+	 * @param request
+	 * @return
+	 * @created 2025-09-25
+	 * 아이디 찾기 후 사용자 비밀번호 재설정 가능
+	 */
+	@PostMapping("users/password")
+	public ResponseEntity<CommonResponse<?>> resetPassword (@Valid @RequestBody ResetPasswordRequest resetPasswordRequest, HttpServletRequest request) {
+		//updatePassword
+		String userId = (String)request.getSession().getAttribute("findUserId");
+		
+		if (!resetPasswordRequest.getPassword1().equals(resetPasswordRequest.getPassword2())) {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
+		}
+		
+		Users resetPw = userService.resetPassword(userId, resetPasswordRequest.getPassword1());
+		return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("updated password info success", resetPw));
+		
+	}
+	
 
 
 }

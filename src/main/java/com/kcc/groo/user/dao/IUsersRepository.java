@@ -36,7 +36,7 @@ public interface IUsersRepository {
 	 * @created 2025-09-15
 	 * 모든 회원의 userId 목록을 조회
 	 */
-	List<Users> selectAllUserId(); //select all userId
+	List<Users> selectAllUserId();
 	
 	/**
 	 * @param userId
@@ -45,7 +45,7 @@ public interface IUsersRepository {
 	 * @created 2025-09-23
 	 * 회원가입 시 중복 아이디 체크
 	 */
-	int existsByUserId (String userId); //check userId in db
+	int existsByUserId (String userId);
 	
 	/**
 	 * @param email
@@ -55,7 +55,7 @@ public interface IUsersRepository {
 	 * @created 2025-09-23
 	 * 이메일 인증 성공 여부 업데이트
 	 */
-	int updateEmailVerified(@Param("email") String email, @Param("emailVerified") boolean emailVerified); //update email verified column
+	int updateEmailVerified(@Param("email") String email, @Param("emailVerified") boolean emailVerified);
 	
 	/**
 	 * @param name
@@ -65,7 +65,7 @@ public interface IUsersRepository {
 	 * @created 2025-09-24
 	 * 이메일, 이름을 통해 회원의 아이디 조회
 	 */
-	String findUserIdByNameAndEmail (@Param("name") String name,@Param("email") String email); //get userId
+	String findUserIdByNameAndEmail (@Param("name") String name,@Param("email") String email);
 	
 	/**
 	 * @param name
@@ -74,7 +74,7 @@ public interface IUsersRepository {
 	 * @created 2025-09-24
 	 * 특정 이름을 가진 회원이 존재하는지 확인
 	 */
-	int existsByUserName(String name); //check name in db
+	int existsByUserName(String name);
 	
 	/**
 	 * @param email
@@ -83,5 +83,17 @@ public interface IUsersRepository {
 	 * @created 2025-09-24
 	 * 특정 이메일이 DB에 등록되어 있는지 확인
 	 */
-	int existsByUserEmail(String email); //check email in db
+	int existsByUserEmail(String email);
+	
+
+	/**
+	 * @param userId
+	 * @param password
+	 * @return
+	 * @author kys
+	 * @created 2025-09-25
+	 * 비밀번호 재설정
+	 */
+	int resetPassword(@Param("userId") String userId, @Param("password") String password); 
+	
 }
