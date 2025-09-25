@@ -72,32 +72,21 @@ public class UsersApiController {
 	 * @created 2025-09-23
 	 * 회원가입 시 입력된 이메일에 인증 코드를 전송
 	 * 
-	 * @modified 2025-09-24 아이디 찾기 시 이메일 인증과의 분리를 위해 api 추가 아이디 찾기 시 이메일 인증을 위한 메서드명 구분
+	 * @modified 2025-09-25 회원가입 시 인증 / 아이디 찾기 인증 경우에 따라 purpose(String)를 통해 구분 가능하도록 분기
 	 */
-	@PostMapping("/email/signup")
-	public ResponseEntity<CommonResponse<?>> sendSignupCode(@RequestParam("email") String email) {
-		String code = emailVerificationService.createVerificationCode("signup", email);
+	@PostMapping("/email")
+	public ResponseEntity<CommonResponse<?>> sendCode(@RequestParam("email") String email, @RequestParam("purpose") String purpose) {
+		
+		String code = emailVerificationService.createVerificationCode(purpose, email);
 		mailService.sendVerificationEmail(email, code);
 
-		return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", null));
-
-	}
-
-	/**
-	 * @param email
-	 * @return CommonResponse
-	 * @author kys
-	 * @created 2025-09-24
-	 * 아이디 찾기를 위해 입력된 이메일에 인증 코드를 전송
-	 * 
-	 */
-	@PostMapping("/email/find-id")
-	public ResponseEntity<CommonResponse<?>> sendFindIdCodeAndCheckName(@RequestParam("email") String email) {
-		String code = emailVerificationService.createVerificationCode("findId", email);
-		mailService.sendVerificationEmail(email, code);
-
-		return ResponseEntity.ok(new CommonResponse<>("FindId verification code sent", null));
-
+		if (purpose.equals("signup")) {
+			return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", code));
+		} else if (purpose.equals("findId")) {
+			return ResponseEntity.ok(new CommonResponse<>("FindId verification code sent", code));
+		} else {
+			return  ResponseEntity.badRequest().body(new CommonResponse<>("Email sending failed", null));
+		}
 	}
 
 	/**
