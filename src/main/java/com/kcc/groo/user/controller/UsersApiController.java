@@ -101,8 +101,6 @@ public class UsersApiController {
 		boolean verified = emailVerificationService.verifyCode(purpose, email, code);
 		if (verified) {
 			request.getSession().setAttribute("verifiedEmail", email);
-			request.getSession().setAttribute("verifiedCode", code);
-			request.getSession().setAttribute("purpose", purpose);
 			return ResponseEntity
                     .ok(new CommonResponse<>("Email verification success", null));
 			} else {
@@ -117,7 +115,7 @@ public class UsersApiController {
 	 * @author kys
 	 * @created 2025-09-23 이메일 인증 및 약관 확인 여부를 체크하고 회원 데이터 저장
 	 * 
-	 * @modified 2025-09-24
+	 * @modified 2025-09-25
 	 */
 	@PostMapping("users/signup")
 	public ResponseEntity<CommonResponse<?>> signup(@Valid @RequestBody SignupRequest signupRequest, HttpServletRequest request) {
@@ -134,7 +132,7 @@ public class UsersApiController {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
 		} 		
 
-			Users newUser = userService.requestInsertUser(signupRequest, (String)request.getAttribute("purpose"),(String)request.getAttribute("code"));
+			Users newUser = userService.requestInsertUser(signupRequest);
 			emailVerificationService.clearVerified("signup", signupRequest.getEmail());
 			return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("Signup success", newUser));
 	}

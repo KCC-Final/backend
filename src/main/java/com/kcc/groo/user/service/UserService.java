@@ -44,7 +44,7 @@ public class UserService implements IUserService {
 	}
 
 	@Override
-	public Users requestInsertUser(SignupRequest signupRequest, String purpose, String code) {
+	public Users requestInsertUser(SignupRequest signupRequest) {
 	    Users newUser = new Users();
 	    newUser.setUserId(signupRequest.getUserId());
 	    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
@@ -65,7 +65,6 @@ public class UserService implements IUserService {
 	        throw new RuntimeException("failed signup");
 	    }
 	}
-
 
 	@Override
 	public boolean confirmEmail(String purpose, String email, String code) {

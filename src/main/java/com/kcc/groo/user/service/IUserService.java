@@ -27,7 +27,7 @@ public interface IUserService {
 	 * @created 2025-09-23
 	 * 신규 회원 가입 처리 / 아이디 중복 여부 확인 / 비밀번호 암호화 후 저장
 	 */
-	Users requestInsertUser (SignupRequest signupRequest, @Param("purpose") String purpose, @Param("code") String code);
+	Users requestInsertUser (SignupRequest signupRequest);
 	
 
 	/**
