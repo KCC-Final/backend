@@ -70,17 +70,14 @@ public class UsersApiController {
 	 * @param email
 	 * @return CommonResponse
 	 * @author kys
-	 * @created 2025-09-23
+	 * @since 2025-09-23
 	 * 회원가입 시 입력된 이메일에 인증 코드를 전송
-	 * 
-	 * @modified 2025-09-25 회원가입 시 인증 / 아이디 찾기 인증 경우에 따라 purpose(String)를 통해 구분 가능하도록 분기
 	 */
 	@PostMapping("/email")
-	public ResponseEntity<CommonResponse<?>> sendCode(@RequestParam("email") String email, @RequestParam("purpose") String purpose) {
-		
+	public ResponseEntity<CommonResponse<?>> confirmEmail (@RequestParam("purpose") String purpose, @RequestParam("email") String email) {
 		String code = emailVerificationService.createVerificationCode(purpose, email);
 		mailService.sendVerificationEmail(email, code);
-
+		
 		if (purpose.equals("signup")) {
 			return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", code));
 		} else if (purpose.equals("findId")) {
@@ -89,75 +86,58 @@ public class UsersApiController {
 			return  ResponseEntity.badRequest().body(new CommonResponse<>("Email sending failed", null));
 		}
 	}
-
+	
 	/**
 	 * @param email
 	 * @param code
 	 * @param request
 	 * @return CommonResponse
 	 * @author kys
-	 * @created 2025-09-23 전송된 인증 코드의 일치 여부를 확인
-	 * 
-	 * @modified 2025-09-24 아이디 찾기 / 회원가입 / 회원 정보 수정 시 공통적으로 사용할 수 있도록 수정 (purpose 를 통해 구분)
+	 * @since 2025-09-23
+	 * 회원가입 시 전송된 인증 코드의 일치 여부를 확인
 	 */
 	@PostMapping("/email/verify")
-	public ResponseEntity<CommonResponse<?>> verifyEmailCode(@RequestParam("purpose") String purpose,
-			@RequestParam("email") String email, @RequestParam("code") String code, HttpServletRequest request) {
+	public ResponseEntity<CommonResponse<?>> verifyEmailCode (@RequestParam("purpose") String purpose, @RequestParam("email") String email, @RequestParam("code") String code, HttpServletRequest request) {
 		boolean verified = emailVerificationService.verifyCode(purpose, email, code);
 		if (verified) {
 			request.getSession().setAttribute("verifiedEmail", email);
-			return ResponseEntity.ok(new CommonResponse<>("Email verification success", null));
-		} else {
-			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification failed", null));
-		}
+			return ResponseEntity
+                    .ok(new CommonResponse<>("Email verification success", null));
+			} else {
+				return ResponseEntity
+	                    .badRequest()
+	                    .body(new CommonResponse<>("Email verification failed", null));		}
 	}
 	
-	/**
-	 * @param userId
-	 * @return CommonResponse
-	 * @author kys
-	 * @created 2025-09-25
-	 * db에 아이디가 존재하는지 확인
-	 */
-	@PostMapping("users/id/verify")
-	public ResponseEntity<CommonResponse<?>> checkId (@RequestParam("userId") String userId) {
-		int checkId = userService.existsByUserId(userId);
-		if (checkId <= 0) {
-			return ResponseEntity.ok(new CommonResponse<>("you can use this id", checkId));
-		} else {
-			return ResponseEntity.badRequest().body(new CommonResponse<>("already exist id", checkId));
-		}
-	}
-
 	/**
 	 * @param request
 	 * @return CommonResponse
 	 * @author kys
 	 * @created 2025-09-23 이메일 인증 및 약관 확인 여부를 체크하고 회원 데이터 저장
 	 * 
-	 * @modified 2025-09-24
+	 * @modified 2025-09-25
 	 */
 	@PostMapping("users/signup")
-	public ResponseEntity<CommonResponse<?>> signup(@Valid @RequestBody SignupRequest request) {
-		if (!emailVerificationService.isVerified("signup", request.getEmail())) {
+	public ResponseEntity<CommonResponse<?>> signup(@Valid @RequestBody SignupRequest signupRequest, HttpServletRequest request) {
+		
+		if (!emailVerificationService.isVerified("signup", signupRequest.getEmail())) {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification required", null));
 		}
 
-		if (!request.isCheckPrivacy() || !request.isCheckService()) {
+		if (!signupRequest.isCheckPrivacy() || !signupRequest.isCheckService()) {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Terms agreement required", null));
 		}
 
-		if (!request.getPassword1().equals(request.getPassword2())) {
+		if (!signupRequest.getPassword1().equals(signupRequest.getPassword2())) {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
-		}
+		} 		
 
-		Users newUser = userService.requestInsertUser(request);
-
-		emailVerificationService.clearVerified("signup", request.getEmail());
-
-		return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("Signup success", newUser));
+			Users newUser = userService.requestInsertUser(signupRequest);
+			if (newUser != null) {
+				emailVerificationService.clearVerified("signup", signupRequest.getEmail());
+			}
+			return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("Signup success", newUser));
 	}
-
 
 	/**
 	 * @param findUserIdRequest
