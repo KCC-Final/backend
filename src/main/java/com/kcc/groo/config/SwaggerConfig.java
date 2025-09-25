@@ -8,9 +8,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.servers.Server;
-
-import java.util.List;
 
 /**
  * Swagger(SpringDoc OpenAPI) 설정 클래스
@@ -18,7 +15,7 @@ import java.util.List;
  * 주요 기능:
  * 1. API 문서 기본 정보 설정 (제목, 설명, 버전 등)
  * 2. JWT 토큰 기반 인증 스키마 설정 (Swagger UI에서 토큰 인증 테스트 가능)
- * 3. 환경별 서버 주소 고정 → Swagger UI에서 드롭다운으로 선택 가능
+ * 3. 서버 URL 고정 제거 → Swagger UI 접속 도메인을 자동 사용
  * 4. 보안 요구사항 설정 (🔒 표시된 API는 JWT 토큰 필요)
  *
  * 환경별 접속 URL:
@@ -29,15 +26,6 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    /**
-     * OpenAPI 메인 설정 Bean
-     *
-     * 주요 설정:
-     * - API 문서 기본 정보
-     * - JWT 인증 스키마 등록
-     * - JWT 보안 요구사항 추가
-     * - 환경별 서버 주소 목록 (드롭다운으로 선택 가능)
-     */
     @Bean
     public OpenAPI openAPI() {
         String jwtSchemeName = "JWT";
@@ -46,40 +34,31 @@ public class SwaggerConfig {
         Components components = new Components()
                 .addSecuritySchemes(jwtSchemeName, createJWTSecurityScheme());
 
-        // 환경별 서버 주소 목록 (드롭다운)
-        List<Server> servers = List.of(
-                new Server().url("http://localhost:8080").description("로컬 개발 서버"),
-                new Server().url("http://localhost").description("Docker 환경"),
-                new Server().url("https://groo.site").description("운영 서버")
-        );
-
         return new OpenAPI()
-                .info(createApiInfo())                             // API 기본 정보
-                .servers(servers)                                  // 환경별 서버 드롭다운
+                .info(createApiInfo()) // API 기본 정보
+                // .servers(...) 제거 → 현재 접속한 Origin 자동 사용
                 .addSecurityItem(new SecurityRequirement().addList(jwtSchemeName)) // JWT 인증 요구사항
-                .components(components);                           // JWT 인증 스키마
+                .components(components); // JWT 인증 스키마
     }
 
     /**
      * JWT 보안 스키마 생성
-     * Swagger UI의 Authorize 버튼을 눌렀을 때 입력하는 토큰 스키마를 정의합니다.
      */
     private SecurityScheme createJWTSecurityScheme() {
         return new SecurityScheme()
                 .name("JWT")
-                .type(SecurityScheme.Type.HTTP)   // HTTP 인증 방식
-                .scheme("bearer")                 // Bearer 토큰
-                .bearerFormat("JWT")              // JWT 포맷
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
                 .description("JWT 토큰을 입력해주세요. 'Bearer ' 접두사는 자동으로 추가됩니다.");
     }
 
     /**
      * API 문서 기본 정보 생성
-     * Swagger UI 상단에 노출되는 프로젝트 정보/주의사항을 설정합니다.
      */
     private Info createApiInfo() {
         return new Info()
-                .title("Groo API Documentation")  // 문서 제목
+                .title("Groo API Documentation")
                 .description("""
                         📚 독서 SNS 플랫폼 Groo의 REST API 문서입니다.
 
@@ -96,7 +75,7 @@ public class SwaggerConfig {
 
                         ## 주의사항
                         - 인증이 필요한 API는 🔒 아이콘으로 표시됩니다
-                        - 환경별 서버 주소를 드롭다운에서 선택 후 테스트하세요
+                        - Swagger UI는 접속한 도메인(로컬/운영)에 맞춰 자동으로 API를 호출합니다
                         """)
                 .version("v1.0.0");
     }
