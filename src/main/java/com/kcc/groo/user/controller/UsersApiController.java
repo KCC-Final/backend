@@ -110,6 +110,17 @@ public class UsersApiController {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification failed", null));
 		}
 	}
+	
+	//아이디 중복확인
+	@PostMapping("users/id/verify")
+	public ResponseEntity<CommonResponse<?>> checkId (@RequestParam("userId") String userId) {
+		int checkId = userService.existsByUserId(userId);
+		if (checkId <= 0) {
+			return ResponseEntity.ok(new CommonResponse<>("you can use this id", checkId));
+		} else {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("already exist id", checkId));
+		}
+	}
 
 	/**
 	 * @param request

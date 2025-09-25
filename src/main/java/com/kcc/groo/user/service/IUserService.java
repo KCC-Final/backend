@@ -65,4 +65,14 @@ public interface IUserService {
 	 * 이름과 이메일로 사용자 아이디 조회
 	 */
 	String findUserIdByNameAndEmail (@Param("name") String name, @Param("email") String email); //get userId
+	
+	
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-09-25
+	 * db에 사용자가 존재하는지 조회
+	 */
+	int existsByUserId (@Param("userId") String userId);
 }
