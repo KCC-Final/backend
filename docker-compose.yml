@@ -36,7 +36,7 @@ services:
   # =================================================================
   # 🚀 배포(Production) 환경 서비스 - 기존 'app' 서비스
   # =================================================================
-  app:
+  groo-backend:
     build: . # 현재 Dockerfile을 사용하여 최종 .jar 파일로 이미지를 빌드합니다.
     container_name: kcc-prod-app
     restart: unless-stopped
@@ -53,7 +53,7 @@ services:
   # =================================================================
   # 🚗 개발(Development) 환경 서비스 - 기존 코드 그대로 유지
   # =================================================================
-  app-dev:
+  groo-backend-dev:
     image: gradle:8.7.0-jdk21 # JDK와 Gradle이 포함된 이미지를 직접 사용합니다.
     container_name: kcc-dev-app
     volumes:
