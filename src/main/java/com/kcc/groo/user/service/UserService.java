@@ -44,41 +44,32 @@ public class UserService implements IUserService {
 	}
 
 	@Override
-	public Users requestInsertUser(SignupRequest signupRequest) {
-		// TODO Auto-generated method stub
+	public Users requestInsertUser(SignupRequest signupRequest, String purpose, String code) {
+	    Users newUser = new Users();
+	    newUser.setUserId(signupRequest.getUserId());
+	    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
+	    newUser.setEmail(signupRequest.getEmail());
+	    newUser.setNickName(signupRequest.getNickName());
+	    newUser.setGender(signupRequest.getGender());
+	    newUser.setName(signupRequest.getName());
+	    newUser.setBirth(signupRequest.getBirth());
+	    newUser.setCheckPrivacy(signupRequest.isCheckPrivacy());
+	    newUser.setCheckService(signupRequest.isCheckService());
+	    newUser.setEmailVerified(true);
 
-		Users newUser = new Users();
-		newUser.setUserId(signupRequest.getUserId());
-		newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
-		newUser.setEmail(signupRequest.getEmail());
-		newUser.setNickName(signupRequest.getNickName());
-		newUser.setGender(signupRequest.getGender());
-		newUser.setName(signupRequest.getName());
-		newUser.setBirth(signupRequest.getBirth());
-		newUser.setCheckPrivacy(signupRequest.isCheckPrivacy());
-		newUser.setCheckService(signupRequest.isCheckService());
-		newUser.setEmailVerified(true);
+	    int result = usersRepository.insertUser(newUser);
 
-		int result = usersRepository.insertUser(newUser);
-
-		if (result > 0) {
-			return newUser;
-		} else {
-			throw new RuntimeException("failed signup");
-		}
+	    if (result > 0) {
+	        return usersRepository.selectUserByUserId(newUser.getUserId());
+	    } else {
+	        throw new RuntimeException("failed signup");
+	    }
 	}
+
 
 	@Override
 	public boolean confirmEmail(String purpose, String email, String code) {
 		return emailVerificationService.verifyCode(purpose, email, code);
-	}
-
-	public int updatedEmailVerified(String purpose, String email, boolean verified, String code) {
-		if (!confirmEmail("signup", email, code)) {
-			throw new IllegalArgumentException("failed verification");
-		}
-
-		return usersRepository.updateEmailVerified(email, verified);
 	}
 
 	@Override
