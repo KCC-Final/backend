@@ -38,6 +38,7 @@ public class SpringSecurityConfig {
 	                "/api/v1/auth/login",
 	                "/api/v1/users/signup",
 	                "/api/v1/users/id/**",
+	                "/api/v1/users/password",
 	                "/api/v1/email",
 	                "/api/v1/email/verify"
 	            ).permitAll()

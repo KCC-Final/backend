@@ -115,4 +115,15 @@ public class UserService implements IUserService {
 		}
 	}
 
-}
+	@Override
+	public Users resetPassword(String userId, String rawPassword) {
+		// TODO Auto-generated method stub
+		Users user = usersRepository.selectUserByUserId(userId);
+		int result = usersRepository.resetPassword(userId, passwordEncoder.encode(rawPassword));
+			if (result > 0) {
+				return user;
+			} else {
+				throw new RuntimeException("failed update Password");
+			}
+		}
+	}

@@ -16,12 +16,12 @@
 <id property="createdAt" column="created_at"/>
 <id property="status" column="status"/>
 <id property="withdrawaDate" column="withdrawal_date"/>
-<id property="pwd_changedAt" column="pwd_changed_at"/>
+<id property="pwdChangedAt" column="pwd_changed_at"/>
 <id property="checkPrivacy" column="check_privacy"/>
 <id property="checkService" column="check_service"/>
 <id property="emailVerified" column="email_Verified"/>
 </resultMap>
-<!-- select -->
+
 <select id="selectUserByUserId" parameterType="string" resultMap="userMap">
 <![CDATA[
 SELECT user_id, password, email, nickname, profile_image, introduction, gender, birth, created_at
@@ -77,6 +77,13 @@ SELECT user_id FROM users
   SELECT user_id FROM users WHERE name=#{name} AND email=#{email}
     ]]>
 </select>
+
+<update id="resetPassword">
+  UPDATE users
+  SET password = #{password},
+      pwd_changed_at = NOW()
+  WHERE user_id = #{userId}
+</update>
 
 </mapper>
 

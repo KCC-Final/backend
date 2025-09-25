@@ -14,6 +14,7 @@ import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.data.dto.FindUserIdRequest;
 import com.kcc.groo.user.data.dto.LoginRequest;
+import com.kcc.groo.user.data.dto.ResetPasswordRequest;
 import com.kcc.groo.user.data.dto.SignupRequest;
 import com.kcc.groo.user.data.model.Users;
 import com.kcc.groo.user.service.EmailVerificationService;
@@ -111,7 +112,13 @@ public class UsersApiController {
 		}
 	}
 	
-	//아이디 중복확인
+	/**
+	 * @param userId
+	 * @return CommonResponse
+	 * @author kys
+	 * @created 2025-09-25
+	 * db에 아이디가 존재하는지 확인
+	 */
 	@PostMapping("users/id/verify")
 	public ResponseEntity<CommonResponse<?>> checkId (@RequestParam("userId") String userId) {
 		int checkId = userService.existsByUserId(userId);
@@ -181,12 +188,35 @@ public class UsersApiController {
 
 	    try {
 	        String userId = userService.findUserIdByNameAndEmail(name, email);
+	        request.getSession().setAttribute("findUserId", userId); //userId session에 저장 (pw 재설정을 위해)
 	        return ResponseEntity.ok(new CommonResponse<>("Find userId success", userId));
 	    } catch (IllegalArgumentException e) {
 	        return ResponseEntity.badRequest()
 	                .body(new CommonResponse<>(e.getMessage(), null));
 	    }
 	}
+	
+	/**
+	 * @param resetPasswordRequest
+	 * @param request
+	 * @return
+	 * @created 2025-09-25
+	 * 아이디 찾기 후 사용자 비밀번호 재설정 가능
+	 */
+	@PostMapping("users/password")
+	public ResponseEntity<CommonResponse<?>> resetPassword (@Valid @RequestBody ResetPasswordRequest resetPasswordRequest, HttpServletRequest request) {
+		//updatePassword
+		String userId = (String)request.getSession().getAttribute("findUserId");
+		
+		if (!resetPasswordRequest.getPassword1().equals(resetPasswordRequest.getPassword2())) {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
+		}
+		
+		Users resetPw = userService.resetPassword(userId, resetPasswordRequest.getPassword1());
+		return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("updated password info success", resetPw));
+		
+	}
+	
 
 
 }

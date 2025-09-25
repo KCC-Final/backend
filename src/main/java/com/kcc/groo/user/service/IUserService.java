@@ -75,4 +75,13 @@ public interface IUserService {
 	 * db에 사용자가 존재하는지 조회
 	 */
 	int existsByUserId (@Param("userId") String userId);
+
+	/**
+	 * @param resetPasswordRequest
+	 * @return
+	 * @author kys
+	 * @created 2025-09-25
+	 * 비밀번호 재설정
+	 */
+	Users resetPassword(@Param("userId") String userId, @Param("rawPassword") String rawPassword);
 }

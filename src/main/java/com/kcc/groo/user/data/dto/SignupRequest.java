@@ -1,6 +1,6 @@
 package com.kcc.groo.user.data.dto;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -49,7 +49,7 @@ public class SignupRequest {
 
     @NotNull(message = "생년월일은 필수 입력값입니다.")
     @Past(message = "생년월일은 과거 날짜여야 합니다.")
-    private Date birth;
+    private LocalDate birth;
     
 	boolean checkPrivacy;
 	boolean checkService;
