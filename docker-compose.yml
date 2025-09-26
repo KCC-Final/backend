@@ -2,40 +2,85 @@ version: "3.8"
 
 services:
   # -----------------------------------------------------------------
-  # DB 서비스 (MySQL 8.0)
+  # MySQL 8.0 (kcc-local-mysql)
   # -----------------------------------------------------------------
   db:
     image: mysql:8.0
     container_name: kcc-local-mysql
     restart: unless-stopped
     env_file:
-      - ./db.env
+      - ./db.env                # ✅ 환경변수 파일 (계정/비번/DB명)
     ports:
-      - "3306:3306"
+      - "3306:3306"             # 호스트 포트 3306 → 컨테이너 3306
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql  # MySQL 데이터는 볼륨에 영구 저장
     networks:
       - kcc-network
     command: --default-authentication-plugin=mysql_native_password
+    # ↑ Spring Boot 호환성을 위해 native_password 사용
 
   # -----------------------------------------------------------------
-  # Redis 서비스 (토큰 캐싱용) - 비밀번호 제거 + 포트 바인딩 추가
+  # Redis (groo-redis)
   # -----------------------------------------------------------------
   redis:
     image: redis:7.0-alpine
     container_name: groo-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"   # 로컬에서도 localhost:6379 접근 가능
+      - "6379:6379"             # 로컬에서 localhost:6379로 접근 가능
     volumes:
-      - redis_data:/data
+      - redis_data:/data        # Redis 데이터 영구 저장
     networks:
       - kcc-network
     command: ["redis-server", "--appendonly", "yes"]
+    # ↑ appendonly 모드 활성화 → 데이터 영속성 보장
 
-  # =================================================================
-  # Production backend (jar 빌드 이미지)
-  # =================================================================
+  # -----------------------------------------------------------------
+  # Migration 서비스 (init_codes.sql + migration_*.sql 실행)
+  # -----------------------------------------------------------------
+  migrator:
+    image: mysql:8.0
+    container_name: kcc-migrator
+    depends_on:
+      - db
+    volumes:
+      - ./database:/database
+    networks:
+      - kcc-network
+    entrypoint: >
+      bash -c "
+        echo '⏳ Waiting for MySQL to be ready...' &&
+        until mysqladmin ping -hdb -ukcc -p\$$MYSQL_PASSWORD --silent; do
+          sleep 2;
+        done &&
+        echo '🚀 Running init and migrations as kcc...' &&
+
+        # init_codes.sql 실행 (있으면)
+        if [ -f /database/init_codes.sql ]; then
+          echo 'Applying init_codes.sql...';
+          mysql -hdb -ukcc -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE < /database/init_codes.sql;
+        else
+          echo 'No init_codes.sql found, skipping...';
+        fi &&
+
+        # migration_*.sql 실행 (여러 개면 순서대로 실행)
+        if ls /database/migration_*.sql 1> /dev/null 2>&1; then
+          for f in /database/migration_*.sql; do
+            echo \"Applying migration: \$$f\";
+            mysql -hdb -ukcc -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE < \$$f;
+          done
+        else
+          echo 'No migration files found, skipping...';
+        fi &&
+
+        echo '✅ All migrations applied.'
+      "
+    env_file:
+      - ./db.env
+
+  # -----------------------------------------------------------------
+  # Backend (Production profile)
+  # -----------------------------------------------------------------
   groo-backend:
     build: .
     restart: unless-stopped
@@ -46,12 +91,13 @@ services:
     depends_on:
       - db
       - redis
+      - migrator                # ✅ 마이그레이션이 끝난 후 실행
     networks:
       - kcc-network
 
-  # =================================================================
-  # Development backend (gradle bootRun)
-  # =================================================================
+  # -----------------------------------------------------------------
+  # Backend (Development profile - gradle bootRun)
+  # -----------------------------------------------------------------
   groo-backend-dev:
     image: gradle:8.7.0-jdk21
     volumes:
@@ -65,12 +111,13 @@ services:
     depends_on:
       - db
       - redis
+      - migrator
     networks:
       - kcc-network
 
-  # =================================================================
-  # nginx reverse proxy
-  # =================================================================
+  # -----------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # -----------------------------------------------------------------
   nginx:
     image: nginx:alpine
     container_name: kcc-nginx
@@ -85,10 +132,16 @@ services:
     networks:
       - kcc-network
 
+# -------------------------------------------------------------------
+# Named Volumes (DB/Redis 영구 데이터 보존)
+# -------------------------------------------------------------------
 volumes:
   mysql_data:
   redis_data:
 
+# -------------------------------------------------------------------
+# Network (모든 컨테이너는 동일 브리지 네트워크 사용)
+# -------------------------------------------------------------------
 networks:
   kcc-network:
     driver: bridge
