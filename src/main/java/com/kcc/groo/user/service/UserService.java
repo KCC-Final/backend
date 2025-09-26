@@ -49,7 +49,7 @@ public class UserService implements IUserService {
 	    newUser.setUserId(signupRequest.getUserId());
 	    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
 	    newUser.setEmail(signupRequest.getEmail());
-	    newUser.setNickName(signupRequest.getNickName());
+	    newUser.setNickname(signupRequest.getNickname());
 	    newUser.setGender(signupRequest.getGender());
 	    newUser.setName(signupRequest.getName());
 	    newUser.setBirth(signupRequest.getBirth());
@@ -96,13 +96,7 @@ public class UserService implements IUserService {
 	@Override
 	public int existsByUserId(String userId) {
 		// TODO Auto-generated method stub
-		int result = usersRepository.existsByUserId(userId);
-
-		if (result > 0) {
-			throw new IllegalArgumentException("already exist id");
-		} else {
-			return result;
-		}
+			return usersRepository.existsByUserId(userId);
 	}
 
 	@Override

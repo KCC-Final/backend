@@ -93,8 +93,10 @@ public class UsersApiController {
 	 * @param request
 	 * @return CommonResponse
 	 * @author kys
-	 * @since 2025-09-23
+	 * @created 2025-09-23
 	 * 회원가입 시 전송된 인증 코드의 일치 여부를 확인
+	 * 
+	 * 
 	 */
 	@PostMapping("/email/verify")
 	public ResponseEntity<CommonResponse<?>> verifyEmailCode (@RequestParam("purpose") String purpose, @RequestParam("email") String email, @RequestParam("code") String code, HttpServletRequest request) {
@@ -102,7 +104,7 @@ public class UsersApiController {
 		if (verified) {
 			request.getSession().setAttribute("verifiedEmail", email);
 			return ResponseEntity
-                    .ok(new CommonResponse<>("Email verification success", null));
+                    .ok(new CommonResponse<>("Email verification success", email));
 			} else {
 				return ResponseEntity
 	                    .badRequest()
@@ -130,13 +132,37 @@ public class UsersApiController {
 
 		if (!signupRequest.getPassword1().equals(signupRequest.getPassword2())) {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
-		} 		
+		}
+		
+		if (userService.existsByUserId(signupRequest.getUserId()) > 0) {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("This ID is already in use. Please choose another one", null));
+		}
 
 			Users newUser = userService.requestInsertUser(signupRequest);
+
 			if (newUser != null) {
 				emailVerificationService.clearVerified("signup", signupRequest.getEmail());
 			}
 			return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("Signup success", newUser));
+	}
+	
+
+	/**
+	 * @param userId
+	 * @param request
+	 * @return CommonResponse
+	 * @author kys
+	 * @created 2025-09-24
+	 * 회원가입 시 아이디 중복체크
+	 */
+	@PostMapping("/users/id/verify")
+	public ResponseEntity<CommonResponse<?>> checkId (@RequestParam("userId") String userId, HttpServletRequest request) {
+		if (userService.existsByUserId(userId) > 0) {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("This ID is already in use. Please choose another one", userId));
+		} else {
+			return ResponseEntity
+                    .ok(new CommonResponse<>("check userId success", userId));
+		}
 	}
 
 	/**

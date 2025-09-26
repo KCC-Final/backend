@@ -45,7 +45,7 @@ public class JwtTokenProvider {
 	 */
 	public String generateToken(Users user) {
 		long now = System.currentTimeMillis();
-		Claims claims = Jwts.claims().subject(user.getUserId()).setIssuer(user.getNickName()).issuedAt(new Date(now))
+		Claims claims = Jwts.claims().subject(user.getUserId()).setIssuer(user.getNickname()).issuedAt(new Date(now))
 				.expiration(new Date(now + tokenValidTime)).build();
 		
 		return Jwts.builder().claims(claims).signWith(key).compact();

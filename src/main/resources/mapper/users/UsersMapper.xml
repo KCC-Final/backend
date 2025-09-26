@@ -7,7 +7,7 @@
 <id property="userId" column="user_id"/>
 <result property="password" column="password"/>
 <result property="email" column="email"/>
-<result property="nickName" column="nickname"/>
+<result property="nickname" column="nickname"/>
 <result property="profileImage" column="profile_image"/>
 <result property="introduction" column="introduction"/>
 <result property="gender" column="gender"/>
@@ -34,7 +34,7 @@ WHERE user_id = #{userId}
 <insert id="insertUser" parameterType="com.kcc.groo.user.data.model.Users">
 <![CDATA[ 
 INSERT INTO users (user_id, password, email, nickname, gender, name, birth, check_privacy,check_service, email_verified )
-VALUES (#{userId}, #{password}, #{email},#{nickName},#{gender},#{name},#{birth}, #{checkPrivacy}, #{checkService}, #{emailVerified})
+VALUES (#{userId}, #{password}, #{email},#{nickname},#{gender},#{name},#{birth}, #{checkPrivacy}, #{checkService}, #{emailVerified})
 ]]>
 </insert>
 
