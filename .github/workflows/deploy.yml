@@ -10,9 +10,9 @@ name: Backend CI/CD
 on:
   # 'main', 'develop' 또는 테스트 브랜치에 코드가 푸시(push)될 때 실행됩니다.
   push:
-    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] # ✅ main, develop, 테스트 브랜치에서 push 시 실행
+    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] #  main, develop, 테스트 브랜치에서 push 시 실행
   pull_request:
-    branches: [ "main" ] # ✅ main 브랜치로 PR 생성 시 실행 (빌드 테스트 목적)
+    branches: [ "main" ] #  main 브랜치로 PR 생성 시 실행 (빌드 테스트 목적)
 
 jobs:
   # ------------------------------------------------------------
@@ -49,15 +49,15 @@ jobs:
   # 2단계: EC2 서버에 배포 (Docker 컨테이너 실행)
   # ------------------------------------------------------------
   deploy:
-    needs: build-and-push # ✅ build-and-push 성공 후에만 실행
+    needs: build-and-push #  build-and-push 성공 후에만 실행
     runs-on: ubuntu-latest
     steps:
-      # (1) 레포지토리 체크아웃 (nginx 설정 파일 접근 위해 필요)
+      # (1) 레포지토리 체크아웃 (nginx 설정 파일 및 DB 초기화 파일 접근 위해 필요)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # (2) EC2에 nginx 디렉토리 생성 및 권한 부여
-      - name: Create nginx directory and grant permission
+      # (2) EC2에 nginx 및 database 디렉토리 생성 및 권한 부여
+      - name: Create nginx and database directories and grant permission
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -66,7 +66,9 @@ jobs:
           port: 22
           script: |
             sudo mkdir -p /home/ubuntu/groo/nginx
+            sudo mkdir -p /home/ubuntu/groo/database
             sudo chown -R ubuntu:ubuntu /home/ubuntu/groo/nginx
+            sudo chown -R ubuntu:ubuntu /home/ubuntu/groo/database
 
       # (3) Runner(액션 서버)에서 현재 작업 디렉토리 구조 확인 (디버깅용)
       - name: Check runner workspace files
@@ -75,7 +77,7 @@ jobs:
           ls -alR
 
       # (4) nginx 설정 파일들을 EC2로 복사
-      # ✅ nginx 디렉토리 전체를 /home/ubuntu/groo 하위로 전송
+      #  nginx 디렉토리 전체를 /home/ubuntu/groo 하위로 전송
       # 결과: /home/ubuntu/groo/nginx/nginx.conf, /home/ubuntu/groo/nginx/default.conf
       - name: Copy nginx config files to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -88,7 +90,19 @@ jobs:
           target: "/home/ubuntu/groo"
           overwrite: true     # 기존 파일 덮어쓰기 허용
 
-      # (5) 복사된 파일 확인 (EC2 내부 디렉토리 구조 출력)
+      # (5) 데이터베이스 초기화 및 마이그레이션 SQL 파일들을 EC2로 복사 (새로 추가)
+      - name: Copy database initialization and migration files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: "./database"   # database 디렉토리 전체
+          target: "/home/ubuntu/groo"
+          overwrite: true     # 기존 파일 덮어쓰기 허용
+
+      # (6) 복사된 파일 확인 (EC2 내부 디렉토리 구조 출력)
       - name: Verify copied files on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -100,8 +114,10 @@ jobs:
             ls -alR /home/ubuntu/groo
             echo "--- Checking contents of /home/ubuntu/groo/nginx ---"
             ls -alR /home/ubuntu/groo/nginx
+            echo "--- Checking contents of /home/ubuntu/groo/database ---"
+            ls -alR /home/ubuntu/groo/database
 
-      # (6) EC2 서버에서 Docker 컨테이너 실행
+      # (7) EC2 서버에서 Docker 컨테이너 실행
       - name: Deploy containers to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -171,7 +187,44 @@ jobs:
             echo "Waiting for application to start..."
             sleep 20
 
-            # 10) Nginx 컨테이너 실행 (설정파일 마운트)
+            # 10) 데이터베이스 초기화 및 마이그레이션 실행 (수정됨)
+            echo "=== Starting database initialization and migration ==="
+
+            # init_codes.sql 실행
+            if [ -f "/home/ubuntu/groo/database/init_codes.sql" ]; then
+              echo "Copying init_codes.sql into container..."
+              docker cp /home/ubuntu/groo/database/init_codes.sql groo-mysql:/init_codes.sql
+              echo "Executing initial database setup..."
+              docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc -e "source /init_codes.sql"
+              echo " Initial database setup completed!"
+            else
+              echo " init_codes.sql not found, skipping..."
+            fi
+
+            # 마이그레이션 실행
+            echo "Executing database migrations..."
+            migration_executed=false
+            for migration_file in /home/ubuntu/groo/database/migration_*.sql; do
+              if [ -f "$migration_file" ]; then
+                echo " Copying $(basename $migration_file) into container..."
+                docker cp "$migration_file" groo-mysql:/$(basename $migration_file)
+                echo " Executing $(basename $migration_file)..."
+                docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc -e "source /$(basename $migration_file)"
+                echo " $(basename $migration_file) completed successfully!"
+                migration_executed=true
+              fi
+            done
+
+            if [ "$migration_executed" = false ]; then
+              echo "ℹ No migration files found, skipping migration step..."
+            else
+              echo " All database migrations completed successfully!"
+            fi
+
+            echo "=== Database initialization and migration finished ==="
+
+
+            # 11) Nginx 컨테이너 실행 (설정파일 마운트)
             docker run -d \
               --name groo-nginx \
               --network groo-network \
@@ -181,7 +234,7 @@ jobs:
               --restart unless-stopped \
               nginx:alpine
 
-            # 11) 헬스 체크 (최대 2분, 10초 간격)
+            # 12) 헬스 체크 (최대 2분, 10초 간격)
             echo "Waiting for nginx to start..."
             sleep 10
             for i in {1..12}; do
