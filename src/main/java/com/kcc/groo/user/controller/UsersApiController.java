@@ -146,8 +146,9 @@ public class UsersApiController {
 			return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("Signup success", newUser));
 	}
 	
+
 	/**
-	 * @param signupRequest
+	 * @param userId
 	 * @param request
 	 * @return CommonResponse
 	 * @author kys
