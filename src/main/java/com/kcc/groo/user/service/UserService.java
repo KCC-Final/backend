@@ -96,13 +96,7 @@ public class UserService implements IUserService {
 	@Override
 	public int existsByUserId(String userId) {
 		// TODO Auto-generated method stub
-		int result = usersRepository.existsByUserId(userId);
-
-		if (result > 0) {
-			throw new IllegalArgumentException("already exist id");
-		} else {
-			return result;
-		}
+			return usersRepository.existsByUserId(userId);
 	}
 
 	@Override
