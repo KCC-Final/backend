@@ -143,7 +143,7 @@ jobs:
               --network groo-network \
               -v groo-redis-data:/data \
               --restart unless-stopped \
-              redis:7.0-alpine redis-server --appendonly yes --requirepass ${{ secrets.REDIS_PASSWORD }}
+              redis:7.0-alpine redis-server --appendonly yes # 비밀번호 없음
 
             # 7) DB와 Redis 기동 대기
             echo "Waiting for database and redis to start..."

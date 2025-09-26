@@ -30,7 +30,8 @@ public class SpringSecurityConfig {
 	                "/v3/api-docs/**",
 	                "/api-docs/**",
 	                "/actuator/**",
-	                "/api-docs/swagger-config"
+	                "/api-docs/swagger-config",
+	                "/api/test/ping"
 	            ).permitAll()
 	            
 	            // 로그인/회원가입 / 아이디 / 비밀번호 찾기 인증 허용
