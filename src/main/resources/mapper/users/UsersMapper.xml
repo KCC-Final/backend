@@ -7,7 +7,7 @@
 <id property="userId" column="user_id"/>
 <result property="password" column="password"/>
 <result property="email" column="email"/>
-<result property="nickName" column="nickname"/>
+<result property="nickname" column="nickname"/>
 <result property="profileImage" column="profile_image"/>
 <result property="introduction" column="introduction"/>
 <result property="gender" column="gender"/>

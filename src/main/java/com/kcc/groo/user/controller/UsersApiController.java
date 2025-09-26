@@ -93,8 +93,10 @@ public class UsersApiController {
 	 * @param request
 	 * @return CommonResponse
 	 * @author kys
-	 * @since 2025-09-23
+	 * @created 2025-09-23
 	 * 회원가입 시 전송된 인증 코드의 일치 여부를 확인
+	 * 
+	 * 
 	 */
 	@PostMapping("/email/verify")
 	public ResponseEntity<CommonResponse<?>> verifyEmailCode (@RequestParam("purpose") String purpose, @RequestParam("email") String email, @RequestParam("code") String code, HttpServletRequest request) {
@@ -102,7 +104,7 @@ public class UsersApiController {
 		if (verified) {
 			request.getSession().setAttribute("verifiedEmail", email);
 			return ResponseEntity
-                    .ok(new CommonResponse<>("Email verification success", null));
+                    .ok(new CommonResponse<>("Email verification success", email));
 			} else {
 				return ResponseEntity
 	                    .badRequest()

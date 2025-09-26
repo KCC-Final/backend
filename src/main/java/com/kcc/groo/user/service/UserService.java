@@ -49,7 +49,7 @@ public class UserService implements IUserService {
 	    newUser.setUserId(signupRequest.getUserId());
 	    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
 	    newUser.setEmail(signupRequest.getEmail());
-	    newUser.setNickName(signupRequest.getNickName());
+	    newUser.setNickname(signupRequest.getNickname());
 	    newUser.setGender(signupRequest.getGender());
 	    newUser.setName(signupRequest.getName());
 	    newUser.setBirth(signupRequest.getBirth());
