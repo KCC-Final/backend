@@ -55,7 +55,7 @@ public interface IUsersRepository {
 	 * @created 2025-09-23
 	 * 이메일 인증 성공 여부 업데이트
 	 */
-	int updateEmailVerified(@Param("email") String email, @Param("emailVerified") boolean emailVerified);
+	int updateEmailVerified(@Param("email") String email, @Param("emailVerified") Boolean emailVerified);
 	
 	/**
 	 * @param name

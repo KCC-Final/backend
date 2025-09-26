@@ -5,41 +5,43 @@
 
 <resultMap id="userMap" type="com.kcc.groo.user.data.model.Users">
 <id property="userId" column="user_id"/>
-<id property="password" column="password"/>
-<id property="email" column="email"/>
-<id property="nickName" column="nickname"/>
-<id property="profileImage" column="profile_image"/>
-<id property="introduction" column="introduction"/>
-<id property="gender" column="gender"/>
-<id property="name" column="name"/>
-<id property="birth" column="birth"/>
-<id property="createdAt" column="created_at"/>
-<id property="status" column="status"/>
-<id property="withdrawaDate" column="withdrawal_date"/>
-<id property="pwdChangedAt" column="pwd_changed_at"/>
-<id property="checkPrivacy" column="check_privacy"/>
-<id property="checkService" column="check_service"/>
-<id property="emailVerified" column="email_Verified"/>
+<result property="password" column="password"/>
+<result property="email" column="email"/>
+<result property="nickName" column="nickname"/>
+<result property="profileImage" column="profile_image"/>
+<result property="introduction" column="introduction"/>
+<result property="gender" column="gender"/>
+<result property="name" column="name"/>
+<result property="birth" column="birth"/>
+<result property="createdAt" column="created_at"/>
+<result property="status" column="status"/>
+<result property="withdrawaDate" column="withdrawal_date"/>
+<result property="pwdChangedAt" column="pwd_changed_at"/>
+<result property="checkPrivacy" column="check_privacy"/>
+<result property="checkService" column="check_service"/>
+<result property="emailVerified" column="email_verified"/>
 </resultMap>
 
 <select id="selectUserByUserId" parameterType="string" resultMap="userMap">
 <![CDATA[
-SELECT user_id, password, email, nickname, profile_image, introduction, gender, birth, created_at
-FROM users WHERE user_id = #{userId}
+SELECT user_id, password, email, nickname, profile_image, introduction, gender, name, birth, created_at,
+       status, withdrawal_date, pwd_changed_at, check_privacy, check_service, email_verified
+FROM users 
+WHERE user_id = #{userId}
 ]]>
 </select>
 
 <insert id="insertUser" parameterType="com.kcc.groo.user.data.model.Users">
 <![CDATA[ 
-INSERT INTO users (user_id, password, email, nickname, gender, name, birth, check_privacy,check_service )
-VALUES (#{userId}, #{password}, #{email},#{nickName},#{gender},#{name},#{birth}, #{checkPrivacy}, #{checkService})
+INSERT INTO users (user_id, password, email, nickname, gender, name, birth, check_privacy,check_service, email_verified )
+VALUES (#{userId}, #{password}, #{email},#{nickName},#{gender},#{name},#{birth}, #{checkPrivacy}, #{checkService}, #{emailVerified})
 ]]>
 </insert>
 
 <update id="updateEmailVerified">
 UPDATE users
 SET email_verified = #{emailVerified}
-WHERE user_id = #{userId}
+WHERE email = #{email}
 </update>
 
 <select id="selectAllUserId" resultMap="userMap">
