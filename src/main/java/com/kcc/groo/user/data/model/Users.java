@@ -15,7 +15,7 @@ public class Users {
 	private String userId; //pk
 	private String password; //비밀번호
 	private String email; //이메일
-	private String nickName; //별명
+	private String nickname; //별명
 	private String profileImage; //프로필 이미지
 	private String introduction; //자기소개
 	private char gender; //성별
