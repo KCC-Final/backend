@@ -1,9 +1,12 @@
 package com.kcc.groo.jwt;
 
+import java.util.Base64;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,99 +29,113 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class JwtTokenProvider {
-	
-	private static final SecretKey key = Jwts.SIG.HS256.key().build();
-	
-	private static final String AUTH_HEADER = "Authorization";
-	private long tokenValidTime = 24 * 60 * 60 * 1000L; //하루
 
-	
-	@Autowired
-	UserDetailsService userDetailsService;
-	
-	/**
-	 * @param user
-	 * @author kys
-	 * @since 2025-09-15
-	 * @return jwt token
-	 * 사용자 정보를 기반으로 jwt token 생성
-	 */
-	public String generateToken(Users user) {
-		long now = System.currentTimeMillis();
-		Claims claims = Jwts.claims().subject(user.getUserId()).setIssuer(user.getNickname()).issuedAt(new Date(now))
-				.expiration(new Date(now + tokenValidTime)).build();
-		
-		return Jwts.builder().claims(claims).signWith(key).compact();
-	}
-	
-	/**
-	 * @param request
-	 * @author kys
-	 * @since 2025-09-15
-	 * @return AUTH_HEADER에 담긴 jwt token
-	 * http 요청 헤더에서 jwt 토큰 추출
-	 */
-	public String resolveToken (HttpServletRequest request) {
-		return request.getHeader(AUTH_HEADER);
-	}
-	
-	/**
-	 * @param token
-	 * @author kys
-	 * @since 2025-09-15
-	 * @return Claims
-	 * JWT 문자열을 Claims 객체로 파싱
-	 */
-	private Claims parseClaims(String token) {
-		log.info(token);
-		
-		return Jwts.parser()
-				.verifyWith(key)
-				.build()
-				.parseSignedClaims(token)
-				.getPayload();
-	}
-	
-	/**
-	 * @param token
-	 * @author kys
-	 * @since 2025-09-15
-	 * @return userId
-	 * 토큰에서 사용자 ID(subject)를 추출
-	 */
-	public String getUserId (String token) {
-		return parseClaims(token).getSubject();
-	}
-	
-	/**
-	 * @param token
-	 * @author kys
-	 * @since 2025-09-15
-	 * @return Authentication
-	 * 토큰 기반으로 Authentication 객체를 생성
-	 * Spring Security의 인증 객체로 변환되어 SecurityContext에 저장 가능
-	 */
-	public Authentication getAuthentication(String token) {
-		UserDetails userDetails = userDetailsService.loadUserByUsername(getUserId(token));
-		log.info(userDetails.getUsername());
-		
-		return new UsernamePasswordAuthenticationToken(userDetails,"",userDetails.getAuthorities());
-	}
-	
-	/**
-	 * @param token
-	 * @author kys
-	 * @since 2025-09-15
-	 * @return true/false
-	 * JWT 유효성을 검증
-	 */
-	public boolean validateToken(String token) {
-		try {
-			Claims claims = parseClaims(token);
-			return !claims.getExpiration().before(new Date());
-		} catch (Exception e) {
-			log.error("TOKEN VALIDATION FAILED: {}", e.getMessage());
-			return false;
-		}
-	}
+    private SecretKey key;
+    private long tokenValidTime;
+
+    private static final String AUTH_HEADER = "Authorization";
+
+    @Autowired
+    UserDetailsService userDetailsService;
+
+    /**
+     * @author cys
+     * @since 2025-09-27
+     * 의존성 주입 후 초기화 작업
+     */
+    @PostConstruct
+    public void init() {
+        String base64Key = System.getenv("JWT_SECRET");
+        String tokenValidSecondStr = System.getenv("JWT_VALID_SECOND");
+
+        byte[] keyBytes = Base64.getDecoder().decode(base64Key);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.tokenValidTime = Long.parseLong(tokenValidSecondStr) * 1000L;
+    }
+
+    /**
+     * @param user
+     * @author kys
+     * @since 2025-09-15
+     * @return jwt token
+     * 사용자 정보를 기반으로 jwt token 생성
+     */
+    public String generateToken(Users user) {
+        long now = System.currentTimeMillis();
+        Claims claims = Jwts.claims().subject(user.getUserId()).setIssuer("groo.site").issuedAt(new Date(now))
+                .expiration(new Date(now + tokenValidTime)).build();
+
+        return Jwts.builder().claims(claims).signWith(key).compact();
+    }
+
+    /**
+     * @param request
+     * @author kys
+     * @since 2025-09-15
+     * @return AUTH_HEADER에 담긴 jwt token
+     * http 요청 헤더에서 jwt 토큰 추출
+     */
+    public String resolveToken (HttpServletRequest request) {
+        return request.getHeader(AUTH_HEADER);
+    }
+
+    /**
+     * @param token
+     * @author kys
+     * @since 2025-09-15
+     * @return Claims
+     * JWT 문자열을 Claims 객체로 파싱
+     */
+    private Claims parseClaims(String token) {
+        log.info(token);
+
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    /**
+     * @param token
+     * @author kys
+     * @since 2025-09-15
+     * @return userId
+     * 토큰에서 사용자 ID(subject)를 추출
+     */
+    public String getUserId (String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    /**
+     * @param token
+     * @author kys
+     * @since 2025-09-15
+     * @return Authentication
+     * 토큰 기반으로 Authentication 객체를 생성
+     * Spring Security의 인증 객체로 변환되어 SecurityContext에 저장 가능
+     */
+    public Authentication getAuthentication(String token) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(getUserId(token));
+        log.info(userDetails.getUsername());
+
+        return new UsernamePasswordAuthenticationToken(userDetails,"",userDetails.getAuthorities());
+    }
+
+    /**
+     * @param token
+     * @author kys
+     * @since 2025-09-15
+     * @return true/false
+     * JWT 유효성을 검증
+     */
+    public boolean validateToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return !claims.getExpiration().before(new Date());
+        } catch (Exception e) {
+            log.error("TOKEN VALIDATION FAILED: {}", e.getMessage());
+            return false;
+        }
+    }
 }
