@@ -25,6 +25,11 @@ public class ReviewService implements IReviewService {
     }
 
     @Override
+    public void deleteReview(String userId, Integer reviewId) {
+        reviewRepository.deleteReview(userId, reviewId);
+    }
+
+    @Override
     public ReviewResponse getReview(String userId, Integer reviewId) {
         return reviewRepository.selectReviewById(userId, reviewId);
     }

@@ -94,4 +94,24 @@ public class ReviewApiController {
         reviewService.updateReview(userId, reviewId, request);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * TODO
+     * 
+     * @param @param reviewId
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<Void>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "독후감 삭제", description = "본인이 작성한 독후감을 삭제합니다.")
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable("reviewId") Integer reviewId,
+            Principal principal) {
+        String userId = principal.getName();
+        reviewService.deleteReview(userId, reviewId);
+        return ResponseEntity.noContent().build();
+    }
 }

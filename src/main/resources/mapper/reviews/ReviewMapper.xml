@@ -45,6 +45,20 @@
       AND user_id   = #{userId}
     ]]>
   </update>
+
+  <!-- 독후감 삭제 -->
+  <delete id="deleteReview">
+    <![CDATA[
+    DELETE FROM reviews
+    WHERE review_id = #{reviewId}
+      AND user_id   = #{userId}
+    ]]>
+  </delete>
+
+  <!-- =========================
+       SELECT
+       ========================= -->
+
   <!-- 단건 조회 (비밀글은 작성자 본인만) -->
   <select id="selectReviewById" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
     <![CDATA[
