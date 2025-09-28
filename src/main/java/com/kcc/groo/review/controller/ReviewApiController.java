@@ -170,4 +170,59 @@ public class ReviewApiController {
         reviewService.deleteReview(userId, reviewId);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * TODO
+     * 
+     * @param @param reviewId
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<Void>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "독후감 좋아요", description = "리뷰에 좋아요를 추가합니다.")
+    @PostMapping("/{reviewId}/like")
+    public ResponseEntity<Void> likeReview(
+            @PathVariable("reviewId") Integer reviewId,
+            Principal principal) {
+        String userId = principal.getName();
+        reviewService.likeReview(userId, reviewId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * TODO
+     * 
+     * @param @param reviewId
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<Void>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "독후감 좋아요 취소", description = "리뷰 좋아요를 취소합니다.")
+    @DeleteMapping("/{reviewId}/like")
+    public ResponseEntity<Void> unlikeReview(
+            @PathVariable("reviewId") Integer reviewId,
+            Principal principal) {
+        String userId = principal.getName();
+        reviewService.unlikeReview(userId, reviewId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * TODO
+     * 
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "좋아요한 독후감 목록", description = "본인이 좋아요한 모든 독후감을 조회합니다.")
+    @GetMapping("/likes/me")
+    public ResponseEntity<List<ReviewResponse>> getLikedReviews(Principal principal) {
+        String userId = principal.getName();
+        return ResponseEntity.ok(reviewService.getLikedReviews(userId));
 }

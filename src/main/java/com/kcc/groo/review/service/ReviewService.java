@@ -54,5 +54,27 @@ public class ReviewService implements IReviewService {
         reviewRepository.deleteDraft(id, userId);
     }
 
+    @Transactional
+    @Override
+    public void likeReview(String userId, Integer reviewId) {
+        // ✅ 임시저장/삭제글 검증
+        if (!reviewRepository.canLikeReview(reviewId)) {
+            throw new IllegalStateException("임시저장 글이나 삭제된 글에는 좋아요를 누를 수 없습니다.");
+        }
+
+        // 중복 방지
+        if (reviewRepository.existsLike(userId, reviewId) == 0) {
+            reviewRepository.insertLike(userId, reviewId);
+        }
+    }
+
+    @Override
+    public void unlikeReview(String userId, Integer reviewId) {
+        reviewRepository.deleteLike(userId, reviewId);
+    }
+
+    @Override
+    public List<ReviewResponse> getLikedReviews(String userId) {
+        return reviewRepository.selectLikedReviews(userId);
     }
 }
