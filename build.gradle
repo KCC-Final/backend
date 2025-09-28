@@ -32,6 +32,10 @@ dependencies {
 
     //springdoc 최신 호환 버전으로 교체
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+	
+	//.env의존성 설치    
+    implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+    
 
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
