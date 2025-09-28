@@ -225,4 +225,5 @@ public class ReviewApiController {
     public ResponseEntity<List<ReviewResponse>> getLikedReviews(Principal principal) {
         String userId = principal.getName();
         return ResponseEntity.ok(reviewService.getLikedReviews(userId));
+    }
 }
