@@ -4,11 +4,12 @@ import com.kcc.groo.review.data.model.Review;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Data
 public class ReviewResponse {
     private Integer reviewId;
-    private String ISBN;
+    private String isbn;          // ✅ 소문자 필드로 변경 (Review와 일치)
     private String reviewTitle;
     private String reviewContent;
     private Integer viewCnt;
@@ -17,19 +18,35 @@ public class ReviewResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String userId;
+    private Integer codeId;       // ✅ 코드 매핑
+    private Integer likeCount;    // 좋아요 개수
+    private Boolean liked;        // 현재 로그인 유저가 좋아요 눌렀는지 여부
 
     public static ReviewResponse fromModel(Review review) {
         ReviewResponse res = new ReviewResponse();
         res.setReviewId(review.getReviewId());
-        res.setISBN(review.getISBN());
+        res.setIsbn(review.getIsbn()); // ✅ 수정: getIsbn() 호출
         res.setReviewTitle(review.getReviewTitle());
         res.setReviewContent(review.getReviewContent());
         res.setViewCnt(review.getViewCnt());
         res.setSecret(review.getSecret());
         res.setTemporary(review.getTemporary());
-        res.setCreatedAt(review.getCreatedAt());
-        res.setUpdatedAt(review.getUpdatedAt());
+
+        // ✅ Date → LocalDateTime 변환
+        if (review.getCreatedAt() != null) {
+            res.setCreatedAt(review.getCreatedAt().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime());
+        }
+        if (review.getUpdatedAt() != null) {
+            res.setUpdatedAt(review.getUpdatedAt().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime());
+        }
+
         res.setUserId(review.getUserId());
+        res.setCodeId(review.getCodeId());
+        res.setLikeCount(review.getLikeCount()); // ✅ 좋아요 개수 매핑
         return res;
     }
 }

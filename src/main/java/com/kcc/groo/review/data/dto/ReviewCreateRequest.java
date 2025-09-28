@@ -8,6 +8,7 @@ public class ReviewCreateRequest {
     @Schema(description = "ISBN", example = "9788996991342")
     private String ISBN;
 
+    private String isbn;   // ✅ 소문자
     @Schema(description = "제목", example = "해리포터 감상문")
     private String reviewTitle;
 
