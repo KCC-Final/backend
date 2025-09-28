@@ -24,5 +24,15 @@ public class ReviewService implements IReviewService {
         reviewRepository.updateReview(userId, reviewId, request);
     }
 
+    @Override
+    public ReviewResponse getReview(String userId, Integer reviewId) {
+        return reviewRepository.selectReviewById(userId, reviewId);
+    }
+
+    @Override
+    public List<ReviewResponse> getAllReviews(String userIdOrNull) {
+        return reviewRepository.selectAllReviews(userIdOrNull);
+    }
+
     }
 }

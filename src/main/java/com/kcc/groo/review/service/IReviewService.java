@@ -9,4 +9,7 @@ public interface IReviewService {
     void createReview(String userId, ReviewCreateRequest request);
 
     void updateReview(String userId, Integer reviewId, ReviewUpdateRequest request);
+    ReviewResponse getReview(String userId, Integer reviewId);
+
+    List<ReviewResponse> getAllReviews(String userIdOrNull);
 }

@@ -45,3 +45,54 @@
       AND user_id   = #{userId}
     ]]>
   </update>
+  <!-- 단건 조회 (비밀글은 작성자 본인만) -->
+  <select id="selectReviewById" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+    <![CDATA[
+      SELECT
+        r.review_id    AS reviewId,
+        r.ISBN         AS isbn,
+        r.review_title AS reviewTitle,
+        r.review_content AS reviewContent,
+        r.view_cnt     AS viewCnt,
+        r.secret       AS secret,
+        r.status       AS status,
+        r.temporary    AS temporary,
+        r.created_at   AS createdAt,
+        r.updated_at   AS updatedAt,
+        r.user_id      AS userId,
+        r.code_id      AS codeId,
+        (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+        (EXISTS(SELECT 1 FROM likes l WHERE l.review_id = r.review_id AND l.user_id = #{userId})) AS liked
+      FROM reviews r
+      WHERE r.review_id = #{reviewId}
+        AND (r.secret = FALSE OR r.user_id = #{userId})
+    ]]>
+  </select>
+
+  <!-- 전체 조회 -->
+  <select id="selectAllReviews" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+    <![CDATA[
+    SELECT
+      r.review_id      AS reviewId,
+      r.ISBN           AS isbn,
+      r.review_title   AS reviewTitle,
+      r.review_content AS reviewContent,
+      r.view_cnt       AS viewCnt,
+      r.secret         AS secret,
+      r.status         AS status,
+      r.temporary      AS temporary,
+      r.created_at     AS createdAt,
+      r.updated_at     AS updatedAt,
+      r.user_id        AS userId,
+      r.code_id        AS codeId
+    FROM reviews r
+    WHERE r.status = TRUE
+      AND r.temporary = FALSE
+      AND (
+        r.secret = FALSE
+        OR (#{userId} IS NOT NULL AND r.user_id = #{userId})
+      )
+    ORDER BY r.created_at DESC
+    ]]>
+  </select>
+

@@ -43,6 +43,41 @@ public class ReviewApiController {
      * 
      * @param @param reviewId
      * @param @param principal
+     * @param @return
+     * @return ResponseEntity<ReviewResponse>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "독후감 단건 조회", description = "리뷰 ID로 독후감을 조회합니다. 비밀글은 작성자 본인만 조회할 수 있습니다.")
+    @GetMapping("/{reviewId}")
+    public ResponseEntity<ReviewResponse> getReview(
+            @PathVariable("reviewId") Integer reviewId,
+            Principal principal) {
+        String userId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getReview(userId, reviewId));
+    }
+
+    /**
+     * TODO
+     * 
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "독후감 전체 조회", description = "모든 공개 독후감을 조회합니다. 본인의 비밀글은 본인만 조회할 수 있습니다.")
+    @GetMapping
+    public ResponseEntity<List<ReviewResponse>> getAllReviews(Principal principal) {
+        String userId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getAllReviews(userId));
+    }
+
+    /**
+     * TODO
+     * 
+     * @param @param reviewId
+     * @param @param principal
      * @param @param request
      * @param @return
      * @return ResponseEntity<Void>
