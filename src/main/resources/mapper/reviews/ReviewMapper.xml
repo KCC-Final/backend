@@ -110,3 +110,60 @@
     ]]>
   </select>
 
+  <!-- 임시저장 목록 -->
+  <select id="selectDrafts" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+    <![CDATA[
+    SELECT
+      r.review_id      AS reviewId,
+      r.ISBN           AS isbn,
+      r.review_title   AS reviewTitle,
+      r.review_content AS reviewContent,
+      r.view_cnt       AS viewCnt,
+      r.secret         AS secret,
+      r.status         AS status,
+      r.temporary      AS temporary,
+      r.created_at     AS createdAt,
+      r.updated_at     AS updatedAt,
+      r.user_id        AS userId,
+      r.code_id        AS codeId
+    FROM reviews r
+    WHERE r.status = TRUE
+      AND r.user_id = #{userId}
+      AND r.temporary = TRUE
+    ORDER BY r.created_at DESC
+    ]]>
+  </select>
+
+  <!-- 임시저장 단건 -->
+  <select id="selectDraft" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+    <![CDATA[
+    SELECT
+      r.review_id      AS reviewId,
+      r.ISBN           AS isbn,
+      r.review_title   AS reviewTitle,
+      r.review_content AS reviewContent,
+      r.view_cnt       AS viewCnt,
+      r.secret         AS secret,
+      r.status         AS status,
+      r.temporary      AS temporary,
+      r.created_at     AS createdAt,
+      r.updated_at     AS updatedAt,
+      r.user_id        AS userId,
+      r.code_id        AS codeId
+    FROM reviews r
+    WHERE r.review_id = #{id}
+      AND r.user_id   = #{userId}
+      AND r.temporary = TRUE
+    ]]>
+  </select>
+
+  <!-- 임시저장 삭제 -->
+  <delete id="deleteDraft">
+    <![CDATA[
+    DELETE FROM reviews
+    WHERE review_id = #{id}
+      AND user_id   = #{userId}
+      AND temporary = TRUE
+    ]]>
+  </delete>
+

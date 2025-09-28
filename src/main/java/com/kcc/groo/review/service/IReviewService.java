@@ -15,4 +15,11 @@ public interface IReviewService {
     ReviewResponse getReview(String userId, Integer reviewId);
 
     List<ReviewResponse> getAllReviews(String userIdOrNull);
+
+    List<ReviewResponse> getDrafts(String userId);
+
+    ReviewResponse getDraft(int id, String userId);
+
+    void deleteDraft(int id, String userId);
+
 }

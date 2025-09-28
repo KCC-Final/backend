@@ -39,5 +39,20 @@ public class ReviewService implements IReviewService {
         return reviewRepository.selectAllReviews(userIdOrNull);
     }
 
+    @Override
+    public List<ReviewResponse> getDrafts(String userId) {
+        return reviewRepository.selectDrafts(userId);
+    }
+
+    @Override
+    public ReviewResponse getDraft(int id, String userId) {
+        return reviewRepository.selectDraft(id, userId);
+    }
+
+    @Override
+    public void deleteDraft(int id, String userId) {
+        reviewRepository.deleteDraft(id, userId);
+    }
+
     }
 }

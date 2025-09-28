@@ -38,6 +38,62 @@ public class ReviewApiController {
         reviewService.createReview(userId, request);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * TODO
+     * 
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "임시저장 목록 조회", description = "로그인한 사용자의 임시저장 글 목록을 조회합니다.")
+    @GetMapping("/drafts")
+    public ResponseEntity<List<ReviewResponse>> getDrafts(Principal principal) {
+        String userId = principal.getName();
+        return ResponseEntity.ok(reviewService.getDrafts(userId));
+    }
+
+    /**
+     * TODO
+     * 
+     * @param @param id
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<ReviewResponse>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "임시저장 글 단건 조회", description = "특정 임시저장 글을 조회합니다.")
+    @GetMapping("/drafts/{id}")
+    public ResponseEntity<ReviewResponse> getDraft(
+            @PathVariable("id") int id,
+            Principal principal) {
+        String userId = principal.getName();
+        return ResponseEntity.ok(reviewService.getDraft(id, userId));
+    }
+
+    /**
+     * TODO
+     * 
+     * @param @param id
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<Void>
+     * @author kolgu
+     * @created 2025. 9. 28. TODO
+     */
+    @Operation(summary = "임시저장 글 삭제", description = "본인이 작성한 임시저장 글을 삭제합니다.")
+    @DeleteMapping("/drafts/{id}")
+    public ResponseEntity<Void> deleteDraft(
+            @PathVariable("id") int id,
+            Principal principal) {
+        String userId = principal.getName();
+        reviewService.deleteDraft(id, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     /**
      * TODO
      * 
