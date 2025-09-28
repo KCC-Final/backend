@@ -150,6 +150,24 @@ public class ReviewApiController {
         reviewService.updateReview(userId, reviewId, request);
         return ResponseEntity.ok().build();
     }
+    
+    // --- 내가 작성한 리뷰 전체 조회 ---
+    /**
+     * TODO
+     * 
+     * @param @param principal
+     * @param @return
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author kolgu
+     * @created 2025. 9. 29. TODO
+     */
+    @Operation(summary = "내가 작성한 리뷰 전체 조회", description = "로그인한 사용자가 작성한 모든 리뷰를 조회합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<List<ReviewResponse>> getMyReviews(Principal principal) {
+        String userId = principal.getName();
+        return ResponseEntity.ok(reviewService.getReviewsByUser(userId));
+    }
+
 
     /**
      * TODO

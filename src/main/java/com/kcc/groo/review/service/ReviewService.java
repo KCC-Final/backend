@@ -32,6 +32,14 @@ public class ReviewService implements IReviewService {
     @Override
     public ReviewResponse getReview(String userId, Integer reviewId) {
         return reviewRepository.selectReviewById(userId, reviewId);
+    @Override
+    public List<ReviewResponse> getReviewsByUser(String userId) {
+        return reviewRepository.selectReviewsByUser(userId);
+    }
+
+    @Override
+    public List<ReviewResponse> getReviewsByLikes(String userId) {
+        return reviewRepository.selectReviewsByLikes(userId);
     }
 
     @Override

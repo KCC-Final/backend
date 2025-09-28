@@ -21,8 +21,12 @@ public interface IReviewRepository {
 
     ReviewResponse selectReviewById(@Param("userId") String userId,
                                     @Param("reviewId") Integer reviewId);
+    List<ReviewResponse> selectReviewsByLikes(@Param("userId") String userId);
 
     List<ReviewResponse> selectAllReviews(@Param("userId") String userId);
+    
+    // 내가 작성한 리뷰 조회
+    List<ReviewResponse> selectReviewsByUser(@Param("userId") String userId);
 
     List<ReviewResponse> selectDrafts(@Param("userId") String userId);
 

@@ -13,6 +13,10 @@ public interface IReviewService {
 
     ReviewResponse getReview(String userId, Integer reviewId);
 
+    List<ReviewResponse> getReviewsByLikes(String userId);
+    
+    List<ReviewResponse> getReviewsByUser(String userId);
+    
     List<ReviewResponse> getAllReviews(String userIdOrNull);
 
     List<ReviewResponse> getDrafts(String userId);
