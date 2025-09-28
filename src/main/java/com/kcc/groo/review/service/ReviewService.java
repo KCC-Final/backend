@@ -18,5 +18,11 @@ public class ReviewService implements IReviewService {
     public void createReview(String userId, ReviewCreateRequest request) {
         reviewRepository.insertReview(userId, request);
     }
+
+    @Override
+    public void updateReview(String userId, Integer reviewId, ReviewUpdateRequest request) {
+        reviewRepository.updateReview(userId, reviewId, request);
+    }
+
     }
 }
