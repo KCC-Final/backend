@@ -20,14 +20,12 @@ public class ReviewApiController {
     private final IReviewService reviewService;
 
     /**
-     * TODO
-     * 
-     * @param @param principal
-     * @param @param request
-     * @param @return
+     * @param principal 인증된 사용자 정보
+     * @param request 독후감 작성 정보
      * @return ResponseEntity<Void>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * JWT 토큰에서 추출한 userId 기준으로 독후감을 작성
      */
     @Operation(summary = "독후감 작성", description = "JWT 토큰에서 추출한 userId 기준으로 독후감을 작성합니다.")
     @PostMapping
@@ -40,13 +38,11 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param principal
-     * @param @return
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<List<ReviewResponse>>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 로그인한 사용자의 임시저장 글 목록을 조회
      */
     @Operation(summary = "임시저장 목록 조회", description = "로그인한 사용자의 임시저장 글 목록을 조회합니다.")
     @GetMapping("/drafts")
@@ -56,14 +52,12 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param id
-     * @param @param principal
-     * @param @return
+     * @param id 조회할 임시저장 글 ID
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<ReviewResponse>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 특정 임시저장 글을 조회
      */
     @Operation(summary = "임시저장 글 단건 조회", description = "특정 임시저장 글을 조회합니다.")
     @GetMapping("/drafts/{id}")
@@ -75,14 +69,12 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param id
-     * @param @param principal
-     * @param @return
+     * @param id 삭제할 임시저장 글 ID
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 본인이 작성한 임시저장 글을 삭제
      */
     @Operation(summary = "임시저장 글 삭제", description = "본인이 작성한 임시저장 글을 삭제합니다.")
     @DeleteMapping("/drafts/{id}")
@@ -95,14 +87,12 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param reviewId
-     * @param @param principal
-     * @param @return
+     * @param reviewId 조회할 리뷰 ID
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<ReviewResponse>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-29
+     * 리뷰 ID로 독후감을 조회, 비밀글은 작성자 본인만 조회 가능
      */
     @Operation(summary = "독후감 단건 조회", description = "리뷰 ID로 독후감을 조회합니다. 비밀글은 작성자 본인만 조회할 수 있습니다.")
     @GetMapping("/{reviewId}")
@@ -114,13 +104,11 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param principal
-     * @param @return
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<List<ReviewResponse>>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 모든 공개 독후감을 조회, 본인의 비밀글은 본인만 조회 가능
      */
     @Operation(summary = "독후감 전체 조회", description = "모든 공개 독후감을 조회합니다. 본인의 비밀글은 본인만 조회할 수 있습니다.")
     @GetMapping
@@ -130,15 +118,13 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param reviewId
-     * @param @param principal
-     * @param @param request
-     * @param @return
+     * @param reviewId 수정할 리뷰 ID
+     * @param principal 인증된 사용자 정보
+     * @param request 수정할 독후감 정보
      * @return ResponseEntity<Void>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 본인이 작성한 독후감을 수정
      */
     @Operation(summary = "독후감 수정", description = "본인이 작성한 독후감을 수정합니다.")
     @PutMapping("/{reviewId}")
@@ -150,16 +136,13 @@ public class ReviewApiController {
         reviewService.updateReview(userId, reviewId, request);
         return ResponseEntity.ok().build();
     }
-    
-    // --- 내가 작성한 리뷰 전체 조회 ---
+
     /**
-     * TODO
-     * 
-     * @param @param principal
-     * @param @return
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<List<ReviewResponse>>
-     * @author kolgu
-     * @created 2025. 9. 29. TODO
+     * @author uyh
+     * @created 2025-09-29
+     * 로그인한 사용자가 작성한 모든 리뷰를 조회
      */
     @Operation(summary = "내가 작성한 리뷰 전체 조회", description = "로그인한 사용자가 작성한 모든 리뷰를 조회합니다.")
     @GetMapping("/me")
@@ -168,16 +151,13 @@ public class ReviewApiController {
         return ResponseEntity.ok(reviewService.getReviewsByUser(userId));
     }
 
-
     /**
-     * TODO
-     * 
-     * @param @param reviewId
-     * @param @param principal
-     * @param @return
+     * @param reviewId 삭제할 리뷰 ID
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 본인이 작성한 독후감을 삭제
      */
     @Operation(summary = "독후감 삭제", description = "본인이 작성한 독후감을 삭제합니다.")
     @DeleteMapping("/{reviewId}")
@@ -190,14 +170,12 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param reviewId
-     * @param @param principal
-     * @param @return
+     * @param reviewId 좋아요할 리뷰 ID
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 리뷰에 좋아요를 추가
      */
     @Operation(summary = "독후감 좋아요", description = "리뷰에 좋아요를 추가합니다.")
     @PostMapping("/{reviewId}/like")
@@ -210,14 +188,12 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param reviewId
-     * @param @param principal
-     * @param @return
+     * @param reviewId 좋아요 취소할 리뷰 ID
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 리뷰 좋아요를 취소
      */
     @Operation(summary = "독후감 좋아요 취소", description = "리뷰 좋아요를 취소합니다.")
     @DeleteMapping("/{reviewId}/like")
@@ -230,13 +206,11 @@ public class ReviewApiController {
     }
 
     /**
-     * TODO
-     * 
-     * @param @param principal
-     * @param @return
+     * @param principal 인증된 사용자 정보
      * @return ResponseEntity<List<ReviewResponse>>
-     * @author kolgu
-     * @created 2025. 9. 28. TODO
+     * @author uyh
+     * @created 2025-09-28
+     * 본인이 좋아요한 모든 독후감을 조회
      */
     @Operation(summary = "좋아요한 독후감 목록", description = "본인이 좋아요한 모든 독후감을 조회합니다.")
     @GetMapping("/likes/me")

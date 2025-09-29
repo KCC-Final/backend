@@ -9,47 +9,167 @@ import java.util.List;
 @Mapper
 public interface IReviewRepository {
 
+    /**
+     * @param userId 리뷰 작성자 ID
+     * @param request 리뷰 작성 정보
+     * @return void
+     * @author uyh
+     * @created 2025-09-28
+     * 독후감을 등록
+     */
     void insertReview(@Param("userId") String userId,
                       @Param("req") ReviewCreateRequest request);
 
+    /**
+     * @param userId 리뷰 작성자 ID
+     * @param reviewId 수정할 리뷰 ID
+     * @param request 수정할 리뷰 정보
+     * @return void
+     * @author uyh
+     * @created 2025-09-28
+     * 본인이 작성한 독후감을 수정
+     */
     void updateReview(@Param("userId") String userId,
                       @Param("reviewId") Integer reviewId,
                       @Param("req") ReviewUpdateRequest request);
 
+    /**
+     * @param userId 리뷰 작성자 ID
+     * @param reviewId 삭제할 리뷰 ID
+     * @return void
+     * @author uyh
+     * @created 2025-09-28
+     * 본인이 작성한 독후감을 삭제
+     */
     void deleteReview(@Param("userId") String userId,
                       @Param("reviewId") Integer reviewId);
 
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @param reviewId 조회할 리뷰 ID
+     * @return ReviewResponse
+     * @author uyh
+     * @created 2025-09-29
+     * 리뷰 ID로 독후감 단건 조회
+     */
     ReviewResponse selectReviewById(@Param("userId") String userId,
                                     @Param("reviewId") Integer reviewId);
-    
+
+    /**
+     * @param reviewId 조회할 리뷰 ID
+     * @return List<CommentResponse>
+     * @author uyh
+     * @created 2025-09-29
+     * 특정 리뷰의 모든 댓글을 조회
+     */
     List<CommentResponse> selectCommentsByReview(@Param("reviewId") Integer reviewId);
-    
+
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-09-28
+     * 사용자가 좋아요한 리뷰 목록을 조회
+     */
     List<ReviewResponse> selectReviewsByLikes(@Param("userId") String userId);
 
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-09-28
+     * 모든 공개 독후감을 조회
+     */
     List<ReviewResponse> selectAllReviews(@Param("userId") String userId);
-    
-    // 내가 작성한 리뷰 조회
+
+    /**
+     * @param userId 조회할 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-09-29
+     * 특정 사용자가 작성한 모든 리뷰를 조회
+     */
     List<ReviewResponse> selectReviewsByUser(@Param("userId") String userId);
 
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-09-28
+     * 사용자의 임시저장 글 목록을 조회
+     */
     List<ReviewResponse> selectDrafts(@Param("userId") String userId);
 
+    /**
+     * @param id 조회할 임시저장 글 ID
+     * @param userId 조회하는 사용자 ID
+     * @return ReviewResponse
+     * @author uyh
+     * @created 2025-09-28
+     * 임시저장 글 단건 조회
+     */
     ReviewResponse selectDraft(@Param("id") int id,
                                @Param("userId") String userId);
 
+    /**
+     * @param id 삭제할 임시저장 글 ID
+     * @param userId 작성자 ID
+     * @return void
+     * @author uyh
+     * @created 2025-09-28
+     * 본인이 작성한 임시저장 글을 삭제
+     */
     void deleteDraft(@Param("id") int id,
                      @Param("userId") String userId);
 
+    /**
+     * @param userId 좋아요하는 사용자 ID
+     * @param reviewId 좋아요할 리뷰 ID
+     * @return void
+     * @author uyh
+     * @created 2025-09-28
+     * 리뷰에 좋아요를 추가
+     */
     void insertLike(@Param("userId") String userId,
                     @Param("reviewId") Integer reviewId);
 
+    /**
+     * @param userId 좋아요 취소하는 사용자 ID
+     * @param reviewId 좋아요 취소할 리뷰 ID
+     * @return void
+     * @author uyh
+     * @created 2025-09-28
+     * 리뷰 좋아요를 취소
+     */
     void deleteLike(@Param("userId") String userId,
                     @Param("reviewId") Integer reviewId);
 
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @param reviewId 조회할 리뷰 ID
+     * @return int
+     * @author uyh
+     * @created 2025-09-28
+     * 사용자가 해당 리뷰에 좋아요를 눌렀는지 확인
+     */
     int existsLike(@Param("userId") String userId,
                    @Param("reviewId") Integer reviewId);
 
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-09-28
+     * 사용자가 좋아요한 모든 독후감을 조회
+     */
     List<ReviewResponse> selectLikedReviews(@Param("userId") String userId);
 
-    // ✅ 좋아요 가능 여부 확인 (임시저장/삭제글 제외)
+    /**
+     * @param reviewId 확인할 리뷰 ID
+     * @return boolean
+     * @author uyh
+     * @created 2025-09-29
+     * 좋아요 가능 여부 확인, 임시저장/삭제글 제외
+     */
     boolean canLikeReview(@Param("reviewId") Integer reviewId);
 }
