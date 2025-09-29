@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kcc.groo.review.dao.ICommentRepository">
+
+	<!-- 댓글 작성 -->
+	<insert id="insertComment">
+		INSERT INTO review_comments (content, review_id, user_id, parent_id)
+		VALUES (
+		#{req.content},
+		#{reviewId},
+		#{userId},
+		<choose>
+			<when test="req.parentId != null">
+				#{req.parentId}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>
+		)
+	</insert>
+
+
+
+
+</mapper>
