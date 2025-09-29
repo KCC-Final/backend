@@ -32,7 +32,7 @@ public class JwtTokenProvider {
 	
 	private static final String SECRET = "mF8zdJXuTPGGUpO6DYRRby62knsq3ozQ9dWbQ/2QUvI="; //고정된 값
 	private static final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-	private static final String AUTH_HEADER = "Authorization";
+//	private static final String AUTH_HEADER = "Authorization";
 	
 	//토큰 만료 시간
 	private final long accessTokenValidTime = 15 * 60 * 1000L; //15min
@@ -84,21 +84,38 @@ public class JwtTokenProvider {
 	 * @param request
 	 * @author kys
 	 * @created 2025-09-15
-	 * @return AUTH_HEADER에 담긴 jwt token
-	 * http 요청 헤더에서 jwt 토큰 추출
+	 * @return accessToken
 	 * 
 	 * @modified 2025-09-29
 	 * token 값 검증 및 반환
 	 */
-	public String resolveToken (HttpServletRequest request) {
-		String token = request.getHeader(AUTH_HEADER); //header에서 token 가져옴
-		if (token != null) { //token값 검증 후 token 리턴
-			return token;
-		}
+	public String resolveAccessToken (HttpServletRequest request) {		
 		
 		if (request.getCookies() != null) { //cookie에서 토큰 가져옴
 			for (Cookie cookie : request.getCookies()) {
 				if ("accessToken".equals(cookie.getName())) { //access token이 있을 경우 값 리턴
+					return cookie.getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * @param request
+	 * @author kys
+	 * @created 2025-09-15
+	 * @return refreshToken
+	 * 
+	 * @modified 2025-09-29
+	 * token 값 검증 및 반환
+	 */
+	public String resolveRefreshToken (HttpServletRequest request) {		
+		
+		if (request.getCookies() != null) { //cookie에서 토큰 가져옴
+			for (Cookie cookie : request.getCookies()) {
+				if ("refreshToken".equals(cookie.getName())) { //refreshToken token이 있을 경우 값 리턴
 					return cookie.getValue();
 				}
 			}
@@ -166,4 +183,5 @@ public class JwtTokenProvider {
 			return false;
 		}
 	}
+
 }

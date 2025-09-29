@@ -1,6 +1,5 @@
 package com.kcc.groo.user.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,17 +7,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-//AuthenticationManager, UsernamePasswordAuthenticationToken
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-//Authentication
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,7 +32,6 @@ import com.kcc.groo.user.service.TokenService;
 import com.kcc.groo.user.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
-//Http 응답 관련
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +57,43 @@ public class UsersApiController {
 	TokenService tokenService;
 	@Autowired
 	IUsersRepository usersRepository;
+	
+	private static final long ACCESS_TOKEN_VALID_TIME = 15 * 60 * 1000L; //15min
+	private static final long REFRESH_TOKEN_VALID_TIME = 7 * 24 * 60 * 60 * 1000L; //7 days
+	private static final long ACCESS_TOKEN_VALID_TIME_SEC = ACCESS_TOKEN_VALID_TIME / 1000;
+	private static final long REFRESH_TOKEN_VALID_TIME_SEC = REFRESH_TOKEN_VALID_TIME / 1000;
+	
+
+    /**
+     * @param name
+     * @param value
+     * @param maxAgeSec
+     * @return
+     * @author kys
+	 * @created 2025-09-29
+	 * 쿠키 생성
+     */
+    private ResponseCookie buildCookie(String tokenName, String value, long maxAgeSec) {
+        return ResponseCookie.from(tokenName, value)
+                .httpOnly(true)
+                .secure(false) // 개발 환경에서는 false, 운영 환경 true
+                .path("/")
+                .sameSite("Strict")
+                .maxAge(maxAgeSec)
+                .build();
+    }
+
+
+    /**
+     * @param name
+     * @return
+     * @author kys
+	 * @created 2025-09-29
+	 * 쿠키 삭제
+     */
+    private ResponseCookie buildDeleteCookie(String tokenName) {
+        return buildCookie(tokenName, "", 0);
+    }
 
 	/**
 	 * @param loginRequest
@@ -74,12 +104,11 @@ public class UsersApiController {
 	 * 
 	 * @modified 2025-09-29
 	 * 쿠키 / redis에 토큰 저장하는 코드 추가
+	 * 
+	 * 쿠키 만료 기간 수정
 	 */
 	@PostMapping("auth/login")
 	public ResponseEntity<CommonResponse<?>> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-		
-		long accessTokenValidTime = 15 * 60 * 1000L; //15min
-		long refreshTokenValidTime = 7 * 24 * 60 * 60 * 1000L; //7 days
 		
 	    Authentication authentication = authenticationManager.authenticate(
 	            new UsernamePasswordAuthenticationToken(
@@ -91,33 +120,13 @@ public class UsersApiController {
 
 	    String accessToken = jwtTokenProvider.generateAccessToken(user);
 	    String refreshToken = jwtTokenProvider.generateRefreshToken(user);
-	    
-	    tokenService.saveToken(loginRequest.getUserId(), refreshToken, refreshTokenValidTime);
+	    tokenService.saveToken(loginRequest.getUserId(), refreshToken, REFRESH_TOKEN_VALID_TIME);
 
-	    ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
-	            .httpOnly(true)              
-	            .secure(false)               
-	            .sameSite("Lax")             
-	            .path("/")                   
-	            .maxAge(refreshTokenValidTime)    
-	            .build();
-	    
-	    ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
-	            .httpOnly(true)             
-	            .secure(false)   //운영 환경에서는 true    
-	            .sameSite("Lax")            
-	            .path("/")                  
-	            .maxAge(accessTokenValidTime)   
-	            .build();
-	    response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-	    response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-	    
-	   //tokens
-	    Map <String, String> tokens = new HashMap<>();
-	    tokens.put("accessToken", accessToken);
-	    tokens.put("refreshToken", refreshToken);
+	    response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("accessToken", accessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("refreshToken", refreshToken, REFRESH_TOKEN_VALID_TIME_SEC).toString());
 
-	    return ResponseEntity.ok(new CommonResponse<>("tokens", tokens));
+        Map<String, String> tokens = Map.of("accessToken", accessToken, "refreshToken", refreshToken);
+        return ResponseEntity.ok(new CommonResponse<>("Login success", tokens));
 	}
 	
 	/**
@@ -128,16 +137,10 @@ public class UsersApiController {
 	 * 토큰 재발급 (header 또는 cookie에서 refresh token 가져와 access token 새로 발급
 	 */
 	@PostMapping("token-refresh")
-	public ResponseEntity<CommonResponse<?>> refresh(@CookieValue("refreshToken") String cookieRefreshToken,
-			@RequestHeader(value = "Authorization", required = false) String headerRefreshToken) {
+	public ResponseEntity<CommonResponse<?>> refresh(HttpServletRequest request, HttpServletResponse response) {
 	    
-		String refreshToken = null;
-		if(headerRefreshToken != null) {
-			refreshToken = headerRefreshToken;
-		} else {
-			refreshToken = cookieRefreshToken;
-		}
-		
+		String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+
 		if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommonResponse<>("Invalid or expired refresh token", null));
 	    }
@@ -150,11 +153,17 @@ public class UsersApiController {
 	    }
 	    
 	    Users user = usersRepository.selectUserByUserId(userId);
+	    
 	    if (user == null) {
 	    	return  ResponseEntity.badRequest().body(new CommonResponse<>("User not found", null));
 	    } else {
+	    	
 	    	String newAccessToken = jwtTokenProvider.generateAccessToken(user);
-	    	return ResponseEntity.ok(new CommonResponse<>("accessToken", newAccessToken));
+	    	
+	    	response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("accessToken", newAccessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
+
+	        return ResponseEntity.ok(new CommonResponse<>("New access token issued", newAccessToken));
+
 	    }
 	}
 	
@@ -169,38 +178,14 @@ public class UsersApiController {
 	 */
 //	@PreAuthorize("isAuthenticated()")
 	@PostMapping("auth/logout")
-	public ResponseEntity<CommonResponse<?>> logout(HttpServletResponse response,
-			@CookieValue(value="refreshToken", required = false) String refreshToken,
-			@CookieValue(value="accessToken", required = false) String accessToken) {
-		
-	    ResponseCookie deleteRefreshCookie = ResponseCookie.from("refreshToken", "") //쿠키에서 refresh token 즉시 삭제
-	            .httpOnly(true)
-	            .secure(true) //운영 환경에서는 true
-	            .path("/")
-	            .sameSite("Strict")
-	            .maxAge(0)   // 즉시 만료
-	            .build();
-	    response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
-	    
-	    ResponseCookie deleteAccessCookie = ResponseCookie.from("accessToken", "")
-	    		.httpOnly(true)
-	            .secure(true) //운영 환경에서는 true
-	            .path("/")
-	            .sameSite("Strict")
-	            .maxAge(0)   // 즉시 만료
-	            .build();
-	    response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
-	    
-	    if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) { //redis에서 즉시 삭제
-	    	String userId = jwtTokenProvider.getUserId(refreshToken);
-	    	tokenService.deleteToken(userId);
-	    }
+    public ResponseEntity<CommonResponse<?>> logout(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+        response.addHeader(HttpHeaders.SET_COOKIE, buildDeleteCookie("accessToken").toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, buildDeleteCookie("refreshToken").toString());
 
-	    return ResponseEntity.ok(new CommonResponse<>("Logged out successfully", null));
-	    
-	}
-
-
+        if (refreshToken != null) tokenService.deleteToken(jwtTokenProvider.getUserId(refreshToken));
+        return ResponseEntity.ok(new CommonResponse<>("Logged out successfully", null));
+    }
 
 
 	/**
