@@ -33,6 +33,14 @@
 		user_id = #{userId}
 	</update>
 
+	<!-- 댓글 삭제 -->
+	<delete id="deleteComment">
+		DELETE FROM review_comments
+		WHERE comment_id =
+		#{commentId}
+		AND user_id = #{userId}
+	</delete>
+
 
 
 </mapper>

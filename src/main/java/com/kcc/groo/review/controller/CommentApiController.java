@@ -41,3 +41,13 @@ public class CommentApiController {
         commentService.updateComment(userId, commentId, req.getContent());
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "댓글 삭제", description = "본인이 작성한 댓글을 삭제합니다.")
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable("commentId") Integer commentId,
+            Principal principal) {
+        String userId = principal.getName();
+        commentService.deleteComment(userId, commentId);
+        return ResponseEntity.noContent().build();
+    }

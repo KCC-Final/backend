@@ -43,3 +43,9 @@ public class CommentService implements ICommentService {
         commentRepository.updateComment(commentId, userId, content);
     }
 
+    @Transactional
+    @Override
+    public void deleteComment(String userId, Integer commentId) {
+        commentRepository.deleteComment(commentId, userId);
+    }
+

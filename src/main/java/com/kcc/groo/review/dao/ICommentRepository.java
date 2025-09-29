@@ -18,3 +18,6 @@ public interface ICommentRepository {
                        @Param("userId") String userId,
                        @Param("content") String content);
 
+    void deleteComment(@Param("commentId") Integer commentId,
+                       @Param("userId") String userId);
+
