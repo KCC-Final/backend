@@ -49,3 +49,13 @@ public class CommentService implements ICommentService {
         commentRepository.deleteComment(commentId, userId);
     }
 
+    @Override
+    public List<CommentResponse> getCommentsByReview(Integer reviewId) {
+        return commentRepository.selectCommentsByReview(reviewId);
+    }
+
+    @Override
+    public List<CommentResponse> getCommentsByUser(String userId) {
+        return commentRepository.selectCommentsByUser(userId);
+    }
+}

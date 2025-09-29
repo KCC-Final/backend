@@ -51,3 +51,18 @@ public class CommentApiController {
         commentService.deleteComment(userId, commentId);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "특정 리뷰의 댓글 조회", description = "리뷰 ID로 댓글을 조회합니다.")
+    @GetMapping("/review/{reviewId}")
+    public ResponseEntity<List<CommentResponse>> getCommentsByReview(
+            @PathVariable("reviewId") Integer reviewId) {
+        return ResponseEntity.ok(commentService.getCommentsByReview(reviewId));
+    }
+
+    @Operation(summary = "내 댓글 전체 조회", description = "본인이 작성한 모든 댓글을 조회합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<List<CommentResponse>> getCommentsByUser(Principal principal) {
+        String userId = principal.getName();
+        return ResponseEntity.ok(commentService.getCommentsByUser(userId));
+    }
+}

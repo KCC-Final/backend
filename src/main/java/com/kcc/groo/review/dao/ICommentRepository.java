@@ -21,3 +21,11 @@ public interface ICommentRepository {
     void deleteComment(@Param("commentId") Integer commentId,
                        @Param("userId") String userId);
 
+    List<CommentResponse> selectCommentsByReview(@Param("reviewId") Integer reviewId);
+
+    List<CommentResponse> selectCommentsByUser(@Param("userId") String userId);
+
+    // ✅ 부모 댓글 단건 조회용
+    CommentResponse selectCommentById(@Param("commentId") Integer commentId);
+}
+

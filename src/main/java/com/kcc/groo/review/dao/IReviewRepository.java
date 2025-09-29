@@ -21,6 +21,9 @@ public interface IReviewRepository {
 
     ReviewResponse selectReviewById(@Param("userId") String userId,
                                     @Param("reviewId") Integer reviewId);
+    
+    List<CommentResponse> selectCommentsByReview(@Param("reviewId") Integer reviewId);
+    
     List<ReviewResponse> selectReviewsByLikes(@Param("userId") String userId);
 
     List<ReviewResponse> selectAllReviews(@Param("userId") String userId);

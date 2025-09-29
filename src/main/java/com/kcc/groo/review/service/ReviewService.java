@@ -31,7 +31,6 @@ public class ReviewService implements IReviewService {
 
     @Override
     public ReviewResponse getReview(String userId, Integer reviewId) {
-        return reviewRepository.selectReviewById(userId, reviewId);
         ReviewResponse review = reviewRepository.selectReviewById(userId, reviewId);
         if (review != null) {
             review.setComments(reviewRepository.selectCommentsByReview(reviewId)); // ✅ 댓글도 같이 담기

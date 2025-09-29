@@ -23,6 +23,23 @@
 		)
 	</insert>
 
+	<!-- 부모 댓글 단건 조회 -->
+	<select id="selectCommentById"
+		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		SELECT
+		c.comment_id AS commentId,
+		c.content AS content,
+		c.user_id AS userId,
+		c.created_at AS createdAt,
+		c.updated_at AS
+		updatedAt,
+		c.parent_id AS parentId
+		FROM review_comments c
+		WHERE
+		c.comment_id = #{commentId}
+	</select>
+
+
 	<!-- 댓글 수정 -->
 	<update id="updateComment">
 		UPDATE review_comments
@@ -40,6 +57,41 @@
 		#{commentId}
 		AND user_id = #{userId}
 	</delete>
+
+	<!-- 특정 리뷰의 댓글 조회 -->
+	<select id="selectCommentsByReview"
+		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		SELECT
+		c.comment_id AS commentId,
+		c.content AS content,
+		c.user_id AS userId,
+		c.created_at AS createdAt,
+		c.updated_at AS
+		updatedAt,
+		c.parent_id AS parentId
+		FROM review_comments c
+		WHERE
+		c.review_id = #{reviewId}
+		ORDER BY c.created_at ASC
+	</select>
+
+	<!-- 내가 쓴 모든 댓글 조회 -->
+	<select id="selectCommentsByUser"
+		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		SELECT
+		c.comment_id AS commentId,
+		c.content AS content,
+		c.user_id AS userId,
+		c.review_id AS reviewId,
+		r.review_title AS reviewTitle,  <!-- ✅ 게시글 제목 추가 -->
+		c.created_at AS createdAt,
+		c.updated_at AS updatedAt,
+		c.parent_id AS parentId
+		FROM review_comments c
+		JOIN reviews r ON c.review_id = r.review_id
+		WHERE c.user_id = #{userId}
+		ORDER BY c.created_at DESC
+	</select>
 
 
 
