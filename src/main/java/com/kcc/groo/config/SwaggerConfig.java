@@ -46,12 +46,13 @@ public class SwaggerConfig {
      */
     private SecurityScheme createJWTSecurityScheme() {
         return new SecurityScheme()
-                .name("JWT")
-                .type(SecurityScheme.Type.HTTP)
-                .scheme("bearer")
-                .bearerFormat("JWT")
-                .description("JWT 토큰을 입력해주세요. 'Bearer ' 접두사는 자동으로 추가됩니다.");
+                .name("Authorization") // 헤더 이름 고정
+                .type(SecurityScheme.Type.APIKEY) // HTTP bearer → APIKEY 로 변경
+                .in(SecurityScheme.In.HEADER)     // 헤더에 직접 삽입
+                .description("JWT 토큰을 입력하세요. (Bearer 접두사 없이 순수 토큰만 입력)");
     }
+
+
 
     /**
      * API 문서 기본 정보 생성

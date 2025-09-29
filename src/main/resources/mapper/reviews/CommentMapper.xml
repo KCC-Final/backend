@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kcc.groo.review.dao.ICommentRepository">
+
+	<!-- 댓글 작성 -->
+	<insert id="insertComment">
+		INSERT INTO review_comments (content, review_id, user_id, parent_id)
+		VALUES (
+		#{req.content},
+		#{reviewId},
+		#{userId},
+		<choose>
+			<when test="req.parentId != null">
+				#{req.parentId}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>
+		)
+	</insert>
+
+	<!-- 부모 댓글 단건 조회 -->
+	<select id="selectCommentById"
+		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		SELECT
+		c.comment_id AS commentId,
+		c.content AS content,
+		c.user_id AS userId,
+		c.created_at AS createdAt,
+		c.updated_at AS updatedAt,
+		c.parent_id AS parentId
+		FROM review_comments c
+		WHERE c.comment_id = #{commentId}
+	</select>
+
+	<!-- 댓글 수정 -->
+	<update id="updateComment">
+		UPDATE review_comments
+		SET content = #{content},
+		updated_at = CURRENT_TIMESTAMP
+		WHERE comment_id = #{commentId}
+		AND user_id = #{userId}
+	</update>
+
+	<!-- 댓글 삭제 -->
+	<delete id="deleteComment">
+		DELETE FROM review_comments
+		WHERE comment_id =
+		#{commentId}
+		AND user_id = #{userId}
+	</delete>
+
+	<!-- 특정 리뷰의 댓글 조회 -->
+	<select id="selectCommentsByReview"
+		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		SELECT
+		c.comment_id AS commentId,
+		c.content AS content,
+		c.user_id AS userId,
+		c.created_at AS createdAt,
+		c.updated_at AS updatedAt,
+		c.parent_id AS parentId
+		FROM review_comments c
+		JOIN reviews r ON c.review_id =
+		r.review_id
+		WHERE c.review_id = #{reviewId}
+		AND r.status = TRUE   <!-- 삭제된 리뷰의 댓글은 노출 안 함 -->
+		ORDER BY c.created_at ASC
+	</select>
+
+	<!-- 내가 쓴 모든 댓글 조회 -->
+	<select id="selectCommentsByUser"
+		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		SELECT
+		c.comment_id AS commentId,
+		c.content AS content,
+		c.user_id AS userId,
+		c.review_id AS reviewId,
+		CASE
+		WHEN r.status = TRUE THEN r.review_title
+		ELSE '삭제된 게시글입니다'
+		END AS reviewTitle,
+		c.created_at AS createdAt,
+		c.updated_at AS updatedAt,
+		c.parent_id AS parentId
+		FROM review_comments c
+		JOIN reviews r ON c.review_id =
+		r.review_id
+		WHERE c.user_id = #{userId}
+		ORDER BY c.created_at DESC
+	</select>
+
+</mapper>
