@@ -44,14 +44,16 @@
     ]]>
 	</update>
 
-	<!-- 독후감 삭제 -->
-	<delete id="deleteReview">
+	<!-- 독후감 삭제 (소프트 삭제) -->
+	<update id="deleteReview">
     <![CDATA[
-    DELETE FROM reviews
+    UPDATE reviews
+    SET status = FALSE,
+        updated_at = NOW()
     WHERE review_id = #{reviewId}
       AND user_id   = #{userId}
     ]]>
-	</delete>
+	</update>
 
 	<!-- ========================= SELECT ========================= -->
 
@@ -68,24 +70,21 @@
 		r.status AS status,
 		r.temporary AS temporary,
 		r.created_at AS createdAt,
-		r.updated_at AS
-		updatedAt,
+		r.updated_at AS updatedAt,
 		r.user_id AS userId,
 		r.code_id AS codeId,
-		(SELECT COUNT(*)
-		FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
-		(EXISTS(SELECT 1 FROM likes l WHERE l.review_id = r.review_id AND
-		l.user_id = #{userId})) AS liked
+		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+		(EXISTS(
+		SELECT 1 FROM likes l
+		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
+		)) AS liked
 		FROM reviews r
-		WHERE r.review_id =
-		#{reviewId}
+		WHERE r.review_id = #{reviewId}
+		AND r.status = TRUE
 		AND (r.secret = FALSE OR r.user_id = #{userId})
 	</select>
 
-
-
-
-	<!-- 해당 리뷰의 댓글 조회 -->
+	<!-- 댓글은 status 필터링을 리뷰에만 적용 -->
 	<select id="selectCommentsByReview"
 		resultType="com.kcc.groo.review.data.dto.CommentResponse">
 		SELECT
@@ -93,15 +92,14 @@
 		c.content AS content,
 		c.user_id AS userId,
 		c.created_at AS createdAt,
-		c.updated_at AS
-		updatedAt,
+		c.updated_at AS updatedAt,
 		c.parent_id AS parentId
 		FROM review_comments c
-		WHERE
-		c.review_id = #{reviewId}
+		JOIN reviews r ON c.review_id = r.review_id
+		WHERE c.review_id = #{reviewId}
+		AND r.status = TRUE
 		ORDER BY c.created_at ASC
 	</select>
-
 
 	<!-- 전체 조회 -->
 	<select id="selectAllReviews"
@@ -130,30 +128,33 @@
     ORDER BY r.created_at DESC
     ]]>
 	</select>
-	
+
 	<!-- 내가 쓴 리뷰 전체 조회 -->
-<select id="selectReviewsByUser" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
-  SELECT
-    r.review_id    AS reviewId,
-    r.ISBN         AS isbn,
-    r.review_title AS reviewTitle,
-    r.review_content AS reviewContent,
-    r.view_cnt     AS viewCnt,
-    r.secret       AS secret,
-    r.status       AS status,
-    r.temporary    AS temporary,
-    r.created_at   AS createdAt,
-    r.updated_at   AS updatedAt,
-    r.user_id      AS userId,
-    r.code_id      AS codeId,
-    (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
-    (EXISTS(SELECT 1 FROM likes l WHERE l.review_id = r.review_id AND l.user_id = #{userId})) AS liked
-  FROM reviews r
-  WHERE r.user_id = #{userId}
-    AND r.status = TRUE
-  ORDER BY r.created_at DESC
-</select>
-	
+	<select id="selectReviewsByUser"
+		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+		SELECT
+		r.review_id AS reviewId,
+		r.ISBN AS isbn,
+		r.review_title AS reviewTitle,
+		r.review_content AS reviewContent,
+		r.view_cnt AS viewCnt,
+		r.secret AS secret,
+		r.status AS status,
+		r.temporary AS temporary,
+		r.created_at AS createdAt,
+		r.updated_at AS updatedAt,
+		r.user_id AS userId,
+		r.code_id AS codeId,
+		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+		(EXISTS(
+		SELECT 1 FROM likes l
+		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
+		)) AS liked
+		FROM reviews r
+		WHERE r.user_id = #{userId}
+		AND r.status = TRUE
+		ORDER BY r.created_at DESC
+	</select>
 
 	<!-- 임시저장 목록 -->
 	<select id="selectDrafts"
@@ -201,18 +202,21 @@
     WHERE r.review_id = #{id}
       AND r.user_id   = #{userId}
       AND r.temporary = TRUE
+      AND r.status    = TRUE
     ]]>
 	</select>
 
-	<!-- 임시저장 삭제 -->
-	<delete id="deleteDraft">
+	<!-- 임시저장 삭제 (소프트 삭제) -->
+	<update id="deleteDraft">
     <![CDATA[
-    DELETE FROM reviews
+    UPDATE reviews
+    SET status = FALSE,
+        updated_at = NOW()
     WHERE review_id = #{id}
       AND user_id   = #{userId}
       AND temporary = TRUE
     ]]>
-	</delete>
+	</update>
 
 	<!-- ========================= 좋아요 ========================= -->
 
@@ -264,12 +268,13 @@
     FROM reviews r
     INNER JOIN likes l ON r.review_id = l.review_id
     WHERE l.user_id = #{userId}
+      AND r.status = TRUE
       AND (r.secret = FALSE OR r.user_id = #{userId})
     ORDER BY l.created_at DESC
     ]]>
 	</select>
 
-	<!-- ✅ 좋아요 가능한 글인지 검증 (임시저장/삭제글 제외) -->
+	<!-- 좋아요 가능한 글인지 검증 (임시저장/삭제글 제외) -->
 	<select id="canLikeReview" resultType="boolean">
     <![CDATA[
     SELECT COUNT(1) > 0

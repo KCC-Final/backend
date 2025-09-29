@@ -31,14 +31,11 @@
 		c.content AS content,
 		c.user_id AS userId,
 		c.created_at AS createdAt,
-		c.updated_at AS
-		updatedAt,
+		c.updated_at AS updatedAt,
 		c.parent_id AS parentId
 		FROM review_comments c
-		WHERE
-		c.comment_id = #{commentId}
+		WHERE c.comment_id = #{commentId}
 	</select>
-
 
 	<!-- 댓글 수정 -->
 	<update id="updateComment">
@@ -46,8 +43,7 @@
 		SET content = #{content},
 		updated_at = CURRENT_TIMESTAMP
 		WHERE comment_id = #{commentId}
-		AND
-		user_id = #{userId}
+		AND user_id = #{userId}
 	</update>
 
 	<!-- 댓글 삭제 -->
@@ -66,12 +62,13 @@
 		c.content AS content,
 		c.user_id AS userId,
 		c.created_at AS createdAt,
-		c.updated_at AS
-		updatedAt,
+		c.updated_at AS updatedAt,
 		c.parent_id AS parentId
 		FROM review_comments c
-		WHERE
-		c.review_id = #{reviewId}
+		JOIN reviews r ON c.review_id =
+		r.review_id
+		WHERE c.review_id = #{reviewId}
+		AND r.status = TRUE   <!-- 삭제된 리뷰의 댓글은 노출 안 함 -->
 		ORDER BY c.created_at ASC
 	</select>
 
@@ -83,16 +80,18 @@
 		c.content AS content,
 		c.user_id AS userId,
 		c.review_id AS reviewId,
-		r.review_title AS reviewTitle,  <!-- ✅ 게시글 제목 추가 -->
+		CASE
+		WHEN r.status = TRUE THEN r.review_title
+		ELSE '삭제된 게시글입니다'
+		END AS reviewTitle,
 		c.created_at AS createdAt,
 		c.updated_at AS updatedAt,
 		c.parent_id AS parentId
 		FROM review_comments c
-		JOIN reviews r ON c.review_id = r.review_id
+		JOIN reviews r ON c.review_id =
+		r.review_id
 		WHERE c.user_id = #{userId}
 		ORDER BY c.created_at DESC
 	</select>
-
-
 
 </mapper>
