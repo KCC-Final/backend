@@ -7,3 +7,4 @@ import java.util.List;
 
 public interface ICommentService {
     void addComment(String userId, Integer reviewId, CommentRequest req);
+    void updateComment(String userId, Integer commentId, String content);

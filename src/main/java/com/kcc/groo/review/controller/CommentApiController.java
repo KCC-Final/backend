@@ -30,3 +30,14 @@ public class CommentApiController {
         commentService.addComment(userId, reviewId, req);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "댓글 수정", description = "본인이 작성한 댓글을 수정합니다.")
+    @PutMapping("/{commentId}")
+    public ResponseEntity<Void> updateComment(
+            @PathVariable("commentId") Integer commentId,
+            Principal principal,
+            @RequestBody CommentRequest req) {
+        String userId = principal.getName();
+        commentService.updateComment(userId, commentId, req.getContent());
+        return ResponseEntity.ok().build();
+    }

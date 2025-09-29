@@ -14,3 +14,7 @@ public interface ICommentRepository {
                        @Param("userId") String userId,
                        @Param("req") CommentRequest req);
 
+    void updateComment(@Param("commentId") Integer commentId,
+                       @Param("userId") String userId,
+                       @Param("content") String content);
+

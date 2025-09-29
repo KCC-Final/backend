@@ -33,3 +33,13 @@ public class CommentService implements ICommentService {
 
         commentRepository.insertComment(reviewId, userId, req);
     }
+
+
+
+
+    @Transactional
+    @Override
+    public void updateComment(String userId, Integer commentId, String content) {
+        commentRepository.updateComment(commentId, userId, content);
+    }
+

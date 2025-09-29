@@ -23,6 +23,15 @@
 		)
 	</insert>
 
+	<!-- 댓글 수정 -->
+	<update id="updateComment">
+		UPDATE review_comments
+		SET content = #{content},
+		updated_at = CURRENT_TIMESTAMP
+		WHERE comment_id = #{commentId}
+		AND
+		user_id = #{userId}
+	</update>
 
 
 
