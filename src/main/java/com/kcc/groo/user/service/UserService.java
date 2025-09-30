@@ -7,6 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.dao.IUsersRepository;
 import com.kcc.groo.user.data.dto.SignupRequest;
@@ -14,6 +16,7 @@ import com.kcc.groo.user.data.dto.UpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
 @Service
+@Transactional
 public class UserService implements IUserService {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -120,21 +123,65 @@ public class UserService implements IUserService {
 	}
 
 	@Override
-	public Users updateUserWithoutEmailVerified (UpdateRequest updateRequest) {
-		return null;
+	public Users updateUser(String token, UpdateRequest updateRequest) {
+	    String userId = getUserIdInToken(token);
+	    Users currentUser = usersRepository.selectUserByUserId(userId);
+	    if (currentUser == null) throw new IllegalArgumentException("User not found");
+
+	    boolean isEmailChanged = false;
+
+	    if (updateRequest.getPassword1() != null && !updateRequest.getPassword1().isBlank()) {
+	        String pwd = updateRequest.getPassword1();
+	        if (!pwd.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{8,20}$")) {
+	            throw new IllegalArgumentException("비밀번호는 대/소문자, 숫자를 포함한 8~20자여야 합니다.");
+	        }
+	        currentUser.setPassword(passwordEncoder.encode(pwd));
+	    }
+
+	    String email = updateRequest.getEmail();
+	    if (email != null) email = email.trim();
+
+	    if (email != null && !email.isEmpty() && !email.equals(currentUser.getEmail())) {
+	        if (!emailVerificationService.isVerified("updateEmail", email)) {
+	            throw new IllegalArgumentException("Updated Email verification required");
+	        }
+	        currentUser.setEmail(email);
+	        isEmailChanged = true;
+	    }
+
+	    if (updateRequest.getNickname() != null && !updateRequest.getNickname().isBlank()) {
+	        currentUser.setNickname(updateRequest.getNickname());
+	    }
+
+	    if (updateRequest.getName() != null && !updateRequest.getName().isBlank()) {
+	        currentUser.setName(updateRequest.getName());
+	    }
+
+	    if (updateRequest.getIntroduction() != null) {
+	        currentUser.setIntroduction(updateRequest.getIntroduction());
+	    }
+
+	    if (updateRequest.getProfileImage() != null) {
+	        currentUser.setProfileImage(updateRequest.getProfileImage());
+	    }
+
+	    if (isEmailChanged) {
+	        usersRepository.updateUserWithEmailVerified(currentUser);
+	    } else {
+	        usersRepository.updateUserWithoutEmailVerified(currentUser);
+	    }
+
+	    return usersRepository.selectUserByUserId(userId);
 	}
 
-	@Override
-	public Users updateUserWithEmailVerified (UpdateRequest updateRequest) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
+
+    public Users findByUserId(String userId) {
+        return usersRepository.selectUserByUserId(userId);
+    }
+
 	public String getUserIdInToken (String token) {
 		
 		Authentication authentication = jwtTokenProvider.getAuthentication(token);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		
-		return "";
+		return authentication.getName();
 	}
 }

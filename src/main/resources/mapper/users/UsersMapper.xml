@@ -87,7 +87,7 @@ SELECT user_id FROM users
   WHERE user_id = #{userId}
 </update>
 
-<update id="updateUserWithoutEmail" parameterType="com.kcc.groo.user.data.model.Users">
+<update id="updateUserWithoutEmailVerified" parameterType="com.kcc.groo.user.data.model.Users">
   UPDATE users
   <set>
     <if test="password != null and password != ''">
@@ -99,7 +99,7 @@ SELECT user_id FROM users
     <if test="name != null and name != ''">
       name = #{name},
     </if>
-    <if test="profileImage != null and profileImage != ''">
+    <if test="profileImage != null">
       profile_image = #{profileImage},
     </if>
     <if test="introduction != null and introduction != ''">
@@ -109,7 +109,7 @@ SELECT user_id FROM users
   WHERE user_id = #{userId}
 </update>
 
-<update id="updateUserWithEmail" parameterType="com.kcc.groo.user.data.model.Users">
+<update id="updateUserWithEmailVerified" parameterType="com.kcc.groo.user.data.model.Users">
   UPDATE users
   <set>
     <if test="email != null and email != ''">
@@ -125,7 +125,7 @@ SELECT user_id FROM users
     <if test="name != null and name != ''">
       name = #{name},
     </if>
-    <if test="profileImage != null and profileImage != ''">
+    <if test="profileImage != null">
       profile_image = #{profileImage},
     </if>
     <if test="introduction != null and introduction != ''">

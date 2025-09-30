@@ -1,21 +1,28 @@
 package com.kcc.groo.user.controller;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.config.CustomUserDetails;
@@ -25,6 +32,7 @@ import com.kcc.groo.user.data.dto.FindUserIdRequest;
 import com.kcc.groo.user.data.dto.LoginRequest;
 import com.kcc.groo.user.data.dto.ResetPasswordRequest;
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 import com.kcc.groo.user.service.EmailVerificationService;
 import com.kcc.groo.user.service.MailService;
@@ -97,9 +105,8 @@ public class UsersApiController {
 	 * 
 	 *           쿠키 만료 기간 수정
 	 */
-	@PostMapping("auth/login")
-	public ResponseEntity<CommonResponse<?>> login(@RequestBody LoginRequest loginRequest,
-			HttpServletResponse response) {
+	@PostMapping("/auth/login")
+	public ResponseEntity<CommonResponse<?>> login(@RequestBody LoginRequest loginRequest,HttpServletResponse response) {
 
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUserId(), loginRequest.getPassword()));
@@ -111,10 +118,8 @@ public class UsersApiController {
 		String refreshToken = jwtTokenProvider.generateRefreshToken(user);
 		tokenService.saveToken(loginRequest.getUserId(), refreshToken, REFRESH_TOKEN_VALID_TIME);
 
-		response.addHeader(HttpHeaders.SET_COOKIE,
-				buildCookie("accessToken", accessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
-		response.addHeader(HttpHeaders.SET_COOKIE,
-				buildCookie("refreshToken", refreshToken, REFRESH_TOKEN_VALID_TIME_SEC).toString());
+		response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("accessToken", accessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
+		response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("refreshToken", refreshToken, REFRESH_TOKEN_VALID_TIME_SEC).toString());
 
 		Map<String, String> tokens = Map.of("accessToken", accessToken, "refreshToken", refreshToken);
 		return ResponseEntity.ok(new CommonResponse<>("Login success", tokens));
@@ -126,22 +131,20 @@ public class UsersApiController {
 	 * @created 2025-09-29
 	 * @author kys 토큰 재발급 (header 또는 cookie에서 refresh token 가져와 access token 새로 발급
 	 */
-	@PostMapping("token-refresh")
+	@PostMapping("/token-refresh")
 	public ResponseEntity<CommonResponse<?>> refresh(HttpServletRequest request, HttpServletResponse response) {
 
 		String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
 		if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new CommonResponse<>("Invalid or expired refresh token", null));
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommonResponse<>("Invalid or expired refresh token", null));
 		}
 
 		String userId = jwtTokenProvider.getUserId(refreshToken);
 		String storedToken = tokenService.getToken(userId);
 
 		if (!refreshToken.equals(storedToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new CommonResponse<>("Refresh token does not match", null));
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommonResponse<>("Refresh token does not match", null));
 		}
 
 		Users user = usersRepository.selectUserByUserId(userId);
@@ -149,14 +152,9 @@ public class UsersApiController {
 		if (user == null) {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("User not found", null));
 		} else {
-
 			String newAccessToken = jwtTokenProvider.generateAccessToken(user);
-
-			response.addHeader(HttpHeaders.SET_COOKIE,
-					buildCookie("accessToken", newAccessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
-
+			response.addHeader(HttpHeaders.SET_COOKIE,buildCookie("accessToken", newAccessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
 			return ResponseEntity.ok(new CommonResponse<>("New access token issued", newAccessToken));
-
 		}
 	}
 
@@ -168,7 +166,7 @@ public class UsersApiController {
 	 *         access token 삭제 인증된 사용자만 로그아웃 가능 (추후 수정 예정)
 	 */
 //	@PreAuthorize("isAuthenticated()")
-	@PostMapping("auth/logout")
+	@PostMapping("/auth/logout")
 	public ResponseEntity<CommonResponse<?>> logout(HttpServletRequest request, HttpServletResponse response) {
 		String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 		response.addHeader(HttpHeaders.SET_COOKIE, buildDeleteCookie("accessToken").toString());
@@ -186,8 +184,7 @@ public class UsersApiController {
 	 * @created 2025-09-23 회원가입 시 입력된 이메일에 인증 코드를 전송
 	 */
 	@PostMapping("/email")
-	public ResponseEntity<CommonResponse<?>> confirmEmail(@RequestParam("purpose") String purpose,
-			@RequestParam("email") String email) {
+	public ResponseEntity<CommonResponse<?>> confirmEmail(@RequestParam("purpose") String purpose, @RequestParam("email") String email) {
 		String code = emailVerificationService.createVerificationCode(purpose, email);
 		mailService.sendVerificationEmail(email, code);
 
@@ -195,6 +192,8 @@ public class UsersApiController {
 			return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", code));
 		} else if (purpose.equals("findId")) {
 			return ResponseEntity.ok(new CommonResponse<>("FindId verification code sent", code));
+		} else if (purpose.equals("updateEmail")) {
+			return ResponseEntity.ok(new CommonResponse<>("updateEmail verification code sent", code));
 		} else {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Email sending failed", null));
 		}
@@ -230,7 +229,7 @@ public class UsersApiController {
 	 * 
 	 * @modified 2025-09-25
 	 */
-	@PostMapping("users/signup")
+	@PostMapping("/users/signup")
 	public ResponseEntity<CommonResponse<?>> signup(@Valid @RequestBody SignupRequest signupRequest,
 			HttpServletRequest request) {
 
@@ -282,9 +281,13 @@ public class UsersApiController {
 	 * @param request
 	 * @return CommonResponse
 	 * @author kys
-	 * @created 2025-09-24 사용자 아이디를 찾기 위해 사용자명과 이메일 입력 -> 검증 후 사용자 아이디 반환
+	 * @created 2025-09-24
+	 * 사용자 아이디를 찾기 위해 사용자명과 이메일 입력 -> 검증 후 사용자 아이디 반환
+	 * 
+	 * @modified 2025-09-30
+	 * 응답에 사용자 id, 계정 생성일, 비밀번호 수정일 추가
 	 */
-	@PostMapping("users/id")
+	@PostMapping("/users/id")
 	public ResponseEntity<CommonResponse<?>> findUserId(@Valid @RequestBody FindUserIdRequest findUserIdRequest,
 			HttpServletRequest request) {
 
@@ -303,7 +306,18 @@ public class UsersApiController {
 		try {
 			String userId = userService.findUserIdByNameAndEmail(name, email);
 			request.getSession().setAttribute("findUserId", userId); // userId session에 저장 (pw 재설정을 위해)
-			return ResponseEntity.ok(new CommonResponse<>("Find userId success", userId));
+			
+			//응답에 사용자 id, 계정 생성일, 비밀번호 수정일 추가
+			Users checkUserInfo = userService.findByUserId(userId);
+			LocalDateTime createdDate = checkUserInfo.getCreatedAt();
+			LocalDateTime changedPw = checkUserInfo.getPwdChangedAt();
+			
+			Map<String, Object> userInfoMap = new HashMap<>();
+			userInfoMap.put("userId", userId);
+			userInfoMap.put("createdDate", createdDate);
+			userInfoMap.put("changedPw", changedPw);
+			
+			return ResponseEntity.ok(new CommonResponse<>("Find userId success", userInfoMap));
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(new CommonResponse<>(e.getMessage(), null));
 		}
@@ -312,15 +326,12 @@ public class UsersApiController {
 	/**
 	 * @param resetPasswordRequest
 	 * @param request
-	 * @return
+	 * @return ResponseEntity<CommonResponse<?>>
 	 * @created 2025-09-25 아이디 찾기 후 사용자 비밀번호 재설정 가능
 	 */
-	@PostMapping("users/password")
-	public ResponseEntity<CommonResponse<?>> resetPassword(
-			@Valid @RequestBody ResetPasswordRequest resetPasswordRequest, HttpServletRequest request) {
-		// updatePassword
+	@PostMapping("/users/password")
+	public ResponseEntity<CommonResponse<?>> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest, HttpServletRequest request) {
 		String userId = (String) request.getSession().getAttribute("findUserId");
-		log.info("UserApiController: " + userId);
 
 		if (!resetPasswordRequest.getPassword1().equals(resetPasswordRequest.getPassword2())) {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
@@ -331,4 +342,39 @@ public class UsersApiController {
 				.body(new CommonResponse<>("updated password info success", resetPw));
 
 	}
+	
+	/**
+	 * @param updateRequest
+	 * @param request
+	 * @return
+	 * @throws IOException
+	 * @author kys
+	 * @created 2025-09-30
+	 * 사용자 정보 수정
+	 */
+	@PutMapping(value = "/users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<CommonResponse<?>> updateUser(@RequestParam(required = false) MultipartFile profileImageFile,  @ModelAttribute UpdateRequest updateRequest, HttpServletRequest request) throws IOException {
+
+	    String token = jwtTokenProvider.resolveAccessToken(request);
+
+	    if (updateRequest.getPassword1() != null && !updateRequest.getPassword1().isBlank() && !updateRequest.getPassword1().equals(updateRequest.getPassword2())) {
+	        return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
+	    }
+
+	    if (updateRequest.getProfileImageFile() != null && !updateRequest.getProfileImageFile().isEmpty()) {
+	        updateRequest.setProfileImage(updateRequest.getProfileImageFile().getBytes());
+	    } 
+	    
+	    if (!emailVerificationService.isVerified("updateEmail", updateRequest.getEmail())) {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification required", null));
+		}
+
+	    try {
+	        Users updatedUser = userService.updateUser(token, updateRequest);
+	        return ResponseEntity.ok( new CommonResponse<>("User updated successfully", updatedUser));
+	    } catch (IllegalArgumentException ex) {
+	        return ResponseEntity.badRequest().body(new CommonResponse<>(ex.getMessage(), null));
+	    }
+	}
+
 }

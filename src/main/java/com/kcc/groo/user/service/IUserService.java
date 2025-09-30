@@ -1,5 +1,6 @@
 package com.kcc.groo.user.service;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -92,18 +93,18 @@ public interface IUserService {
 	 * @return
 	 * @author kys
 	 * @created 2025-09-30
-	 * 이메일 인증 필요 없을 경우의 회원 정보 수정
+	 * 회원 정보 수정
 	 */
-	Users updateUserWithoutEmailVerified (UpdateRequest updateRequest);
+	Users updateUser (String token, UpdateRequest updateRequest);
 	
 	/**
-	 * @param updateRequest
+	 * @param token
 	 * @return
 	 * @author kys
 	 * @created 2025-09-30
-	 * 이메일 인증이 필요한 경우의 회원 정보 수정
+	 * 토큰을 통해 현재 로그인한 사용자 아이디 확인
 	 */
-	Users updateUserWithEmailVerified (UpdateRequest updateRequest);
+	String getUserIdInToken (String token);
 	
 	
 	
