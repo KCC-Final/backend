@@ -192,6 +192,7 @@ jobs:
             # 8) Backend 컨테이너 실행
             # - 포트: 8080 (Spring Boot 기본 포트)
             # - DB_URL: JDBC 연결 문자열을 변수로 분리 (특수문자 처리 문제 방지)
+            # - characterEncoding 제거: MySQL Connector/J 9.x는 서버 설정(utf8mb4) 자동 사용
             # - 환경변수:
             #   * SPRING_PROFILES_ACTIVE: 프로필 설정 (prod)
             #   * spring.datasource.*: MySQL 연결 정보
@@ -199,7 +200,7 @@ jobs:
             #   * AWS_*: S3 파일 업로드를 위한 AWS 인증 정보
             # - 재시작 정책: unless-stopped
             # ====================================================================
-            DB_URL="jdbc:mysql://groo-mysql:3306/kcc?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Seoul"
+            DB_URL="jdbc:mysql://groo-mysql:3306/kcc?useUnicode=true&serverTimezone=Asia/Seoul"
             docker run -d \
               --name groo-backend \
               --network groo-network \
