@@ -22,7 +22,7 @@ public class CustomUserDetails implements UserDetails  {
 
 	@Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of(() -> "ROLE_USER"); // 기본 유저 권한 부여// 또는 권한 구현 필요 시 변경
+		return List.of(() -> "ROLE_USER"); // 기본 유저 권한 부여
     }
 
     @Override
@@ -32,26 +32,26 @@ public class CustomUserDetails implements UserDetails  {
 
     @Override
     public String getUsername() {
-        return user.getUserId(); // 또는 이메일 등 로그인 기준 값
+        return user.getUserId(); //로그인 기준 값
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // 필요에 따라 로직 구현
+        return true; 
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // 필요에 따라 로직 구현
+        return true; 
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // 필요에 따라 로직 구현
+        return true; 
     }
 
     @Override
     public boolean isEnabled() {
-        return user.isEmailVerified(); // 예시로 이메일 인증 여부 사용
+        return user.isEmailVerified();
     }
 }
