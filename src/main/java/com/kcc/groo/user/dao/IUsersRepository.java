@@ -28,7 +28,7 @@ public interface IUsersRepository {
 	 * @created 2025-09-23
 	 * 새로운 회원 정보 db에 저장
 	 */
-	int insertUser (Users user); //save user
+	int insertUser (Users user);
 	
 	/**
 	 * @return
@@ -95,5 +95,23 @@ public interface IUsersRepository {
 	 * 비밀번호 재설정
 	 */
 	int resetPassword(@Param("userId") String userId, @Param("password") String password); 
+	
+	/**
+	 * @param user
+	 * @return
+	 * @author kys
+	 * @created 2025-09-30
+	 * 이메일 인증 필요 없을 경우의 회원 정보 수정
+	 */
+	int updateUserWithoutEmailVerified (Users user);
+	
+	/**
+	 * @param user
+	 * @return
+	 * @author kys
+	 * @created 2025-09-30
+	 * 이메일 인증이 필요한 경우의 회원 정보 수정
+	 */
+	int updateUserWithEmailVerified (Users user);
 	
 }

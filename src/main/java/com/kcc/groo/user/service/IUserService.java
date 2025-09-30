@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
 public interface IUserService {
@@ -85,4 +86,25 @@ public interface IUserService {
 	 * 비밀번호 재설정
 	 */
 	Users resetPassword(@Param("userId") String userId, @Param("rawPassword") String rawPassword);
+	
+	/**
+	 * @param updateRequest
+	 * @return
+	 * @author kys
+	 * @created 2025-09-30
+	 * 이메일 인증 필요 없을 경우의 회원 정보 수정
+	 */
+	Users updateUserWithoutEmailVerified (UpdateRequest updateRequest);
+	
+	/**
+	 * @param updateRequest
+	 * @return
+	 * @author kys
+	 * @created 2025-09-30
+	 * 이메일 인증이 필요한 경우의 회원 정보 수정
+	 */
+	Users updateUserWithEmailVerified (UpdateRequest updateRequest);
+	
+	
+	
 }
