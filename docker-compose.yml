@@ -9,15 +9,18 @@ services:
     container_name: kcc-local-mysql
     restart: unless-stopped
     env_file:
-      - ./db.env                # ✅ 환경변수 파일 (계정/비번/DB명)
+      - ./db.env
     ports:
-      - "3306:3306"             # 호스트 포트 3306 → 컨테이너 3306
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql  # MySQL 데이터는 볼륨에 영구 저장
+      - mysql_data:/var/lib/mysql
     networks:
       - kcc-network
-    command: --default-authentication-plugin=mysql_native_password
-    # ↑ Spring Boot 호환성을 위해 native_password 사용
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
 
   # -----------------------------------------------------------------
   # Redis (groo-redis)
@@ -27,13 +30,12 @@ services:
     container_name: groo-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"             # 로컬에서 localhost:6379로 접근 가능
+      - "6379:6379"
     volumes:
-      - redis_data:/data        # Redis 데이터 영구 저장
+      - redis_data:/data
     networks:
       - kcc-network
     command: ["redis-server", "--appendonly", "yes"]
-    # ↑ appendonly 모드 활성화 → 데이터 영속성 보장
 
   # -----------------------------------------------------------------
   # Migration 서비스 (init_codes.sql + migration_*.sql 실행)
@@ -53,21 +55,23 @@ services:
         until mysqladmin ping -hdb -ukcc -p\$$MYSQL_PASSWORD --silent; do
           sleep 2;
         done &&
+        
+        # UTF-8 설정 확인
+        mysql -hdb -ukcc -p\$$MYSQL_PASSWORD -e 'SET NAMES utf8mb4;' &&
+        
         echo '🚀 Running init and migrations as kcc...' &&
 
-        # init_codes.sql 실행 (있으면)
         if [ -f /database/init_codes.sql ]; then
           echo 'Applying init_codes.sql...';
-          mysql -hdb -ukcc -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE < /database/init_codes.sql;
+          mysql -hdb -ukcc -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE --default-character-set=utf8mb4 < /database/init_codes.sql;
         else
           echo 'No init_codes.sql found, skipping...';
         fi &&
 
-        # migration_*.sql 실행 (여러 개면 순서대로 실행)
         if ls /database/migration_*.sql 1> /dev/null 2>&1; then
           for f in /database/migration_*.sql; do
             echo \"Applying migration: \$$f\";
-            mysql -hdb -ukcc -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE < \$$f;
+            mysql -hdb -ukcc -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE --default-character-set=utf8mb4 < \$$f;
           done
         else
           echo 'No migration files found, skipping...';
@@ -91,7 +95,7 @@ services:
     depends_on:
       - db
       - redis
-      - migrator                # ✅ 마이그레이션이 끝난 후 실행
+      - migrator
     networks:
       - kcc-network
 
@@ -132,16 +136,10 @@ services:
     networks:
       - kcc-network
 
-# -------------------------------------------------------------------
-# Named Volumes (DB/Redis 영구 데이터 보존)
-# -------------------------------------------------------------------
 volumes:
   mysql_data:
   redis_data:
 
-# -------------------------------------------------------------------
-# Network (모든 컨테이너는 동일 브리지 네트워크 사용)
-# -------------------------------------------------------------------
 networks:
   kcc-network:
     driver: bridge

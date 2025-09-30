@@ -10,9 +10,9 @@ name: Backend CI/CD
 on:
   # 'main', 'develop' 또는 테스트 브랜치에 코드가 푸시(push)될 때 실행됩니다.
   push:
-    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] #  main, develop, 테스트 브랜치에서 push 시 실행
+    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] # main, develop, 테스트 브랜치에서 push 시 실행
   pull_request:
-    branches: [ "main" ] #  main 브랜치로 PR 생성 시 실행 (빌드 테스트 목적)
+    branches: [ "main" ] # main 브랜치로 PR 생성 시 실행 (빌드 테스트 목적)
 
 jobs:
   # ------------------------------------------------------------
@@ -49,7 +49,7 @@ jobs:
   # 2단계: EC2 서버에 배포 (Docker 컨테이너 실행)
   # ------------------------------------------------------------
   deploy:
-    needs: build-and-push #  build-and-push 성공 후에만 실행
+    needs: build-and-push # build-and-push 성공 후에만 실행
     runs-on: ubuntu-latest
     steps:
       # (1) 레포지토리 체크아웃 (nginx 설정 파일 및 DB 초기화 파일 접근 위해 필요)
@@ -77,7 +77,7 @@ jobs:
           ls -alR
 
       # (4) nginx 설정 파일들을 EC2로 복사
-      #  nginx 디렉토리 전체를 /home/ubuntu/groo 하위로 전송
+      # nginx 디렉토리 전체를 /home/ubuntu/groo 하위로 전송
       # 결과: /home/ubuntu/groo/nginx/nginx.conf, /home/ubuntu/groo/nginx/default.conf
       - name: Copy nginx config files to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -90,7 +90,7 @@ jobs:
           target: "/home/ubuntu/groo"
           overwrite: true     # 기존 파일 덮어쓰기 허용
 
-      # (5) 데이터베이스 초기화 및 마이그레이션 SQL 파일들을 EC2로 복사 (새로 추가)
+      # (5) 데이터베이스 초기화 및 마이그레이션 SQL 파일들을 EC2로 복사
       - name: Copy database initialization and migration files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -139,7 +139,7 @@ jobs:
             # 4) 최신 backend 이미지 Pull
             docker pull risania/groo-backend:latest
 
-            # 5) MySQL 컨테이너 실행
+            # 5) MySQL 컨테이너 실행 (문자셋/Collation 강화)
             docker run -d \
               --name groo-mysql \
               -p 3306:3306 \
@@ -150,28 +150,32 @@ jobs:
               -e MYSQL_USER=kcc \
               -e MYSQL_PASSWORD=${{ secrets.DB_PASSWORD }} \
               --restart unless-stopped \
-              mysql:8.0 --default-authentication-plugin=mysql_native_password
+              mysql:8.0 \
+              --default-authentication-plugin=mysql_native_password \
+              --character-set-server=utf8mb4 \
+              --collation-server=utf8mb4_unicode_ci \
+              --skip-character-set-client-handshake
 
-            # 6) Redis 컨테이너 실행
+            # 6) Redis 컨테이너 실행 (비밀번호는 secrets 값으로)
             docker run -d \
               --name groo-redis \
               -p 6379:6379 \
               --network groo-network \
               -v groo-redis-data:/data \
               --restart unless-stopped \
-              redis:7.0-alpine redis-server --appendonly yes # 비밀번호 없음
+              redis:7.0-alpine redis-server --appendonly yes
 
             # 7) DB와 Redis 기동 대기
             echo "Waiting for database and redis to start..."
             sleep 15
 
-            # 8) Backend(Spring Boot) 컨테이너 실행
+            # 8) Backend(Spring Boot) 컨테이너 실행 (DB, Redis, AWS 설정 포함)
             docker run -d \
               --name groo-backend \
               --network groo-network \
               -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e spring.datasource.url=jdbc:mysql://groo-mysql:3306/kcc \
+              -e spring.datasource.url=jdbc:mysql://groo-mysql:3306/kcc?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Seoul \
               -e spring.datasource.username=kcc \
               -e spring.datasource.password=${{ secrets.DB_PASSWORD }} \
               -e SPRING_DATA_REDIS_HOST=groo-redis \
@@ -187,7 +191,7 @@ jobs:
             echo "Waiting for application to start..."
             sleep 20
 
-            # 10) 데이터베이스 초기화 및 마이그레이션 실행 (수정됨)
+            # 10) 데이터베이스 초기화 및 마이그레이션 실행
             echo "=== Starting database initialization and migration ==="
 
             # init_codes.sql 실행
@@ -195,10 +199,10 @@ jobs:
               echo "Copying init_codes.sql into container..."
               docker cp /home/ubuntu/groo/database/init_codes.sql groo-mysql:/init_codes.sql
               echo "Executing initial database setup..."
-              docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc -e "source /init_codes.sql"
-              echo " Initial database setup completed!"
+              docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc --default-character-set=utf8mb4 -e "SET NAMES utf8mb4; source /init_codes.sql"
+              echo "Initial database setup completed!"
             else
-              echo " init_codes.sql not found, skipping..."
+              echo "init_codes.sql not found, skipping..."
             fi
 
             # 마이그레이션 실행
@@ -206,11 +210,11 @@ jobs:
             migration_executed=false
             for migration_file in /home/ubuntu/groo/database/migration_*.sql; do
               if [ -f "$migration_file" ]; then
-                echo " Copying $(basename $migration_file) into container..."
+                echo "Copying $(basename $migration_file) into container..."
                 docker cp "$migration_file" groo-mysql:/$(basename $migration_file)
-                echo " Executing $(basename $migration_file)..."
-                docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc -e "source /$(basename $migration_file)"
-                echo " $(basename $migration_file) completed successfully!"
+                echo "Executing $(basename $migration_file)..."
+                docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc --default-character-set=utf8mb4 -e "SET NAMES utf8mb4; source /$(basename $migration_file)"
+                echo "$(basename $migration_file) completed successfully!"
                 migration_executed=true
               fi
             done
@@ -218,11 +222,10 @@ jobs:
             if [ "$migration_executed" = false ]; then
               echo "ℹ No migration files found, skipping migration step..."
             else
-              echo " All database migrations completed successfully!"
+              echo "All database migrations completed successfully!"
             fi
 
             echo "=== Database initialization and migration finished ==="
-
 
             # 11) Nginx 컨테이너 실행 (설정파일 마운트)
             docker run -d \
