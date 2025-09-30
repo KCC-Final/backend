@@ -8,17 +8,19 @@
 name: Backend CI/CD
 
 on:
-  # 'main', 'develop' 또는 테스트 브랜치에 코드가 푸시(push)될 때 실행됩니다.
+  # main, develop, feat/17/CI/CD테스트브랜치 브랜치에 push 시 실행
   push:
-    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ] # main, develop, 테스트 브랜치에서 push 시 실행
+    branches: [ "main", "develop", "feat/17/CI/CD테스트브랜치" ]
+  # main 브랜치로 PR 생성 시 실행 (빌드 테스트 용도)
   pull_request:
-    branches: [ "main" ] # main 브랜치로 PR 생성 시 실행 (빌드 테스트 목적)
+    branches: [ "main" ]
 
 jobs:
   # ------------------------------------------------------------
   # 1단계: Backend 소스를 Docker 이미지로 빌드하고 Docker Hub에 푸시
   # ------------------------------------------------------------
   build-and-push:
+    # 최신 우분투 환경에서 실행
     runs-on: ubuntu-latest
     steps:
       # (1) 레포지토리 체크아웃
@@ -32,7 +34,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # (3) Docker 이미지 빌드 및 푸시
+      # (3) Docker 이미지 빌드 및 푸시 (latest + commit SHA 태그)
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -49,11 +51,11 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      # (1) 레포지토리 체크아웃
+      # (1) 레포지토리 체크아웃 (nginx, DB 초기화 파일 사용 위해 필요)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # (2) EC2에 디렉토리 생성 및 권한 부여
+      # (2) EC2에 nginx, database 디렉토리 생성 및 권한 부여
       - name: Create nginx and database directories and grant permission
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -67,13 +69,13 @@ jobs:
             sudo chown -R ubuntu:ubuntu /home/ubuntu/groo/nginx
             sudo chown -R ubuntu:ubuntu /home/ubuntu/groo/database
 
-      # (3) Runner 작업 디렉토리 구조 확인
+      # (3) Runner 작업 공간 파일 구조 확인 (디버깅용)
       - name: Check runner workspace files
         run: |
           echo "--- Runner Workspace Contents ---"
           ls -alR
 
-      # (4) nginx 설정 파일 복사
+      # (4) nginx 설정 파일을 EC2로 복사
       - name: Copy nginx config files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -85,7 +87,7 @@ jobs:
           target: "/home/ubuntu/groo"
           overwrite: true
 
-      # (5) DB 초기화 및 마이그레이션 파일 복사
+      # (5) DB 초기화 및 마이그레이션 SQL 파일을 EC2로 복사
       - name: Copy database initialization and migration files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -97,7 +99,7 @@ jobs:
           target: "/home/ubuntu/groo"
           overwrite: true
 
-      # (6) 복사된 파일 확인
+      # (6) 복사된 파일 확인 (EC2 내부 구조 출력)
       - name: Verify copied files on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -112,7 +114,7 @@ jobs:
             echo "--- Checking contents of /home/ubuntu/groo/database ---"
             ls -alR /home/ubuntu/groo/database
 
-      # (7) EC2 서버에 컨테이너 배포
+      # (7) EC2 서버에서 컨테이너 실행
       - name: Deploy containers to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -121,7 +123,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # 1) 네트워크 생성
+            # 1) Docker 네트워크 생성 (이미 존재하면 무시)
             docker network create groo-network || true
 
             # 2) 기존 컨테이너 중지 및 삭제
@@ -134,7 +136,7 @@ jobs:
             # 4) 최신 backend 이미지 Pull
             docker pull risania/groo-backend:latest
 
-            # 5) MySQL 컨테이너 실행
+            # 5) MySQL 컨테이너 실행 (utf8mb4 문자셋/Collation 강화)
             docker run -d \
               --name groo-mysql \
               -p 3306:3306 \
@@ -164,7 +166,7 @@ jobs:
             echo "Waiting for database and redis to start..."
             sleep 15
 
-            # 8) Backend(Spring Boot) 컨테이너 실행
+            # 8) Backend(Spring Boot) 컨테이너 실행 (DB/Redis/AWS 설정 포함)
             docker run -d \
               --name groo-backend \
               --network groo-network \
@@ -186,13 +188,15 @@ jobs:
             echo "Waiting for application to start..."
             sleep 20
 
-            # 10) DB 초기화 및 마이그레이션 실행
+            # 10) DB 초기화 및 마이그레이션 실행 (docker cp + source 방식)
             echo "=== Starting database initialization and migration ==="
 
             # init_codes.sql 실행
             if [ -f "/home/ubuntu/groo/database/init_codes.sql" ]; then
+              echo "Copying init_codes.sql into container..."
+              docker cp /home/ubuntu/groo/database/init_codes.sql groo-mysql:/init_codes.sql
               echo "Executing init_codes.sql..."
-              docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc < /home/ubuntu/groo/database/init_codes.sql
+              docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc -e "source /init_codes.sql"
               echo "Initial database setup completed!"
             else
               echo "init_codes.sql not found, skipping..."
@@ -203,8 +207,10 @@ jobs:
             migration_executed=false
             for migration_file in /home/ubuntu/groo/database/migration_*.sql; do
               if [ -f "$migration_file" ]; then
+                echo "Copying $(basename $migration_file) into container..."
+                docker cp "$migration_file" groo-mysql:/$(basename $migration_file)
                 echo "Executing $(basename $migration_file)..."
-                docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc < "$migration_file"
+                docker exec -i groo-mysql mysql -u kcc -p${{ secrets.DB_PASSWORD }} kcc -e "source /$(basename $migration_file)"
                 echo "$(basename $migration_file) completed successfully!"
                 migration_executed=true
               fi
@@ -218,7 +224,7 @@ jobs:
 
             echo "=== Database initialization and migration finished ==="
 
-            # 11) Nginx 컨테이너 실행
+            # 11) Nginx 컨테이너 실행 (설정파일 마운트)
             docker run -d \
               --name groo-nginx \
               --network groo-network \
@@ -228,7 +234,7 @@ jobs:
               --restart unless-stopped \
               nginx:alpine
 
-            # 12) 헬스 체크
+            # 12) 헬스 체크 (최대 2분, 10초 간격)
             echo "Waiting for nginx to start..."
             sleep 10
             for i in {1..12}; do
