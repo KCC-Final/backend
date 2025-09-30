@@ -3,6 +3,8 @@ package com.kcc.groo.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,6 +19,11 @@ public class SpringSecurityConfig {
 	
 	@Autowired
 	JwtAuthFilter jwtAuthFilter;
+	
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -37,6 +44,7 @@ public class SpringSecurityConfig {
 	            // 로그인/회원가입 / 아이디 / 비밀번호 찾기 인증 허용
 	            .requestMatchers(
 	                "/api/v1/auth/login",
+	                "/api/v1/auth/logout",
 	                "/api/v1/users/signup",
 	                "/api/v1/users/id/**",
 	                "/api/v1/users/password",

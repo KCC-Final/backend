@@ -27,13 +27,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		
 		//로그인 경로 예외
 	    String path = request.getServletPath();
-	    if (path.startsWith("/api/v1/auth") || path.startsWith("/api/v1/members/signup")) {
+	    if (path.startsWith("/api/v1/auth") || path.startsWith("/api/v1/users/signup")) {
 	        filterChain.doFilter(request, response);
 	        return;
 	    }
 		
 		try {
-			String token = jwtTokenProvider.resolveToken(request);
+			String token = jwtTokenProvider.resolveAccessToken(request);
 			if (token != null && jwtTokenProvider.validateToken(token)) {
 				Authentication authentication = jwtTokenProvider.getAuthentication(token);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
