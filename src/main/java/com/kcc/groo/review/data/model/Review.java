@@ -19,7 +19,7 @@ public class Review {
     private Date createdAt;
     private Date updatedAt;
     private String userId;
-    private Integer codeId;
+    private String category;
 
     // ✅ 좋아요 개수
     private Integer likeCount;
@@ -35,7 +35,7 @@ public class Review {
         review.setTemporary(Boolean.TRUE.equals(request.getTemporary()));
         review.setStatus(true);
         review.setViewCnt(0);
-        review.setCodeId(request.getCodeId());
+        review.setCategory(request.getCategory());
         return review;
     }
 

@@ -13,7 +13,7 @@
     INSERT INTO reviews (
       ISBN, review_title, review_content, view_cnt,
       secret, status, temporary, created_at,
-      user_id, code_id
+      user_id, category
     ) VALUES (
       #{req.isbn},
       #{req.reviewTitle},
@@ -24,7 +24,7 @@
       #{req.temporary},
       NOW(),
       #{userId},
-      #{req.codeId}
+      #{req.category}   
     )
     ]]>
 	</insert>
@@ -70,17 +70,21 @@
 		r.status AS status,
 		r.temporary AS temporary,
 		r.created_at AS createdAt,
-		r.updated_at AS updatedAt,
+		r.updated_at AS
+		updatedAt,
 		r.user_id AS userId,
-		r.code_id AS codeId,
-		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+		r.category AS category,
+		(SELECT COUNT(*)
+		FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
 		(EXISTS(
 		SELECT 1 FROM likes l
-		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
+		WHERE l.review_id = r.review_id AND l.user_id =
+		#{userId}
 		)) AS liked
 		FROM reviews r
 		WHERE r.review_id = #{reviewId}
-		AND r.status = TRUE
+		AND
+		r.status = TRUE
 		AND (r.secret = FALSE OR r.user_id = #{userId})
 	</select>
 
@@ -92,12 +96,15 @@
 		c.content AS content,
 		c.user_id AS userId,
 		c.created_at AS createdAt,
-		c.updated_at AS updatedAt,
+		c.updated_at AS
+		updatedAt,
 		c.parent_id AS parentId
 		FROM review_comments c
-		JOIN reviews r ON c.review_id = r.review_id
+		JOIN reviews r
+		ON c.review_id = r.review_id
 		WHERE c.review_id = #{reviewId}
-		AND r.status = TRUE
+		AND
+		r.status = TRUE
 		ORDER BY c.created_at ASC
 	</select>
 
@@ -117,7 +124,7 @@
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category        AS category
     FROM reviews r
     WHERE r.status = TRUE
       AND r.temporary = FALSE
@@ -142,17 +149,21 @@
 		r.status AS status,
 		r.temporary AS temporary,
 		r.created_at AS createdAt,
-		r.updated_at AS updatedAt,
+		r.updated_at AS
+		updatedAt,
 		r.user_id AS userId,
-		r.code_id AS codeId,
-		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+		r.category AS category,
+		(SELECT COUNT(*)
+		FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
 		(EXISTS(
 		SELECT 1 FROM likes l
-		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
+		WHERE l.review_id = r.review_id AND l.user_id =
+		#{userId}
 		)) AS liked
 		FROM reviews r
 		WHERE r.user_id = #{userId}
-		AND r.status = TRUE
+		AND
+		r.status = TRUE
 		ORDER BY r.created_at DESC
 	</select>
 
@@ -172,7 +183,7 @@
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category        AS category
     FROM reviews r
     WHERE r.status = TRUE
       AND r.user_id = #{userId}
@@ -197,7 +208,7 @@
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category        AS category
     FROM reviews r
     WHERE r.review_id = #{id}
       AND r.user_id   = #{userId}
@@ -264,7 +275,7 @@
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category        AS category
     FROM reviews r
     INNER JOIN likes l ON r.review_id = l.review_id
     WHERE l.user_id = #{userId}

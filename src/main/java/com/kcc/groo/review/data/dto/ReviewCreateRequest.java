@@ -21,6 +21,6 @@ public class ReviewCreateRequest {
     @Schema(description = "임시저장 여부", example = "false")
     private Boolean temporary;
 
-    @Schema(description = "카테고리 코드 ID", example = "1")
-    private Integer codeId;
+    @Schema(description = "카테고리", example = "1")
+    private String category;
 }

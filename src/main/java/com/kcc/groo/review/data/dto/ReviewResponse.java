@@ -19,7 +19,7 @@ public class ReviewResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String userId;
-    private Integer codeId;       // ✅ 코드 매핑
+    private String category;      
     private Integer likeCount;    // 좋아요 개수
     private Boolean liked;        // 현재 로그인 유저가 좋아요 눌렀는지 여부
     private List<CommentResponse> comments;  // ✅ 댓글 포함
@@ -49,7 +49,7 @@ public class ReviewResponse {
         }
 
         res.setUserId(review.getUserId());
-        res.setCodeId(review.getCodeId());
+        res.setCategory(review.getCategory());
         res.setLikeCount(review.getLikeCount()); // ✅ 좋아요 개수 매핑
         
         return res;
