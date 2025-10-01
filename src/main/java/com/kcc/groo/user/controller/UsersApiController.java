@@ -1,6 +1,5 @@
 package com.kcc.groo.user.controller;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.config.CustomUserDetails;
@@ -32,7 +31,7 @@ import com.kcc.groo.user.data.dto.FindUserIdRequest;
 import com.kcc.groo.user.data.dto.LoginRequest;
 import com.kcc.groo.user.data.dto.ResetPasswordRequest;
 import com.kcc.groo.user.data.dto.SignupRequest;
-import com.kcc.groo.user.data.dto.UpdateRequest;
+import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 import com.kcc.groo.user.service.EmailVerificationService;
 import com.kcc.groo.user.service.MailService;
@@ -205,7 +204,7 @@ public class UsersApiController {
 	 * @param request
 	 * @return CommonResponse
 	 * @author kys
-	 * @created 2025-09-23 회원가입 시 전송된 인증 코드의 일치 여부를 확인
+	 * @created 2025-09-23 전송된 인증 코드의 일치 여부를 확인
 	 * 
 	 * 
 	 */
@@ -215,6 +214,7 @@ public class UsersApiController {
 		boolean verified = emailVerificationService.verifyCode(purpose, email, code);
 		if (verified) {
 			request.getSession().setAttribute("verifiedEmail", email);
+			usersRepository.updateEmailVerified(email, true);
 			return ResponseEntity.ok(new CommonResponse<>("Email verification success", email));
 		} else {
 			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification failed", null));
@@ -234,15 +234,15 @@ public class UsersApiController {
 			HttpServletRequest request) {
 
 		if (!emailVerificationService.isVerified("signup", signupRequest.getEmail())) {
-			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification required", null));
+			return ResponseEntity.badRequest().body(new CommonResponse<>("signup Email verification required", null));
 		}
 
 		if (!signupRequest.isCheckPrivacy() || !signupRequest.isCheckService()) {
-			return ResponseEntity.badRequest().body(new CommonResponse<>("Terms agreement required", null));
+			return ResponseEntity.badRequest().body(new CommonResponse<>("signup Terms agreement required", null));
 		}
 
 		if (!signupRequest.getPassword1().equals(signupRequest.getPassword2())) {
-			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
+			return ResponseEntity.badRequest().body(new CommonResponse<>("signup Passwords do not match", null));
 		}
 
 		if (userService.existsByUserId(signupRequest.getUserId()) > 0) {
@@ -334,47 +334,44 @@ public class UsersApiController {
 		String userId = (String) request.getSession().getAttribute("findUserId");
 
 		if (!resetPasswordRequest.getPassword1().equals(resetPasswordRequest.getPassword2())) {
-			return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
+			return ResponseEntity.badRequest().body(new CommonResponse<>("reset Passwords do not match", null));
 		}
 
 		Users resetPw = userService.resetPassword(userId, resetPasswordRequest.getPassword1());
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new CommonResponse<>("updated password info success", resetPw));
+				.body(new CommonResponse<>("updated reset password info success", resetPw));
 
 	}
 	
-	/**
+	 /**
 	 * @param updateRequest
-	 * @param request
+	 * @param httpRequest
 	 * @return
-	 * @throws IOException
-	 * @author kys
-	 * @created 2025-09-30
-	 * 사용자 정보 수정
 	 */
-	@PutMapping(value = "/users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<CommonResponse<?>> updateUser(@RequestParam(required = false) MultipartFile profileImageFile,  @ModelAttribute UpdateRequest updateRequest, HttpServletRequest request) throws IOException {
-
-	    String token = jwtTokenProvider.resolveAccessToken(request);
-
-	    if (updateRequest.getPassword1() != null && !updateRequest.getPassword1().isBlank() && !updateRequest.getPassword1().equals(updateRequest.getPassword2())) {
-	        return ResponseEntity.badRequest().body(new CommonResponse<>("Passwords do not match", null));
-	    }
-
-	    if (updateRequest.getProfileImageFile() != null && !updateRequest.getProfileImageFile().isEmpty()) {
-	        updateRequest.setProfileImage(updateRequest.getProfileImageFile().getBytes());
-	    } 
-	    
-	    if (!emailVerificationService.isVerified("updateEmail", updateRequest.getEmail())) {
-			return ResponseEntity.badRequest().body(new CommonResponse<>("Email verification required", null));
+	@PutMapping(value="/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<CommonResponse<?>> updateUser (@ModelAttribute UserUpdateRequest updateRequest,HttpServletRequest request) {
+		
+		String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+		String userId = jwtTokenProvider.getUserId(refreshToken);
+		Users updatedUser = userService.findByUserId(userId);
+		
+		if (!updatedUser.getEmail().equals(updateRequest.getEmail()) || !StringUtils.hasText(updateRequest.getEmail())) {
+			if (!emailVerificationService.isVerified("updateEmail", updateRequest.getEmail())) {
+				return ResponseEntity.badRequest().body(new CommonResponse<>("update Email verification required", null));
+			}
 		}
-
-	    try {
-	        Users updatedUser = userService.updateUser(token, updateRequest);
-	        return ResponseEntity.ok( new CommonResponse<>("User updated successfully", updatedUser));
-	    } catch (IllegalArgumentException ex) {
-	        return ResponseEntity.badRequest().body(new CommonResponse<>(ex.getMessage(), null));
-	    }
+		
+		if (!updateRequest.getPassword1().equals(updateRequest.getPassword2())) {
+			return ResponseEntity.badRequest().body(new CommonResponse<>("update Passwords do not match", null));
+		}
+		
+		updatedUser = userService.requestUpdateUser(userId, updateRequest);
+		
+		if (updatedUser != null) {
+			emailVerificationService.clearVerified("updateEmail", updateRequest.getEmail());
+		}
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new CommonResponse<>("updated user info success", updatedUser));
+		
 	}
-
 }

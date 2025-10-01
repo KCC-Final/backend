@@ -1,25 +1,26 @@
 package com.kcc.groo.user.service;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.dao.IUsersRepository;
 import com.kcc.groo.user.data.dto.SignupRequest;
-import com.kcc.groo.user.data.dto.UpdateRequest;
+import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
 @Service
 @Transactional
 public class UserService implements IUserService {
 
-    private final JwtTokenProvider jwtTokenProvider;
+	private final JwtTokenProvider jwtTokenProvider;
 
 	@Autowired
 	IUsersRepository usersRepository;
@@ -33,9 +34,9 @@ public class UserService implements IUserService {
 	@Autowired
 	MailService mailService;
 
-    UserService(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
+	UserService(JwtTokenProvider jwtTokenProvider) {
+		this.jwtTokenProvider = jwtTokenProvider;
+	}
 
 	@Override
 	public Users loginUser(String userId, String password) {
@@ -67,7 +68,7 @@ public class UserService implements IUserService {
 		newUser.setBirth(signupRequest.getBirth());
 		newUser.setCheckPrivacy(signupRequest.isCheckPrivacy());
 		newUser.setCheckService(signupRequest.isCheckService());
-		newUser.setEmailVerified(true);
+		// newUser.setEmailVerified(true);
 
 		int result = usersRepository.insertUser(newUser);
 
@@ -122,66 +123,60 @@ public class UserService implements IUserService {
 		}
 	}
 
-	@Override
-	public Users updateUser(String token, UpdateRequest updateRequest) {
-	    String userId = getUserIdInToken(token);
-	    Users currentUser = usersRepository.selectUserByUserId(userId);
-	    if (currentUser == null) throw new IllegalArgumentException("User not found");
-
-	    boolean isEmailChanged = false;
-
-	    if (updateRequest.getPassword1() != null && !updateRequest.getPassword1().isBlank()) {
-	        String pwd = updateRequest.getPassword1();
-	        if (!pwd.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{8,20}$")) {
-	            throw new IllegalArgumentException("비밀번호는 대/소문자, 숫자를 포함한 8~20자여야 합니다.");
-	        }
-	        currentUser.setPassword(passwordEncoder.encode(pwd));
-	    }
-
-	    String email = updateRequest.getEmail();
-	    if (email != null) email = email.trim();
-
-	    if (email != null && !email.isEmpty() && !email.equals(currentUser.getEmail())) {
-	        if (!emailVerificationService.isVerified("updateEmail", email)) {
-	            throw new IllegalArgumentException("Updated Email verification required");
-	        }
-	        currentUser.setEmail(email);
-	        isEmailChanged = true;
-	    }
-
-	    if (updateRequest.getNickname() != null && !updateRequest.getNickname().isBlank()) {
-	        currentUser.setNickname(updateRequest.getNickname());
-	    }
-
-	    if (updateRequest.getName() != null && !updateRequest.getName().isBlank()) {
-	        currentUser.setName(updateRequest.getName());
-	    }
-
-	    if (updateRequest.getIntroduction() != null) {
-	        currentUser.setIntroduction(updateRequest.getIntroduction());
-	    }
-
-	    if (updateRequest.getProfileImage() != null) {
-	        currentUser.setProfileImage(updateRequest.getProfileImage());
-	    }
-
-	    if (isEmailChanged) {
-	        usersRepository.updateUserWithEmailVerified(currentUser);
-	    } else {
-	        usersRepository.updateUserWithoutEmailVerified(currentUser);
-	    }
-
-	    return usersRepository.selectUserByUserId(userId);
+	public Users findByUserId(String userId) {
+		return usersRepository.selectUserByUserId(userId);
 	}
 
+	@Override
+	public Users requestUpdateUser(String userId, UserUpdateRequest updateRequest) { // password nickname email
+																						// profileImage introduction
+																						// name
 
-    public Users findByUserId(String userId) {
-        return usersRepository.selectUserByUserId(userId);
-    }
+		// set userId
+		Users updateUser = usersRepository.selectUserByUserId(userId);
 
-	public String getUserIdInToken (String token) {
-		
-		Authentication authentication = jwtTokenProvider.getAuthentication(token);
-		return authentication.getName();
+		// check pw
+		if (!updateUser.getPassword().equals(updateRequest.getPassword1())) { // 기존 비밀번호와 password1 다를 경우
+			if (StringUtils.hasText(updateRequest.getPassword1())
+					&& StringUtils.hasText(updateRequest.getPassword2())) { // null or ""
+				updateUser.setPassword(passwordEncoder.encode(updateRequest.getPassword1())); // pw 1 encoding
+				updateUser.setPwdChangedAt(LocalDateTime.now()); // set pwd change date
+			}
+		}
+
+		// email
+		if (!updateUser.getEmail().equals(updateRequest.getEmail())) { // 기존 이메일과 새로 입력된 이메일이 다를 경우
+			if (StringUtils.hasText(updateRequest.getEmail())) { // null or ""
+				updateUser.setEmailVerified(false); // verified 초기화
+			} // else == true 유지
+		}
+
+		// others
+		if (StringUtils.hasText(updateRequest.getNickname())) { // null or ""
+			updateUser.setNickname(updateRequest.getNickname());
+		}
+		if (StringUtils.hasText(updateRequest.getIntroduction())) { // null or ""
+			updateUser.setIntroduction(updateRequest.getIntroduction());
+		}
+		if (StringUtils.hasText(updateRequest.getName())) { // null or ""
+			updateUser.setName(updateRequest.getName());
+		}
+
+		if (updateRequest.getProfileImage() != null && updateRequest.getProfileImage().isEmpty()) { // null or ""
+			try {
+				updateUser.setProfileImage(updateRequest.getProfileImage().getBytes()); // byte로 변환해 저장ㄴ
+			} catch (IOException e) {
+				throw new RuntimeException("failed to convert profile image");
+			}
+		}
+
+		int result = usersRepository.updateUser(updateUser);
+
+		if (result > 0) {
+			return usersRepository.selectUserByUserId(userId);
+		} else {
+			throw new RuntimeException("failed signup");
+		}
+
 	}
 }

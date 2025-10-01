@@ -101,17 +101,9 @@ public interface IUsersRepository {
 	 * @return
 	 * @author kys
 	 * @created 2025-09-30
-	 * 이메일 인증 필요 없을 경우의 회원 정보 수정
+	 * 회원 정보 수정
 	 */
-	int updateUserWithoutEmailVerified (Users user);
-	
-	/**
-	 * @param user
-	 * @return
-	 * @author kys
-	 * @created 2025-09-30
-	 * 이메일 인증이 필요한 경우의 회원 정보 수정
-	 */
-	int updateUserWithEmailVerified (Users user);
+	int updateUser (Users user);
+
 	
 }

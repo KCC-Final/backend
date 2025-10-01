@@ -39,10 +39,10 @@ VALUES (#{userId}, #{password}, #{email},#{nickname},#{gender},#{name},#{birth},
 </insert>
 
 <update id="updateEmailVerified">
-UPDATE users
+<![CDATA[ UPDATE users
 SET email_verified = #{emailVerified}
-WHERE email = #{email}
-</update>
+WHERE email = #{email} ]]>
+</update> 
 
 <select id="selectAllUserId" resultMap="userMap">
 <![CDATA[
@@ -81,59 +81,26 @@ SELECT user_id FROM users
 </select>
 
 <update id="resetPassword">
-  UPDATE users
+  <![CDATA[ UPDATE users
   SET password = #{password},
       pwd_changed_at = NOW()
-  WHERE user_id = #{userId}
+  WHERE user_id = #{userId} ]]>
 </update>
 
-<update id="updateUserWithoutEmailVerified" parameterType="com.kcc.groo.user.data.model.Users">
-  UPDATE users
-  <set>
-    <if test="password != null and password != ''">
-      password = #{password},
-    </if>
-    <if test="nickname != null and nickname != ''">
-      nickname = #{nickname},
-    </if>
-    <if test="name != null and name != ''">
-      name = #{name},
-    </if>
-    <if test="profileImage != null">
-      profile_image = #{profileImage},
-    </if>
-    <if test="introduction != null and introduction != ''">
-      introduction = #{introduction},
-    </if>
-  </set>
-  WHERE user_id = #{userId}
+<update id="updateUser" parameterType="com.kcc.groo.user.data.model.Users">
+    UPDATE users
+    <set>
+        <if test="password != null">password = #{password}, pwd_changed_at = #{pwdChangedAt},</if>
+        <if test="nickname != null">nickname = #{nickname},</if>
+        <if test="name != null">name = #{name},</if>
+        <if test="email != null">email = #{email},</if>
+        <if test="profileImage != null">profile_image = #{profileImage},</if>
+        <if test="introduction != null">introduction = #{introduction},</if>
+        <if test="emailVerified != null">email_verified = #{emailVerified},</if>
+    </set>
+    WHERE user_id = #{userId}
 </update>
 
-<update id="updateUserWithEmailVerified" parameterType="com.kcc.groo.user.data.model.Users">
-  UPDATE users
-  <set>
-    <if test="email != null and email != ''">
-      email = #{email},
-      email_verified = false,
-    </if>
-    <if test="password != null and password != ''">
-      password = #{password},
-    </if>
-    <if test="nickname != null and nickname != ''">
-      nickname = #{nickname},
-    </if>
-    <if test="name != null and name != ''">
-      name = #{name},
-    </if>
-    <if test="profileImage != null">
-      profile_image = #{profileImage},
-    </if>
-    <if test="introduction != null and introduction != ''">
-      introduction = #{introduction},
-    </if>
-  </set>
-  WHERE user_id = #{userId}
-</update>
 
 </mapper>
 

@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.kcc.groo.user.data.dto.SignupRequest;
-import com.kcc.groo.user.data.dto.UpdateRequest;
+import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
 public interface IUserService {
@@ -89,23 +89,14 @@ public interface IUserService {
 	Users resetPassword(@Param("userId") String userId, @Param("rawPassword") String rawPassword);
 	
 	/**
+	 * @param userId
 	 * @param updateRequest
+	 * @param emailVerified
 	 * @return
 	 * @author kys
-	 * @created 2025-09-30
+	 * @created 2025-10-01
 	 * 회원 정보 수정
 	 */
-	Users updateUser (String token, UpdateRequest updateRequest);
-	
-	/**
-	 * @param token
-	 * @return
-	 * @author kys
-	 * @created 2025-09-30
-	 * 토큰을 통해 현재 로그인한 사용자 아이디 확인
-	 */
-	String getUserIdInToken (String token);
-	
-	
+	Users requestUpdateUser (String userId, UserUpdateRequest updateRequest);
 	
 }
