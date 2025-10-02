@@ -1,9 +1,9 @@
 package com.kcc.groo.user.service;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kcc.groo.user.data.dto.SignupRequest;
 import com.kcc.groo.user.data.dto.UserUpdateRequest;
@@ -94,7 +94,7 @@ public interface IUserService {
 	 * @param emailVerified
 	 * @return
 	 * @author kys
-	 * @created 2025-10-01
+	 * @created 2025-10-02
 	 * 회원 정보 수정
 	 */
 	Users requestUpdateUser (String userId, UserUpdateRequest updateRequest);

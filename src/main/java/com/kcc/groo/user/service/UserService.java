@@ -1,6 +1,5 @@
 package com.kcc.groo.user.service;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -128,54 +127,49 @@ public class UserService implements IUserService {
 	}
 
 	@Override
-	public Users requestUpdateUser(String userId, UserUpdateRequest updateRequest) { // password nickname email
-																						// profileImage introduction
-																						// name
-
+	public Users requestUpdateUser(String userId, UserUpdateRequest updateRequest) { 
 		// set userId
 		Users updateUser = usersRepository.selectUserByUserId(userId);
 
 		// check pw
 		if (!updateUser.getPassword().equals(updateRequest.getPassword1())) { // 기존 비밀번호와 password1 다를 경우
 			if (StringUtils.hasText(updateRequest.getPassword1())
-					&& StringUtils.hasText(updateRequest.getPassword2())) { // null or ""
-				updateUser.setPassword(passwordEncoder.encode(updateRequest.getPassword1())); // pw 1 encoding
+					&& StringUtils.hasText(updateRequest.getPassword2())) { //not null, length > 0, is not empty
+				updateUser.setPassword(passwordEncoder.encode(updateRequest.getPassword1()));
 				updateUser.setPwdChangedAt(LocalDateTime.now()); // set pwd change date
 			}
 		}
 
 		// email
 		if (!updateUser.getEmail().equals(updateRequest.getEmail())) { // 기존 이메일과 새로 입력된 이메일이 다를 경우
-			if (StringUtils.hasText(updateRequest.getEmail())) { // null or ""
-				updateUser.setEmailVerified(false); // verified 초기화
-			} // else == true 유지
-		}
-
-		// others
-		if (StringUtils.hasText(updateRequest.getNickname())) { // null or ""
-			updateUser.setNickname(updateRequest.getNickname());
-		}
-		if (StringUtils.hasText(updateRequest.getIntroduction())) { // null or ""
-			updateUser.setIntroduction(updateRequest.getIntroduction());
-		}
-		if (StringUtils.hasText(updateRequest.getName())) { // null or ""
-			updateUser.setName(updateRequest.getName());
-		}
-
-		if (updateRequest.getProfileImage() != null && updateRequest.getProfileImage().isEmpty()) { // null or ""
-			try {
-				updateUser.setProfileImage(updateRequest.getProfileImage().getBytes()); // byte로 변환해 저장ㄴ
-			} catch (IOException e) {
-				throw new RuntimeException("failed to convert profile image");
+			if (StringUtils.hasText(updateRequest.getEmail())) { //not null, length > 0, is not empty
+				updateUser.setEmail(updateRequest.getEmail()); //새로 입력된 이메일 set
+				updateUser.setEmailVerified(true);
 			}
 		}
 
-		int result = usersRepository.updateUser(updateUser);
+		//nickname, introduction, name
+		if (StringUtils.hasText(updateRequest.getNickname())) { //not null, length > 0, is not empty
+			updateUser.setNickname(updateRequest.getNickname());
+		}
+		if (StringUtils.hasText(updateRequest.getIntroduction())) { //not null, length > 0, is not empty
+			updateUser.setIntroduction(updateRequest.getIntroduction());
+		}
+		if (StringUtils.hasText(updateRequest.getName())) { //not null, length > 0, is not empty
+			updateUser.setName(updateRequest.getName());
+		}
 
-		if (result > 0) {
+		//profileImage
+		if (updateRequest.getProfileImage() != null) { //not null, length > 0, is not empty
+				updateUser.setProfileImage(updateRequest.getProfileImage()); // convert to byte type
+		}
+
+		int result = usersRepository.updateUser(updateUser); //check result
+
+		if (result > 0) { //success
 			return usersRepository.selectUserByUserId(userId);
-		} else {
-			throw new RuntimeException("failed signup");
+		} else { //fail
+			throw new RuntimeException("failed update user information");
 		}
 
 	}
