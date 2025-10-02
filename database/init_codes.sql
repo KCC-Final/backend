@@ -206,22 +206,8 @@ CREATE TABLE IF NOT EXISTS group_comments (
 ) COMMENT='독서모임 댓글';
 
 -- 코드 그룹 데이터 삽입 (중복 무시)
--- 1. 대주제 코드 (kdc) 그룹 및 데이터 추가
-INSERT IGNORE INTO code_groups (group_code, group_name) VALUES ('kdc', '대주제 코드');
-    
-INSERT IGNORE INTO codes (code_value, code_name, group_code) VALUES 
-('0', '총류', 'kdc'),
-('1', '철학', 'kdc'),
-('2', '종교', 'kdc'),
-('3', '사회과학', 'kdc'),
-('4', '자연과학', 'kdc'),
-('5', '기술과학', 'kdc'),
-('6', '예술', 'kdc'),
-('7', '언어', 'kdc'),
-('8', '문학', 'kdc'),
-('9', '역사', 'kdc');
 
--- 2. 지역 코드 그룹 및 데이터 추가
+-- 1. 지역 코드 그룹 및 데이터 추가
 INSERT IGNORE INTO code_groups (group_code, group_name) VALUES ('region', '지역코드');
 
 INSERT IGNORE INTO codes (code_value, code_name, group_code) VALUES 
@@ -243,7 +229,7 @@ INSERT IGNORE INTO codes (code_value, code_name, group_code) VALUES
 ('38', '경상남도', 'region'),
 ('39', '제주특별자치도', 'region');
 
--- 3. 세부지역 코드 그룹 및 데이터 추가 (전체)
+-- 2. 세부지역 코드 그룹 및 데이터 추가 (전체)
 INSERT IGNORE INTO code_groups (group_code, group_name) VALUES ('dtl_region', '세부지역코드');
 
 INSERT IGNORE INTO codes (code_value, code_name, group_code) VALUES 

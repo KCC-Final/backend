@@ -13,7 +13,6 @@ public class ReviewResponse {
     private String isbn;          // ✅ 소문자 필드로 변경 (Review와 일치)
     private String reviewTitle;
     private String reviewContent;
-    private Integer viewCnt;
     private Boolean secret;
     private Boolean temporary;
     private LocalDateTime createdAt;
@@ -32,7 +31,6 @@ public class ReviewResponse {
         res.setIsbn(review.getIsbn()); // ✅ 수정: getIsbn() 호출
         res.setReviewTitle(review.getReviewTitle());
         res.setReviewContent(review.getReviewContent());
-        res.setViewCnt(review.getViewCnt());
         res.setSecret(review.getSecret());
         res.setTemporary(review.getTemporary());
 
