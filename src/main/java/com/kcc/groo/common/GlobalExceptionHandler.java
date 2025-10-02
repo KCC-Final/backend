@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.kcc.groo.common.dto.CommonResponse;
+import com.kcc.groo.review.exception.ReviewException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,4 +67,22 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new CommonResponse<>("Internal server error", null));
     }
+    
+    /**
+     * @author uyh
+     * @since 2025-10-02
+     * Review 도메인 비즈니스 예외 처리
+     */
+    @ExceptionHandler(ReviewException.class)
+    public ResponseEntity<CommonResponse<?>> handleReviewException(ReviewException e) {
+        log.error("[ReviewException] ErrorCode: {}, Message: {}", 
+                  e.getErrorCode().getCode(), e.getMessage());
+        return ResponseEntity
+                .status(e.getErrorCode().getHttpStatus())
+                .body(new CommonResponse<>(
+                    e.getErrorCode().getCode() + " - " + e.getMessage(), 
+                    null
+                ));
+    }
+
 }

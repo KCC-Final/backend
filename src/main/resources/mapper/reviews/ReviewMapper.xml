@@ -11,9 +11,9 @@
 	<insert id="insertReview">
     <![CDATA[
     INSERT INTO reviews (
-      ISBN, review_title, review_content, view_cnt,
+      ISBN, review_title, review_content,
       secret, status, temporary, created_at,
-      user_id, code_id
+      user_id, category
     ) VALUES (
       #{req.isbn},
       #{req.reviewTitle},
@@ -24,7 +24,7 @@
       #{req.temporary},
       NOW(),
       #{userId},
-      #{req.codeId}
+      #{req.category}   
     )
     ]]>
 	</insert>
@@ -38,12 +38,17 @@
       review_content = #{req.reviewContent},
       secret         = #{req.secret},
       temporary      = #{req.temporary},
+      created_at     = CASE 
+                         WHEN temporary = TRUE AND #{req.temporary} = FALSE 
+                         THEN NOW() 
+                         ELSE created_at 
+                       END,
       updated_at     = NOW()
     WHERE review_id = #{reviewId}
       AND user_id   = #{userId}
     ]]>
 	</update>
-
+	
 	<!-- 독후감 삭제 (소프트 삭제) -->
 	<update id="deleteReview">
     <![CDATA[
@@ -65,15 +70,15 @@
 		r.ISBN AS isbn,
 		r.review_title AS reviewTitle,
 		r.review_content AS reviewContent,
-		r.view_cnt AS viewCnt,
 		r.secret AS secret,
 		r.status AS status,
 		r.temporary AS temporary,
 		r.created_at AS createdAt,
 		r.updated_at AS updatedAt,
 		r.user_id AS userId,
-		r.code_id AS codeId,
+		r.category AS category,
 		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+		(SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
 		(EXISTS(
 		SELECT 1 FROM likes l
 		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
@@ -101,7 +106,7 @@
 		ORDER BY c.created_at ASC
 	</select>
 
-	<!-- 전체 조회 -->
+	<!-- 전체 조회 (비밀글 완전 제외) -->
 	<select id="selectAllReviews"
 		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
     <![CDATA[
@@ -110,26 +115,29 @@
       r.ISBN           AS isbn,
       r.review_title   AS reviewTitle,
       r.review_content AS reviewContent,
-      r.view_cnt       AS viewCnt,
       r.secret         AS secret,
       r.status         AS status,
       r.temporary      AS temporary,
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category       AS category,
+      (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+      (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+      CASE WHEN #{userId} IS NOT NULL AND EXISTS (
+          SELECT 1 FROM likes l2 
+          WHERE l2.review_id = r.review_id 
+          AND l2.user_id = #{userId}
+      ) THEN true ELSE false END AS liked
     FROM reviews r
     WHERE r.status = TRUE
       AND r.temporary = FALSE
-      AND (
-        r.secret = FALSE
-        OR (#{userId} IS NOT NULL AND r.user_id = #{userId})
-      )
+      AND r.secret = FALSE
     ORDER BY r.created_at DESC
     ]]>
 	</select>
 
-	<!-- 내가 쓴 리뷰 전체 조회 -->
+	<!-- 내가 쓴 리뷰 전체 조회 (비밀글 포함) -->
 	<select id="selectReviewsByUser"
 		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
 		SELECT
@@ -137,15 +145,15 @@
 		r.ISBN AS isbn,
 		r.review_title AS reviewTitle,
 		r.review_content AS reviewContent,
-		r.view_cnt AS viewCnt,
 		r.secret AS secret,
 		r.status AS status,
 		r.temporary AS temporary,
 		r.created_at AS createdAt,
 		r.updated_at AS updatedAt,
 		r.user_id AS userId,
-		r.code_id AS codeId,
+		r.category AS category,
 		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+		(SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
 		(EXISTS(
 		SELECT 1 FROM likes l
 		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
@@ -165,14 +173,13 @@
       r.ISBN           AS isbn,
       r.review_title   AS reviewTitle,
       r.review_content AS reviewContent,
-      r.view_cnt       AS viewCnt,
       r.secret         AS secret,
       r.status         AS status,
       r.temporary      AS temporary,
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category       AS category
     FROM reviews r
     WHERE r.status = TRUE
       AND r.user_id = #{userId}
@@ -190,14 +197,13 @@
       r.ISBN           AS isbn,
       r.review_title   AS reviewTitle,
       r.review_content AS reviewContent,
-      r.view_cnt       AS viewCnt,
       r.secret         AS secret,
       r.status         AS status,
       r.temporary      AS temporary,
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category       AS category
     FROM reviews r
     WHERE r.review_id = #{id}
       AND r.user_id   = #{userId}
@@ -248,7 +254,7 @@
     ]]>
 	</select>
 
-	<!-- 내가 좋아요한 글 목록 -->
+	<!-- 내가 좋아요한 글 목록 (비밀글 제외) -->
 	<select id="selectLikedReviews"
 		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
     <![CDATA[
@@ -257,19 +263,21 @@
       r.ISBN           AS isbn,
       r.review_title   AS reviewTitle,
       r.review_content AS reviewContent,
-      r.view_cnt       AS viewCnt,
       r.secret         AS secret,
       r.status         AS status,
       r.temporary      AS temporary,
       r.created_at     AS createdAt,
       r.updated_at     AS updatedAt,
       r.user_id        AS userId,
-      r.code_id        AS codeId
+      r.category       AS category,
+      (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+      (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+      true AS liked
     FROM reviews r
     INNER JOIN likes l ON r.review_id = l.review_id
     WHERE l.user_id = #{userId}
       AND r.status = TRUE
-      AND (r.secret = FALSE OR r.user_id = #{userId})
+      AND r.secret = FALSE
     ORDER BY l.created_at DESC
     ]]>
 	</select>
@@ -282,6 +290,76 @@
     WHERE review_id = #{reviewId}
       AND status = TRUE
       AND temporary = FALSE
+    ]]>
+	</select>
+
+	<!-- 팔로잉한 유저들의 독후감 조회 (최신순, 비밀글 완전 제외) -->
+	<select id="selectReviewsByFollowing"
+		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+    <![CDATA[
+    SELECT 
+        r.review_id AS reviewId,
+        r.ISBN AS isbn,
+        r.review_title AS reviewTitle,
+        r.review_content AS reviewContent,
+        r.secret AS secret,
+        r.status AS status,
+        r.temporary AS temporary,
+        r.created_at AS createdAt,
+        r.updated_at AS updatedAt,
+        r.user_id AS userId,
+        r.category AS category,
+        (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+        (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+        CASE WHEN EXISTS (
+            SELECT 1 FROM likes l2 
+            WHERE l2.review_id = r.review_id 
+            AND l2.user_id = #{userId}
+        ) THEN true ELSE false END AS liked
+    FROM reviews r
+    INNER JOIN follows f ON r.user_id = f.followed
+    WHERE f.follower = #{userId}
+        AND r.status = TRUE
+        AND r.temporary = FALSE
+        AND r.secret = FALSE
+    ORDER BY r.created_at DESC
+    ]]>
+	</select>
+
+	<!-- 전체 유저 독후감 좋아요 많은 순 (1주일간, 비밀글 완전 제외) -->
+	<select id="selectAllReviewsOrderByLikes"
+		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+    <![CDATA[
+    SELECT 
+        r.review_id AS reviewId,
+        r.ISBN AS isbn,
+        r.review_title AS reviewTitle,
+        r.review_content AS reviewContent,
+        r.secret AS secret,
+        r.status AS status,
+        r.temporary AS temporary,
+        r.created_at AS createdAt,
+        r.updated_at AS updatedAt,
+        r.user_id AS userId,
+        r.category AS category,
+        COUNT(l.user_id) AS likeCount,
+        (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+        CASE WHEN #{userId} IS NOT NULL AND EXISTS (
+            SELECT 1 FROM likes l2 
+            WHERE l2.review_id = r.review_id 
+            AND l2.user_id = #{userId}
+        ) THEN true ELSE false END AS liked
+    FROM reviews r
+    LEFT JOIN likes l ON r.review_id = l.review_id 
+        AND l.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    WHERE r.status = TRUE
+        AND r.temporary = FALSE
+        AND r.secret = FALSE
+        AND r.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    GROUP BY r.review_id, r.ISBN, r.review_title, r.review_content,
+             r.secret, r.status, r.temporary,
+             r.created_at, r.updated_at, r.user_id, r.category
+    ORDER BY likeCount DESC, r.created_at DESC
     ]]>
 	</select>
 

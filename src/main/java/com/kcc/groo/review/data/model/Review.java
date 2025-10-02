@@ -12,14 +12,13 @@ public class Review {
     private String isbn;   // ✅ 필드명도 소문자로
     private String reviewTitle;
     private String reviewContent;
-    private Integer viewCnt;
     private Boolean secret;
     private Boolean status;
     private Boolean temporary;
     private Date createdAt;
     private Date updatedAt;
     private String userId;
-    private Integer codeId;
+    private String category;
 
     // ✅ 좋아요 개수
     private Integer likeCount;
@@ -34,8 +33,7 @@ public class Review {
         review.setSecret(Boolean.TRUE.equals(request.getSecret())); 
         review.setTemporary(Boolean.TRUE.equals(request.getTemporary()));
         review.setStatus(true);
-        review.setViewCnt(0);
-        review.setCodeId(request.getCodeId());
+        review.setCategory(request.getCategory());
         return review;
     }
 

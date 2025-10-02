@@ -10,10 +10,12 @@ services:
     restart: unless-stopped
     env_file:
       - ./db.env
+    environment:
+      TZ: Asia/Seoul # 추가
     ports:
-      - "3306:3306"
+      - "3306:3306" # 호스트 포트 3306 → 컨테이너 3306
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql # MySQL 데이터는 볼륨에 영구 저장
     networks:
       - kcc-network
     command:
@@ -21,6 +23,7 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
+      - --default-time-zone=+09:00 # 추가
 
   # -----------------------------------------------------------------
   # Redis (groo-redis)
@@ -29,10 +32,12 @@ services:
     image: redis:7.0-alpine
     container_name: groo-redis
     restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul # 추가
     ports:
-      - "6379:6379"
+      - "6379:6379" # 로컬에서 localhost:6379로 접근 가능
     volumes:
-      - redis_data:/data
+      - redis_data:/data # Redis 데이터 영구 저장
     networks:
       - kcc-network
     command: ["redis-server", "--appendonly", "yes"]
@@ -45,6 +50,8 @@ services:
     container_name: kcc-migrator
     depends_on:
       - db
+    environment:
+      TZ: Asia/Seoul # 추가
     volumes:
       - ./database:/database
     networks:
@@ -88,6 +95,8 @@ services:
   groo-backend:
     build: .
     restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul # 추가
     env_file:
       - ./.env
     ports:
@@ -95,7 +104,7 @@ services:
     depends_on:
       - db
       - redis
-      - migrator
+      - migrator # ✅ 마이그레이션이 끝난 후 실행
     networks:
       - kcc-network
 
@@ -104,6 +113,8 @@ services:
   # -----------------------------------------------------------------
   groo-backend-dev:
     image: gradle:8.7.0-jdk21
+    environment:
+      TZ: Asia/Seoul # 추가
     volumes:
       - .:/app
     working_dir: /app
@@ -126,6 +137,8 @@ services:
     image: nginx:alpine
     container_name: kcc-nginx
     restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul # 추가
     ports:
       - "80:80"
       - "443:443"

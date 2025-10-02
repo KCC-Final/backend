@@ -130,4 +130,23 @@ public interface IReviewService {
      * 사용자가 좋아요한 모든 독후감을 조회
      */
     List<ReviewResponse> getLikedReviews(String userId);
+    
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-01
+     * 팔로잉한 유저들의 독후감을 최신순으로 조회
+     */
+    List<ReviewResponse> getReviewsByFollowing(String userId);
+    
+    /**
+     * @param userId 조회하는 사용자 ID (null 가능)
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-01
+     * 전체 유저의 독후감을 1주일간 좋아요 많은 순으로 조회
+     */
+    List<ReviewResponse> getAllReviewsOrderByLikes(String userId);
+    
 }
