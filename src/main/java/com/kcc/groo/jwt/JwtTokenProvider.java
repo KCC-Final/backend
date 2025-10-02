@@ -52,7 +52,7 @@ public class JwtTokenProvider {
 		long now = System.currentTimeMillis();
 		Claims claims = Jwts.claims()
 				.subject(user.getUserId()) //토큰명
-				.setIssuer(user.getUserId()).issuedAt(new Date(now)) //토큰 발급자 설정 (userId)
+				.setIssuer("https://groo.site").issuedAt(new Date(now)) //토큰 발급자 도메인으로 설정
 				.expiration(new Date(now + accessTokenValidTime))
 				.add("name", user.getName()) //이름
 				.add("nickname", user.getNickname()) //닉네임
