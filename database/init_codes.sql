@@ -66,10 +66,9 @@ CREATE TABLE IF NOT EXISTS reviews (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
     user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
-    code_id INT NOT NULL COMMENT '코드 ID',
+    category VARCHAR(50) NOT NULL COMMENT '도서 카테고리',
     PRIMARY KEY (review_id),
     CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(user_id),
-    CONSTRAINT fk_reviews_code FOREIGN KEY (code_id) REFERENCES codes(code_id)
 ) COMMENT='독후감';
 
 -- 6. 좋아요 테이블 생성 (users, reviews 참조)
@@ -82,19 +81,25 @@ CREATE TABLE IF NOT EXISTS likes (
     CONSTRAINT fk_likes_review FOREIGN KEY (review_id) REFERENCES reviews(review_id)
 ) COMMENT='좋아요';
 
--- 7. 독후감 댓글 테이블 생성 (reviews, users 참조, 자기 참조)
+-- 독후감 댓글 테이블 생성 (reviews, users 참조, 자기 참조)
+-- CASCADE DELETE 적용: 부모 댓글 삭제 시 대댓글 자동 삭제, 리뷰 삭제 시 댓글 자동 삭제
 CREATE TABLE IF NOT EXISTS review_comments (
-    comment_id INT NOT NULL AUTO_INCREMENT COMMENT '댓글 ID',
-    content VARCHAR(500) NOT NULL COMMENT '댓글 내용',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
-    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
-    review_id INT NOT NULL COMMENT '독후감 ID',
-    user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
-    parent_id INT NULL COMMENT '부모 댓글 ID',
+    comment_id  INT          NOT NULL AUTO_INCREMENT COMMENT '댓글 ID',
+    content     VARCHAR(500) NOT NULL COMMENT '댓글 내용',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
+    updated_at  DATETIME     NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+    review_id   INT          NOT NULL COMMENT '독후감 ID',
+    user_id     VARCHAR(50)  NOT NULL COMMENT '사용자 ID',
+    parent_id   INT          NULL COMMENT '부모 댓글 ID',
     PRIMARY KEY (comment_id),
-    CONSTRAINT fk_comments_review FOREIGN KEY (review_id) REFERENCES reviews(review_id),
-    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(user_id),
-    CONSTRAINT fk_comments_parent FOREIGN KEY (parent_id) REFERENCES review_comments(comment_id)
+    CONSTRAINT fk_comments_review FOREIGN KEY (review_id) 
+        REFERENCES reviews(review_id) 
+        ON DELETE CASCADE,  -- 리뷰 삭제 시 해당 리뷰의 모든 댓글 자동 삭제
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) 
+        REFERENCES users(user_id),
+    CONSTRAINT fk_comments_parent FOREIGN KEY (parent_id) 
+        REFERENCES review_comments(comment_id) 
+        ON DELETE CASCADE  -- 부모 댓글 삭제 시 대댓글(자식 댓글) 자동 삭제
 ) COMMENT='독후감 댓글';
 
 -- 8. 도전과제 뱃지 테이블 (기본 테이블, 외래키 없음)
