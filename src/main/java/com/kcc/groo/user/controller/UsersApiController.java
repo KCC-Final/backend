@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -403,5 +404,23 @@ public class UsersApiController {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(new CommonResponse<>("updated user info success", updatedUser));
 
+	}
+	
+	/**
+	 * @param request
+	 * @return ResponseEntity<CommonResponse<?>>
+	 * @author kys
+	 * @created 2025-10-02
+	 * 현재 로그인한 사용자 정보 조회
+	 */
+	@GetMapping("/users")
+	public ResponseEntity<CommonResponse<?>> getUserInfo (HttpServletRequest request) {
+		String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+		String userId = jwtTokenProvider.getUserId(refreshToken);
+		Users getUser = userService.findByUserId(userId);
+		
+			return ResponseEntity.ok()
+					.body(new CommonResponse<>("get current user info", getUser));
+		
 	}
 }
