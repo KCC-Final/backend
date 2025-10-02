@@ -3,8 +3,10 @@ package com.kcc.groo.user.service;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
 public interface IUserService {
@@ -85,4 +87,16 @@ public interface IUserService {
 	 * 비밀번호 재설정
 	 */
 	Users resetPassword(@Param("userId") String userId, @Param("rawPassword") String rawPassword);
+	
+	/**
+	 * @param userId
+	 * @param updateRequest
+	 * @param emailVerified
+	 * @return
+	 * @author kys
+	 * @created 2025-10-02
+	 * 회원 정보 수정
+	 */
+	Users requestUpdateUser (String userId, UserUpdateRequest updateRequest);
+	
 }

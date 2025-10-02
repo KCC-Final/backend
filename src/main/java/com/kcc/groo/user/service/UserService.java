@@ -1,17 +1,25 @@
 package com.kcc.groo.user.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.dao.IUsersRepository;
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
 @Service
+@Transactional
 public class UserService implements IUserService {
+
+	private final JwtTokenProvider jwtTokenProvider;
 
 	@Autowired
 	IUsersRepository usersRepository;
@@ -24,6 +32,10 @@ public class UserService implements IUserService {
 
 	@Autowired
 	MailService mailService;
+
+	UserService(JwtTokenProvider jwtTokenProvider) {
+		this.jwtTokenProvider = jwtTokenProvider;
+	}
 
 	@Override
 	public Users loginUser(String userId, String password) {
@@ -45,25 +57,25 @@ public class UserService implements IUserService {
 
 	@Override
 	public Users requestInsertUser(SignupRequest signupRequest) {
-	    Users newUser = new Users();
-	    newUser.setUserId(signupRequest.getUserId());
-	    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
-	    newUser.setEmail(signupRequest.getEmail());
-	    newUser.setNickname(signupRequest.getNickname());
-	    newUser.setGender(signupRequest.getGender());
-	    newUser.setName(signupRequest.getName());
-	    newUser.setBirth(signupRequest.getBirth());
-	    newUser.setCheckPrivacy(signupRequest.isCheckPrivacy());
-	    newUser.setCheckService(signupRequest.isCheckService());
-	    newUser.setEmailVerified(true);
+		Users newUser = new Users();
+		newUser.setUserId(signupRequest.getUserId());
+		newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword1()));
+		newUser.setEmail(signupRequest.getEmail());
+		newUser.setNickname(signupRequest.getNickname());
+		newUser.setGender(signupRequest.getGender());
+		newUser.setName(signupRequest.getName());
+		newUser.setBirth(signupRequest.getBirth());
+		newUser.setCheckPrivacy(signupRequest.isCheckPrivacy());
+		newUser.setCheckService(signupRequest.isCheckService());
+		// newUser.setEmailVerified(true);
 
-	    int result = usersRepository.insertUser(newUser);
+		int result = usersRepository.insertUser(newUser);
 
-	    if (result > 0) {
-	        return usersRepository.selectUserByUserId(newUser.getUserId());
-	    } else {
-	        throw new RuntimeException("failed signup");
-	    }
+		if (result > 0) {
+			return usersRepository.selectUserByUserId(newUser.getUserId());
+		} else {
+			throw new RuntimeException("failed signup");
+		}
 	}
 
 	@Override
@@ -96,18 +108,69 @@ public class UserService implements IUserService {
 	@Override
 	public int existsByUserId(String userId) {
 		// TODO Auto-generated method stub
-			return usersRepository.existsByUserId(userId);
+		return usersRepository.existsByUserId(userId);
 	}
 
 	@Override
 	public Users resetPassword(String userId, String rawPassword) {
-		// TODO Auto-generated method stub
 		Users user = usersRepository.selectUserByUserId(userId);
 		int result = usersRepository.resetPassword(userId, passwordEncoder.encode(rawPassword));
-			if (result > 0) {
-				return user;
-			} else {
-				throw new RuntimeException("failed update Password");
-			}
+		if (result > 0) {
+			return user;
+		} else {
+			throw new RuntimeException("failed update Password");
 		}
 	}
+
+	public Users findByUserId(String userId) {
+		return usersRepository.selectUserByUserId(userId);
+	}
+
+	@Override
+	public Users requestUpdateUser(String userId, UserUpdateRequest updateRequest) { 
+		// set userId
+		Users updateUser = usersRepository.selectUserByUserId(userId);
+
+		// check pw
+		if (!updateUser.getPassword().equals(updateRequest.getPassword1())) { // 기존 비밀번호와 password1 다를 경우
+			if (StringUtils.hasText(updateRequest.getPassword1())
+					&& StringUtils.hasText(updateRequest.getPassword2())) { //not null, length > 0, is not empty
+				updateUser.setPassword(passwordEncoder.encode(updateRequest.getPassword1()));
+				updateUser.setPwdChangedAt(LocalDateTime.now()); // set pwd change date
+			}
+		}
+
+		// email
+		if (!updateUser.getEmail().equals(updateRequest.getEmail())) { // 기존 이메일과 새로 입력된 이메일이 다를 경우
+			if (StringUtils.hasText(updateRequest.getEmail())) { //not null, length > 0, is not empty
+				updateUser.setEmail(updateRequest.getEmail()); //새로 입력된 이메일 set
+				updateUser.setEmailVerified(true);
+			}
+		}
+
+		//nickname, introduction, name
+		if (StringUtils.hasText(updateRequest.getNickname())) { //not null, length > 0, is not empty
+			updateUser.setNickname(updateRequest.getNickname());
+		}
+		if (StringUtils.hasText(updateRequest.getIntroduction())) { //not null, length > 0, is not empty
+			updateUser.setIntroduction(updateRequest.getIntroduction());
+		}
+		if (StringUtils.hasText(updateRequest.getName())) { //not null, length > 0, is not empty
+			updateUser.setName(updateRequest.getName());
+		}
+
+		//profileImage
+		if (updateRequest.getProfileImage() != null) { //not null, length > 0, is not empty
+				updateUser.setProfileImage(updateRequest.getProfileImage()); // convert to byte type
+		}
+
+		int result = usersRepository.updateUser(updateUser); //check result
+
+		if (result > 0) { //success
+			return usersRepository.selectUserByUserId(userId);
+		} else { //fail
+			throw new RuntimeException("failed update user information");
+		}
+
+	}
+}

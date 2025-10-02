@@ -22,7 +22,7 @@ public class Users {
 	private String name; //이름
 	private LocalDate birth; //생년월일
 	private LocalDateTime createdAt; //계정 생성일
-	private boolean status; //탈퇴 상태
+	private boolean withdrawal_status; //탈퇴 상태
 	private LocalDateTime withdrawalDate; //탈퇴일
 	private LocalDateTime pwdChangedAt; //비밀변호 변경일
 	private boolean checkPrivacy; //개인정보 이용 동의
