@@ -370,7 +370,7 @@ public class UsersApiController {
 	 * 회원 정보 수정 (비밀번호, 이메일, 이름, 닉네임, 자기소개, 프로필 이미지) 이메일 정보가
 	 * 입력된 이메일과 다를 경우에만 이메일 인증 진행 비밀번호 일치 여부 확인 프로필 이미지 blob 타입으로 저장
 	 */
-	@PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PutMapping(value = "/users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<CommonResponse<?>> updateUser(
 			@RequestPart(value = "updateRequest", required = false) String updateRequestJson,
 			@RequestPart(value = "profileImage", required = false) @Schema(type = "string", format = "binary", nullable = true, description = "프로필 이미지 (선택)") MultipartFile profileImage,
