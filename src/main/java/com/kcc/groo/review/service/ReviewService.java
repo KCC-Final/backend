@@ -91,4 +91,15 @@ public class ReviewService implements IReviewService {
     public List<ReviewResponse> getLikedReviews(String userId) {
         return reviewRepository.selectLikedReviews(userId);
     }
+    
+    @Override
+    public List<ReviewResponse> getReviewsByFollowing(String userId) {
+        return reviewRepository.selectReviewsByFollowing(userId);
+    }
+    
+    @Override
+    public List<ReviewResponse> getAllReviewsOrderByLikes(String userId) {
+        return reviewRepository.selectAllReviewsOrderByLikes(userId);
+    }
+    
 }

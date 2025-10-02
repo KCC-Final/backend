@@ -172,4 +172,23 @@ public interface IReviewRepository {
      * 좋아요 가능 여부 확인, 임시저장/삭제글 제외
      */
     boolean canLikeReview(@Param("reviewId") Integer reviewId);
+    
+    /**
+     * @param userId 조회하는 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-01
+     * 팔로잉한 유저들의 독후감을 최신순으로 조회
+     */
+    List<ReviewResponse> selectReviewsByFollowing(@Param("userId") String userId);
+    
+    /**
+     * @param userId 조회하는 사용자 ID (null 가능)
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-01
+     * 전체 유저의 독후감을 1주일간 좋아요 많은 순으로 조회
+     */
+    List<ReviewResponse> selectAllReviewsOrderByLikes(@Param("userId") String userId);
+    
 }

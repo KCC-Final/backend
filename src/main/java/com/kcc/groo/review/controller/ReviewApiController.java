@@ -218,4 +218,32 @@ public class ReviewApiController {
         String userId = principal.getName();
         return ResponseEntity.ok(reviewService.getLikedReviews(userId));
     }
+    
+    /**
+     * @param principal 인증된 사용자 정보
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author uyh
+     * @created 2025-10-01
+     * 팔로잉한 유저들의 독후감을 최신순으로 조회
+     */
+    @Operation(summary = "팔로잉 유저 독후감 최신순 조회", description = "팔로잉한 유저들의 독후감을 최신순으로 조회합니다.")
+    @GetMapping("/following")
+    public ResponseEntity<List<ReviewResponse>> getReviewsByFollowing(Principal principal) {
+        String userId = principal.getName();
+        return ResponseEntity.ok(reviewService.getReviewsByFollowing(userId));
+    }
+    
+    /**
+     * @param principal 인증된 사용자 정보
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author uyh
+     * @created 2025-10-01
+     * 전체 유저의 독후감을 1주일간 좋아요 많은 순으로 조회
+     */
+    @Operation(summary = "독후감 인기순 조회 (1주일)", description = "전체 유저의 독후감을 최근 1주일간 좋아요가 많은 순으로 조회합니다.")
+    @GetMapping("/popular")
+    public ResponseEntity<List<ReviewResponse>> getAllReviewsOrderByLikes(Principal principal) {
+        String userId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getAllReviewsOrderByLikes(userId));
+    }
 }
