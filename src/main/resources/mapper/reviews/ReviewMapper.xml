@@ -9,24 +9,21 @@
 
 	<!-- 독후감 작성 -->
 	<insert id="insertReview">
-    <![CDATA[
-    INSERT INTO reviews (
-      ISBN, review_title, review_content,
-      secret, status, temporary, created_at,
-      user_id, category
-    ) VALUES (
-      #{req.isbn},
-      #{req.reviewTitle},
-      #{req.reviewContent},
-      0,
-      #{req.secret},
-      TRUE,
-      #{req.temporary},
-      NOW(),
-      #{userId},
-      #{req.category}   
-    )
-    ]]>
+		INSERT INTO reviews (
+		ISBN, review_title, review_content,
+		secret, status, temporary, created_at,
+		user_id, category
+		) VALUES (
+		#{req.isbn},
+		#{req.reviewTitle},
+		#{req.reviewContent},
+		#{req.secret},
+		TRUE,
+		#{req.temporary},
+		NOW(),
+		#{userId},
+		#{req.category}
+		)
 	</insert>
 
 	<!-- 독후감 수정 -->
@@ -48,7 +45,7 @@
       AND user_id   = #{userId}
     ]]>
 	</update>
-	
+
 	<!-- 독후감 삭제 (소프트 삭제) -->
 	<update id="deleteReview">
     <![CDATA[
@@ -75,18 +72,24 @@
 		r.temporary AS temporary,
 		r.created_at AS createdAt,
 		r.updated_at AS updatedAt,
-		r.user_id AS userId,
+		r.user_id AS
+		userId,
 		r.category AS category,
-		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
-		(SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+		(SELECT COUNT(*) FROM likes l WHERE
+		l.review_id = r.review_id) AS likeCount,
+		(SELECT COUNT(*) FROM
+		review_comments c WHERE c.review_id = r.review_id) AS commentCount,
 		(EXISTS(
 		SELECT 1 FROM likes l
-		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
+		WHERE l.review_id = r.review_id AND
+		l.user_id = #{userId}
 		)) AS liked
 		FROM reviews r
-		WHERE r.review_id = #{reviewId}
+		WHERE r.review_id =
+		#{reviewId}
 		AND r.status = TRUE
-		AND (r.secret = FALSE OR r.user_id = #{userId})
+		AND (r.secret = FALSE OR r.user_id =
+		#{userId})
 	</select>
 
 	<!-- 댓글은 status 필터링을 리뷰에만 적용 -->
@@ -97,12 +100,15 @@
 		c.content AS content,
 		c.user_id AS userId,
 		c.created_at AS createdAt,
-		c.updated_at AS updatedAt,
+		c.updated_at AS
+		updatedAt,
 		c.parent_id AS parentId
 		FROM review_comments c
-		JOIN reviews r ON c.review_id = r.review_id
+		JOIN reviews r
+		ON c.review_id = r.review_id
 		WHERE c.review_id = #{reviewId}
-		AND r.status = TRUE
+		AND
+		r.status = TRUE
 		ORDER BY c.created_at ASC
 	</select>
 
@@ -150,16 +156,21 @@
 		r.temporary AS temporary,
 		r.created_at AS createdAt,
 		r.updated_at AS updatedAt,
-		r.user_id AS userId,
+		r.user_id AS
+		userId,
 		r.category AS category,
-		(SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
-		(SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+		(SELECT COUNT(*) FROM likes l WHERE
+		l.review_id = r.review_id) AS likeCount,
+		(SELECT COUNT(*) FROM
+		review_comments c WHERE c.review_id = r.review_id) AS commentCount,
 		(EXISTS(
 		SELECT 1 FROM likes l
-		WHERE l.review_id = r.review_id AND l.user_id = #{userId}
+		WHERE l.review_id = r.review_id AND
+		l.user_id = #{userId}
 		)) AS liked
 		FROM reviews r
-		WHERE r.user_id = #{userId}
+		WHERE r.user_id =
+		#{userId}
 		AND r.status = TRUE
 		ORDER BY r.created_at DESC
 	</select>
