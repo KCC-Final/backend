@@ -61,14 +61,14 @@ CREATE TABLE IF NOT EXISTS reviews (
     review_title VARCHAR(200) NOT NULL COMMENT '제목',
     review_content TEXT NOT NULL COMMENT '내용',
     secret BOOLEAN NULL DEFAULT FALSE COMMENT '비밀글',
-    delete_status BOOLEAN NULL DEFAULT TRUE COMMENT '삭제 상태',
+    status BOOLEAN NULL DEFAULT TRUE COMMENT '삭제 상태',
     temporary BOOLEAN NULL DEFAULT FALSE COMMENT '임시 저장 여부',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
     user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
     category VARCHAR(50) NOT NULL COMMENT '도서 카테고리',
     PRIMARY KEY (review_id),
-    CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(user_id),
+    CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(user_id)
 ) COMMENT='독후감';
 
 -- 6. 좋아요 테이블 생성 (users, reviews 참조)
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS book (
 ) COMMENT='스크랩 도서';
 
 -- 14. 독서모임 테이블 (users, codes 참조)
-CREATE TABLE IF NOT EXISTS groups (
+CREATE TABLE IF NOT EXISTS `groups` (
     group_id INT NOT NULL AUTO_INCREMENT COMMENT '게시글 ID',
     group_name VARCHAR(100) NULL COMMENT '모임명',
     book_title VARCHAR(200) NULL COMMENT '도서 제목',
@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS group_scraps (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
     PRIMARY KEY (user_id, group_id),
     CONSTRAINT fk_group_scraps_user FOREIGN KEY (user_id) REFERENCES users(user_id),
-    CONSTRAINT fk_group_scraps_group FOREIGN KEY (group_id) REFERENCES groups(group_id)
+    CONSTRAINT fk_group_scraps_group FOREIGN KEY (group_id) REFERENCES `groups`(group_id)
 ) COMMENT='독서모임 스크랩';
 
 -- 16. 독서모임 댓글 테이블 (groups, users 참조, 자기 참조)
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS group_comments (
     user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
     parent_id INT NULL COMMENT '부모 댓글',
     PRIMARY KEY (comment_id),
-    CONSTRAINT fk_group_comments_group FOREIGN KEY (group_id) REFERENCES groups(group_id),
+    CONSTRAINT fk_group_comments_group FOREIGN KEY (group_id) REFERENCES `groups`(group_id),
     CONSTRAINT fk_group_comments_user FOREIGN KEY (user_id) REFERENCES users(user_id),
     CONSTRAINT fk_group_comments_parent FOREIGN KEY (parent_id) REFERENCES group_comments(comment_id)
 ) COMMENT='독서모임 댓글';

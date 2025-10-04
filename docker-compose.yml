@@ -84,7 +84,7 @@ services:
           echo 'No migration files found, skipping...';
         fi &&
 
-        echo '✅ All migrations applied.'
+        echo ' All migrations applied.'
       "
     env_file:
       - ./db.env
@@ -104,7 +104,7 @@ services:
     depends_on:
       - db
       - redis
-      - migrator # ✅ 마이그레이션이 끝난 후 실행
+      - migrator #  마이그레이션이 끝난 후 실행
     networks:
       - kcc-network
 
