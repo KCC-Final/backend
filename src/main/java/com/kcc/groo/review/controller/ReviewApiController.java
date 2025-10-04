@@ -246,4 +246,44 @@ public class ReviewApiController {
         String userId = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(reviewService.getAllReviewsOrderByLikes(userId));
     }
+    
+    /**
+     * @param isbn 조회할 도서의 ISBN
+     * @param principal 인증된 사용자 정보
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author uyh
+     * @created 2025-10-04
+     * 특정 ISBN의 모든 공개 독후감을 조회 (같은 책을 읽은 다른 유저들의 독후감)
+     */
+    @Operation(summary = "ISBN으로 독후감 조회", description = "특정 도서의 모든 공개 독후감을 최신순으로 조회합니다.")
+    @GetMapping("/isbn/{isbn}")
+    public ResponseEntity<List<ReviewResponse>> getReviewsByIsbn(
+            @PathVariable("isbn") String isbn,
+            Principal principal) {
+        String userId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getReviewsByIsbn(isbn, userId));
+    }
+    
+
+    /**
+     * TODO
+     * 
+     * @param category
+     * @param limit
+     * @param principal
+     * @param
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author uyh
+     * @created 2025. 10. 4. TODO
+     */
+    @Operation(summary = "카테고리로 독후감 조회", description = "특정 카테고리의 모든 공개 독후감을 최신순으로 조회합니다.")
+    @GetMapping("/category")
+    public ResponseEntity<List<ReviewResponse>> getReviewsByCategory(
+            @RequestParam("name") String category,
+            @RequestParam(name = "limit", defaultValue = "20") int limit,
+            Principal principal) {
+        String userId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getReviewsByCategory(category, userId, limit));
+    }
+    
 }

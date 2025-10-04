@@ -144,6 +144,10 @@ public class ReviewService implements IReviewService {
             }
         }
         
+        // ========== 추가 ==========
+        // 작성자 여부 설정
+        review.setIsOwner(userId != null && userId.equals(review.getUserId()));
+        
         // 댓글 조회
         if (review != null) {
             review.setComments(reviewRepository.selectCommentsByReview(reviewId));
@@ -323,6 +327,36 @@ public class ReviewService implements IReviewService {
         return reviewRepository.selectAllReviewsOrderByLikes(userId);
     }
     
+    @Override
+    public List<ReviewResponse> getReviewsByIsbn(String isbn, String userId) {
+        if (isbn == null || isbn.trim().isEmpty()) {
+            throw new ReviewException(ReviewErrorCode.INVALID_ISBN);
+        }
+        
+        // ISBN 형식 검증 (10자리 또는 13자리)
+        String cleanIsbn = isbn.replaceAll("-", "");
+        if (!cleanIsbn.matches("^\\d{10}(\\d{3})?$")) {
+            throw new ReviewException(ReviewErrorCode.INVALID_ISBN, "ISBN must be 10 or 13 digits");
+        }
+        
+        log.info("[getReviewsByIsbn] isbn: {}, userId: {}", isbn, userId);
+        return reviewRepository.selectReviewsByIsbn(isbn, userId);
+    }
+    
+    @Override
+    public List<ReviewResponse> getReviewsByCategory(String category, String userId, int limit) {
+        if (category == null || category.trim().isEmpty()) {
+            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Category is required");
+        }
+        
+        if (limit <= 0 || limit > 100) {
+            limit = 20; // 기본값
+        }
+        
+        log.info("[getReviewsByCategory] category: {}, userId: {}, limit: {}", category, userId, limit);
+        return reviewRepository.selectReviewsByCategory(category, userId, limit);
+    }
+    
     // ============ Private Validation Methods ============
     
     /**
@@ -377,4 +411,7 @@ public class ReviewService implements IReviewService {
             throw new ReviewException(ReviewErrorCode.UNAUTHORIZED_ACCESS);
         }
     }
+    
+    
+    
 }
