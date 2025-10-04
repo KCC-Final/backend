@@ -10,7 +10,8 @@
 	<!-- 독후감 작성 -->
 	<insert id="insertReview">
 		INSERT INTO reviews (
-		ISBN, review_title, review_content,
+		ISBN, review_title,
+		review_content,
 		secret, status, temporary, created_at,
 		user_id, category
 		) VALUES (
@@ -372,6 +373,71 @@
              r.created_at, r.updated_at, r.user_id, r.category
     ORDER BY likeCount DESC, r.created_at DESC
     ]]>
+	</select>
+
+	<!-- ISBN으로 독후감 조회 (공개글만, 최신순) -->
+	<select id="selectReviewsByIsbn"
+		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+	<![CDATA[
+	SELECT
+	    r.review_id AS reviewId,
+	    r.ISBN AS isbn,
+	    r.review_title AS reviewTitle,
+	    r.review_content AS reviewContent,
+	    r.secret AS secret,
+	    r.status AS status,
+	    r.temporary AS temporary,
+	    r.created_at AS createdAt,
+	    r.updated_at AS updatedAt,
+	    r.user_id AS userId,
+	    r.category AS category,
+	    (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+	    (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+	    CASE WHEN #{userId} IS NOT NULL AND EXISTS (
+	        SELECT 1 FROM likes l2 
+	        WHERE l2.review_id = r.review_id 
+	        AND l2.user_id = #{userId}
+	    ) THEN true ELSE false END AS liked
+	FROM reviews r
+	WHERE r.ISBN = #{isbn}
+	    AND r.status = TRUE
+	    AND r.temporary = FALSE
+	    AND r.secret = FALSE
+	ORDER BY r.created_at DESC
+	]]>
+	</select>
+
+	<!-- 카테고리로 독후감 조회 (공개글만, 최신순) -->
+	<select id="selectReviewsByCategory"
+		resultType="com.kcc.groo.review.data.dto.ReviewResponse">
+	<![CDATA[
+	SELECT
+	    r.review_id AS reviewId,
+	    r.ISBN AS isbn,
+	    r.review_title AS reviewTitle,
+	    r.review_content AS reviewContent,
+	    r.secret AS secret,
+	    r.status AS status,
+	    r.temporary AS temporary,
+	    r.created_at AS createdAt,
+	    r.updated_at AS updatedAt,
+	    r.user_id AS userId,
+	    r.category AS category,
+	    (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+	    (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+	    CASE WHEN #{userId} IS NOT NULL AND EXISTS (
+	        SELECT 1 FROM likes l2 
+	        WHERE l2.review_id = r.review_id 
+	        AND l2.user_id = #{userId}
+	    ) THEN true ELSE false END AS liked
+	FROM reviews r
+	WHERE r.category = #{category}
+	    AND r.status = TRUE
+	    AND r.temporary = FALSE
+	    AND r.secret = FALSE
+	ORDER BY r.created_at DESC
+	LIMIT #{limit}
+	]]>
 	</select>
 
 </mapper>

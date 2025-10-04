@@ -21,6 +21,7 @@ public class ReviewResponse {
     private String category;      
     private Integer likeCount;    // 좋아요 개수
     private Boolean liked;        // 현재 로그인 유저가 좋아요 눌렀는지 여부
+    private Boolean isOwner;      // 추가: 현재 로그인 유저가 작성자인지 여부
     private List<CommentResponse> comments;  //  댓글 포함
     private Boolean status;
     private Integer commentCount; // 댓글 개수
