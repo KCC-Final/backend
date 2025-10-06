@@ -24,18 +24,19 @@
 	</insert>
 
 	<!-- 부모 댓글 단건 조회 -->
-	<select id="selectCommentById"
-		resultType="com.kcc.groo.review.data.dto.CommentResponse">
-		SELECT
-		c.comment_id AS commentId,
-		c.content AS content,
-		c.user_id AS userId,
-		c.created_at AS createdAt,
-		c.updated_at AS updatedAt,
-		c.parent_id AS parentId
-		FROM review_comments c
-		WHERE c.comment_id = #{commentId}
-	</select>
+<!-- 댓글 단건 조회 -->
+<select id="selectCommentById" resultType="com.kcc.groo.review.data.dto.CommentResponse">
+    SELECT
+        comment_id AS commentId,
+        content AS content,
+        user_id AS userId,
+        created_at AS createdAt,
+        updated_at AS updatedAt,
+        parent_id AS parentId,
+        review_id AS reviewId
+    FROM review_comments
+    WHERE comment_id = #{commentId}
+</select>
 
 	<!-- 댓글 수정 -->
 	<update id="updateComment">
