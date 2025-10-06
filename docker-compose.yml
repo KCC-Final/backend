@@ -1,8 +1,9 @@
+# @author uyh
 version: "3.8"
 
 services:
   # -----------------------------------------------------------------
-  # MySQL 8.0 (kcc-local-mysql)
+  # MySQL 8.0
   # -----------------------------------------------------------------
   db:
     image: mysql:8.0
@@ -11,11 +12,11 @@ services:
     env_file:
       - ./db.env
     environment:
-      TZ: Asia/Seoul # 추가
+      TZ: Asia/Seoul
     ports:
-      - "3306:3306" # 호스트 포트 3306 → 컨테이너 3306
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql # MySQL 데이터는 볼륨에 영구 저장
+      - mysql_data:/var/lib/mysql
     networks:
       - kcc-network
     command:
@@ -23,27 +24,27 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
-      - --default-time-zone=+09:00 # 추가
+      - --default-time-zone=+09:00
 
   # -----------------------------------------------------------------
-  # Redis (groo-redis)
+  # Redis
   # -----------------------------------------------------------------
   redis:
     image: redis:7.0-alpine
     container_name: groo-redis
     restart: unless-stopped
     environment:
-      TZ: Asia/Seoul # 추가
+      TZ: Asia/Seoul
     ports:
-      - "6379:6379" # 로컬에서 localhost:6379로 접근 가능
+      - "6379:6379"
     volumes:
-      - redis_data:/data # Redis 데이터 영구 저장
+      - redis_data:/data
     networks:
       - kcc-network
     command: ["redis-server", "--appendonly", "yes"]
 
   # -----------------------------------------------------------------
-  # Migration 서비스 (init_codes.sql + migration_*.sql 실행)
+  # Migration 서비스
   # -----------------------------------------------------------------
   migrator:
     image: mysql:8.0
@@ -51,22 +52,21 @@ services:
     depends_on:
       - db
     environment:
-      TZ: Asia/Seoul # 추가
+      TZ: Asia/Seoul
     volumes:
       - ./database:/database
     networks:
       - kcc-network
     entrypoint: >
       bash -c "
-        echo '⏳ Waiting for MySQL to be ready...' &&
+        echo 'Waiting for MySQL to be ready...' &&
         until mysqladmin ping -hdb -ukcc -p\$$MYSQL_PASSWORD --silent; do
           sleep 2;
         done &&
         
-        # UTF-8 설정 확인
         mysql -hdb -ukcc -p\$$MYSQL_PASSWORD -e 'SET NAMES utf8mb4;' &&
         
-        echo '🚀 Running init and migrations as kcc...' &&
+        echo 'Running init and migrations as kcc...' &&
 
         if [ -f /database/init_codes.sql ]; then
           echo 'Applying init_codes.sql...';
@@ -84,7 +84,7 @@ services:
           echo 'No migration files found, skipping...';
         fi &&
 
-        echo ' All migrations applied.'
+        echo 'All migrations applied.'
       "
     env_file:
       - ./db.env
@@ -94,9 +94,10 @@ services:
   # -----------------------------------------------------------------
   groo-backend:
     build: .
+    container_name: groo-backend
     restart: unless-stopped
     environment:
-      TZ: Asia/Seoul # 추가
+      TZ: Asia/Seoul
     env_file:
       - ./.env
     ports:
@@ -104,7 +105,7 @@ services:
     depends_on:
       - db
       - redis
-      - migrator #  마이그레이션이 끝난 후 실행
+      - migrator
     networks:
       - kcc-network
 
@@ -113,8 +114,9 @@ services:
   # -----------------------------------------------------------------
   groo-backend-dev:
     image: gradle:8.7.0-jdk21
+    container_name: groo-backend-dev
     environment:
-      TZ: Asia/Seoul # 추가
+      TZ: Asia/Seoul
     volumes:
       - .:/app
     working_dir: /app
@@ -138,7 +140,7 @@ services:
     container_name: kcc-nginx
     restart: unless-stopped
     environment:
-      TZ: Asia/Seoul # 추가
+      TZ: Asia/Seoul
     ports:
       - "80:80"
       - "443:443"
@@ -148,6 +150,8 @@ services:
       - ./logs:/var/log/nginx
     networks:
       - kcc-network
+    depends_on:
+      - groo-backend
 
 volumes:
   mysql_data:
