@@ -12,10 +12,10 @@
   
   <resultMap id="followUserMap" type="com.kcc.groo.user.data.dto.FollowUserInfoDTO">
     <id property="followId" column="follow_id"/>
-    <result property="userId" column="followed"/>
+    <result property="userId" column="user_id"/>
     <result property="nickname" column="nickname"/>
     <result property="profileImage" column="profile_image"/>
-    <result property="followedAt" column="created_at"/>
+    <result property="followedAt" column="followed_at"/>
 </resultMap>
 
   <insert id="insertFollow" parameterType="com.kcc.groo.user.data.model.Follows" useGeneratedKeys="true" keyProperty="followId">
@@ -54,19 +54,28 @@
 </delete>
 
 <select id="selectFollowerList" parameterType="string" resultMap="followUserMap">
-        SELECT f.follow_id, f.followed, u.nickname, u.profile_image, f.created_at
+        SELECT f.follow_id,
+               f.follower        AS user_id,      
+               u.nickname        AS nickname,
+               u.profile_image   AS profile_image,
+               f.created_at      AS followed_at   
         FROM follows f
         JOIN users u ON f.follower = u.user_id
         WHERE f.followed = #{userId}
         ORDER BY f.created_at DESC
     </select>
 
-<select id="selectFollowingList" resultMap="followUserMap">
-    SELECT f.follow_id, f.followed, u.nickname, u.profile_image, f.created_at
-    FROM follows f
-    JOIN users u ON f.followed = u.user_id
-    WHERE f.follower = #{userId}
-    ORDER BY f.created_at DESC
-</select>
+    <!-- 팔로잉 목록 -->
+    <select id="selectFollowingList" parameterType="string" resultMap="followUserMap">
+        SELECT f.follow_id,
+               f.followed        AS user_id,      
+               u.nickname        AS nickname,
+               u.profile_image   AS profile_image,
+               f.created_at      AS followed_at  
+        FROM follows f
+        JOIN users u ON f.followed = u.user_id
+        WHERE f.follower = #{userId}
+        ORDER BY f.created_at DESC
+    </select>
 
 </mapper>
