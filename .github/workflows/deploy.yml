@@ -62,10 +62,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          source: |
-            nginx/nginx.conf
-            nginx/default.conf
-            database/
+          source: "nginx/nginx.conf,nginx/default.conf,database/"
+
           target: "/home/ubuntu/groo"
           overwrite: true
 
