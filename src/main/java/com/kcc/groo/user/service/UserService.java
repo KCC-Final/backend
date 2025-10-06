@@ -19,7 +19,8 @@ import com.kcc.groo.user.data.model.Users;
 @Transactional
 public class UserService implements IUserService {
 
-	private final JwtTokenProvider jwtTokenProvider;
+	@Autowired
+	JwtTokenProvider jwtTokenProvider;
 
 	@Autowired
 	IUsersRepository usersRepository;
@@ -33,9 +34,9 @@ public class UserService implements IUserService {
 	@Autowired
 	MailService mailService;
 
-	UserService(JwtTokenProvider jwtTokenProvider) {
-		this.jwtTokenProvider = jwtTokenProvider;
-	}
+//	UserService(JwtTokenProvider jwtTokenProvider) {
+//		this.jwtTokenProvider = jwtTokenProvider;
+//	}
 
 	@Override
 	public Users loginUser(String userId, String password) {
@@ -67,7 +68,7 @@ public class UserService implements IUserService {
 		newUser.setBirth(signupRequest.getBirth());
 		newUser.setCheckPrivacy(signupRequest.isCheckPrivacy());
 		newUser.setCheckService(signupRequest.isCheckService());
-		// newUser.setEmailVerified(true);
+		newUser.setEmailVerified(true);
 
 		int result = usersRepository.insertUser(newUser);
 

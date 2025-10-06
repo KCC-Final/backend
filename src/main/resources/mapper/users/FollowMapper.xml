@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.user.dao.IFollowsRepository">
+
+<resultMap id="followMap" type="com.kcc.groo.user.data.model.Follows">
+    <id property="followId" column="follow_id"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="follower" column="follower"/>
+    <result property="followed" column="followed"/>
+  </resultMap>
+  
+  <resultMap id="followUserMap" type="com.kcc.groo.user.data.dto.FollowUserInfoDTO">
+    <id property="followId" column="follow_id"/>
+    <result property="userId" column="followed"/>
+    <result property="nickname" column="nickname"/>
+    <result property="profileImage" column="profile_image"/>
+    <result property="followedAt" column="created_at"/>
+</resultMap>
+
+  <insert id="insertFollow" parameterType="com.kcc.groo.user.data.model.Follows" useGeneratedKeys="true" keyProperty="followId">
+    INSERT INTO follows (follower, followed)
+    VALUES (#{follower}, #{followed})
+  </insert>
+
+  <select id="selectFollowInfoByFollowId" resultMap="followMap">
+    SELECT follow_id, created_at, follower, followed
+    FROM follows
+    WHERE follow_id = #{followId}
+  </select>
+
+  <select id="existsFollow" resultType="int">
+    SELECT COUNT(*) 
+    FROM follows
+    WHERE follower = #{follower} AND followed = #{followed}
+  </select>
+
+<select id="isMutualFollow" resultType="int">
+  SELECT CASE WHEN
+      EXISTS (SELECT 1 FROM follows WHERE follower = #{userId1} AND followed = #{userId2})
+      AND EXISTS (SELECT 1 FROM follows WHERE follower = #{userId2} AND followed = #{userId1})
+      THEN 1 ELSE 0 END
+</select>
+
+  <select id="selectFollowInfo" resultMap="followMap">
+    SELECT follow_id, created_at, follower, followed
+    FROM follows
+    WHERE follower = #{follower} AND followed = #{followed}
+  </select>
+  
+  <delete id="deleteFollow">
+    DELETE FROM follows
+    WHERE follower = #{follower} AND followed = #{followed}
+</delete>
+
+<select id="selectFollowerList" parameterType="string" resultMap="followUserMap">
+        SELECT f.follow_id, f.followed, u.nickname, u.profile_image, f.created_at
+        FROM follows f
+        JOIN users u ON f.follower = u.user_id
+        WHERE f.followed = #{userId}
+        ORDER BY f.created_at DESC
+    </select>
+
+<select id="selectFollowingList" resultMap="followUserMap">
+    SELECT f.follow_id, f.followed, u.nickname, u.profile_image, f.created_at
+    FROM follows f
+    JOIN users u ON f.followed = u.user_id
+    WHERE f.follower = #{userId}
+    ORDER BY f.created_at DESC
+</select>
+
+</mapper>
