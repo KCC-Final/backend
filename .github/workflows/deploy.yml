@@ -1,3 +1,4 @@
+# @author uyh
 # ===============================================
 # Backend CI/CD 워크플로우
 # - main / develop / 테스트 브랜치에 push 시 동작
@@ -26,12 +27,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # (3) Docker 이미지 빌드 및 푸시
-      # - context: 현재 디렉토리를 빌드 컨텍스트로 사용
-      # - tags: 두 가지 태그로 이미지 푸시
-      #   * latest: 항상 최신 버전을 가리킴 (배포용)
-      #   * commit SHA: 특정 커밋 버전 추적용 (롤백/디버깅용)
-      # - github.sha: GitHub Actions에서 제공하는 커밋 해시 (자동 제공)
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -58,35 +53,19 @@ jobs:
           script: |
             sudo mkdir -p /home/ubuntu/groo/nginx
             sudo mkdir -p /home/ubuntu/groo/database
-            sudo chown -R ubuntu:ubuntu /home/ubuntu/groo/nginx
-            sudo chown -R ubuntu:ubuntu /home/ubuntu/groo/database
+            sudo chown -R ubuntu:ubuntu /home/ubuntu/groo
 
-      - name: Check runner workspace files
-        run: |
-          echo "--- Runner Workspace Contents ---"
-          ls -alR
-
-      - name: Copy nginx config files to EC2
+      - name: Copy config files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          source: "./nginx" # nginx 디렉토리 전체
-          target: "/home/ubuntu/groo"
-          overwrite: true # 기존 파일 덮어쓰기 허용
+          source: "nginx/nginx.conf,nginx/default.conf,database/"
 
-      - name: Copy database initialization and migration files to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          source: "./database" # database 디렉토리 전체
           target: "/home/ubuntu/groo"
-          overwrite: true # 기존 파일 덮어쓰기 허용
+          overwrite: true
 
       - name: Verify copied files on EC2
         uses: appleboy/ssh-action@v1.0.0
@@ -97,10 +76,6 @@ jobs:
           script: |
             echo "--- Checking contents of /home/ubuntu/groo ---"
             ls -alR /home/ubuntu/groo
-            echo "--- Checking contents of /home/ubuntu/groo/nginx ---"
-            ls -alR /home/ubuntu/groo/nginx
-            echo "--- Checking contents of /home/ubuntu/groo/database ---"
-            ls -alR /home/ubuntu/groo/database
 
       - name: Deploy containers to EC2
         uses: appleboy/ssh-action@v1.0.0
@@ -112,42 +87,27 @@ jobs:
           script: |
             # ====================================================================
             # 1) Docker 네트워크 생성
-            # - groo-network: 컨테이너 간 통신을 위한 사용자 정의 브릿지 네트워크
-            # - 이미 존재하면 에러를 무시(|| true)
             # ====================================================================
             docker network create groo-network || true
 
             # ====================================================================
             # 2) 기존 컨테이너 중지 및 삭제
-            # - 무중단 배포가 아닌 완전 재배포 방식
-            # - 2>/dev/null: 컨테이너가 없을 때 발생하는 에러 메시지 숨김
-            # - || true: 에러 발생해도 스크립트 계속 진행
             # ====================================================================
             docker stop groo-nginx groo-backend groo-mysql groo-redis 2>/dev/null || true
             docker rm groo-nginx groo-backend groo-mysql groo-redis 2>/dev/null || true
 
             # ====================================================================
             # 3) 오래된 이미지 정리
-            # - dangling 이미지(태그 없는 이미지) 삭제하여 디스크 공간 확보
-            # - -f: 강제 삭제 옵션
             # ====================================================================
             docker image prune -f
 
             # ====================================================================
             # 4) 최신 backend 이미지 Pull
-            # - Docker Hub에서 최신 이미지 다운로드
-            # - latest 태그는 빌드 단계에서 푸시된 최신 버전
             # ====================================================================
             docker pull risania/groo-backend:latest
 
             # ====================================================================
             # 5) MySQL 컨테이너 실행
-            # - 포트: 3306 (호스트:컨테이너)
-            # - 볼륨: groo-mysql-data (데이터 영속성 보장)
-            # - 문자셋: utf8mb4 (이모지, 다국어 지원)
-            # - collation: utf8mb4_unicode_ci (유니코드 정렬 규칙)
-            # - 인증: mysql_native_password (Spring Boot 호환성)
-            # - 재시작 정책: unless-stopped (수동 중지 전까지 자동 재시작)
             # ====================================================================
             docker run -d \
               --name groo-mysql \
@@ -168,10 +128,6 @@ jobs:
 
             # ====================================================================
             # 6) Redis 컨테이너 실행
-            # - 포트: 6379 (호스트:컨테이너)
-            # - 볼륨: groo-redis-data (AOF 파일 저장)
-            # - AOF: Append Only File (데이터 영속성을 위한 로그 방식)
-            # - 재시작 정책: unless-stopped
             # ====================================================================
             docker run -d \
               --name groo-redis \
@@ -184,23 +140,12 @@ jobs:
 
             # ====================================================================
             # 7) DB와 Redis 기동 대기
-            # - MySQL 초기화 시간 확보 (데이터베이스 생성, 사용자 권한 설정)
-            # - Redis 기동 시간 확보
             # ====================================================================
             echo "Waiting for database and redis to start..."
             sleep 15
 
             # ====================================================================
             # 8) Backend 컨테이너 실행
-            # - 포트: 8080 (Spring Boot 기본 포트)
-            # - DB_URL: JDBC 연결 문자열을 변수로 분리 (특수문자 처리 문제 방지)
-            # - characterEncoding 제거: MySQL Connector/J 9.x는 서버 설정(utf8mb4) 자동 사용
-            # - 환경변수:
-            #   * SPRING_PROFILES_ACTIVE: 프로필 설정 (prod)
-            #   * spring.datasource.*: MySQL 연결 정보
-            #   * SPRING_DATA_REDIS_*: Redis 연결 정보
-            #   * AWS_*: S3 파일 업로드를 위한 AWS 인증 정보
-            # - 재시작 정책: unless-stopped
             # ====================================================================
             DB_URL="jdbc:mysql://groo-mysql:3306/kcc?useUnicode=true&serverTimezone=Asia/Seoul"
             docker run -d \
@@ -223,9 +168,6 @@ jobs:
 
             # ====================================================================
             # 9) Backend 기동 대기 및 로그 확인
-            # - Spring Boot 애플리케이션 초기화 시간 확보
-            # - 컨테이너 상태 확인 (실행 중인지 확인)
-            # - 최근 로그 50줄 출력 (에러 발생 시 디버깅용)
             # ====================================================================
             echo "Waiting for application to start..."
             sleep 20
@@ -236,15 +178,9 @@ jobs:
 
             # ====================================================================
             # 10) DB 초기화 및 마이그레이션 실행
-            # - init_codes.sql: 초기 코드 테이블 데이터 (공통 코드 등)
-            # - migration_*.sql: 스키마 변경 및 데이터 마이그레이션
-            # - docker cp: 호스트 → 컨테이너로 SQL 파일 복사
-            # - docker exec: 컨테이너 내부에서 mysql 명령 실행
-            # - -p'패스워드': -p와 패스워드 사이 공백 없음 (중요!)
             # ====================================================================
             echo "=== Starting database initialization and migration ==="
 
-            # init_codes.sql 실행 (초기 데이터 삽입)
             if [ -f "/home/ubuntu/groo/database/init_codes.sql" ]; then
               echo "Copying init_codes.sql into container..."
               docker cp /home/ubuntu/groo/database/init_codes.sql groo-mysql:/init_codes.sql
@@ -255,7 +191,6 @@ jobs:
               echo "init_codes.sql not found, skipping..."
             fi
 
-            # 마이그레이션 파일 순차 실행 (migration_001.sql, migration_002.sql, ...)
             echo "Executing database migrations..."
             migration_executed=false
             for migration_file in /home/ubuntu/groo/database/migration_*.sql; do
@@ -279,12 +214,6 @@ jobs:
 
             # ====================================================================
             # 11) Nginx 컨테이너 실행
-            # - 포트: 80 (HTTP), 443 (HTTPS)
-            # - 볼륨 마운트: 
-            #   * nginx.conf: Nginx 메인 설정 파일
-            #   * default.conf: 서버 블록 설정 (리버스 프록시 설정)
-            # - 역할: 외부 요청을 Backend(8080)로 프록시
-            # - 재시작 정책: unless-stopped
             # ====================================================================
             docker run -d \
               --name groo-nginx \
@@ -298,12 +227,6 @@ jobs:
 
             # ====================================================================
             # 12) 헬스 체크
-            # - Nginx 초기화 대기 (10초)
-            # - 헬스체크 엔드포인트: http://localhost/health
-            # - 최대 12회 시도 (총 2분)
-            # - 실패 시 로그 출력 (Nginx, Backend)
-            # - curl --fail: HTTP 에러 코드 발생 시 실패 처리
-            # - 2>/dev/null: curl 에러 메시지 숨김
             # ====================================================================
             echo "Waiting for nginx to start..."
             sleep 10
@@ -321,7 +244,7 @@ jobs:
               echo "Retrying in 10 seconds..."
               sleep 10
             done
-            # 헬스체크 실패 시 디버깅 정보 출력
+
             echo "=== Health check failed. Checking logs ==="
             echo "--- Nginx logs ---"
             docker logs groo-nginx --tail 30
