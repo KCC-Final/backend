@@ -42,11 +42,9 @@ import com.kcc.groo.user.service.MailService;
 import com.kcc.groo.user.service.TokenService;
 import com.kcc.groo.user.service.UserService;
 
-import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
@@ -376,8 +374,8 @@ public class UsersApiController {
 			@RequestPart(value = "profileImage", required = false) @Schema(type = "string", format = "binary", nullable = true, description = "프로필 이미지 (선택)") MultipartFile profileImage,
 			HttpServletRequest request) throws IOException {
 
-		String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
-		String userId = jwtTokenProvider.getUserId(refreshToken);
+		String accessToken = jwtTokenProvider.resolveAccessToken(request);
+		String userId = jwtTokenProvider.getUserId(accessToken);
 		Users updatedUser = userService.findByUserId(userId);
 
 		UserUpdateRequest updateRequest = new ObjectMapper().readValue(updateRequestJson, UserUpdateRequest.class);
@@ -415,12 +413,13 @@ public class UsersApiController {
 	 */
 	@GetMapping("/users")
 	public ResponseEntity<CommonResponse<?>> getUserInfo (HttpServletRequest request) {
-		String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
-		String userId = jwtTokenProvider.getUserId(refreshToken);
+		String accessToken = jwtTokenProvider.resolveAccessToken(request);
+		String userId = jwtTokenProvider.getUserId(accessToken);
 		Users getUser = userService.findByUserId(userId);
 		
 			return ResponseEntity.ok()
 					.body(new CommonResponse<>("get current user info", getUser));
 		
 	}
+	
 }
