@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.user.dao.IFollowsRepository">
+
+<resultMap id="quoteMap" type="com.kcc.groo.quote.data.model.Quotes">
+        <id property="sentenceId" column="sentence_id"/>
+        <result property="sentenceContent" column="sentence_content"/>
+        <result property="ISBN" column="isbn"/>
+        <result property="selectedDate" column="selected_date"/>
+    </resultMap>
+
+    <select id="getTodayQuote" resultMap="quoteMap">
+        SELECT sentence_id, sentence_content, isbn, selected_date
+        FROM quotes
+        WHERE selected_date = CURDATE()
+    </select>
+
+    <update id="updateSelectedDate">
+        UPDATE quotes
+        SET selected_date = #{selectedDate}
+        WHERE sentence_id = #{sentenceId}
+    </update>
+
+    <select id="getNextQuote" resultMap="quoteMap">
+        SELECT sentence_id, sentence_content, isbn
+        FROM quotes
+        WHERE selected_date IS NULL
+        ORDER BY sentence_id ASC
+        LIMIT 1
+    </select>
+
+    <update id="resetAllSelectedDates">
+        UPDATE quotes
+        SET selected_date = NULL
+    </update>
+
+</mapper>

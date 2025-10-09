@@ -19,33 +19,24 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthFilter extends OncePerRequestFilter {
 	
 	@Autowired
-	private JwtTokenProvider jwtTokenProvider;
-	
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
-		
-		//로그인 경로 예외
-	    String path = request.getServletPath();
-	    if (path.startsWith("/api/v1/auth") || path.startsWith("/api/v1/users/signup")) {
-	        filterChain.doFilter(request, response);
-	        return;
-	    }
-		
-		try {
-			String token = jwtTokenProvider.resolveAccessToken(request);
-			if (token != null && jwtTokenProvider.validateToken(token)) {
-				Authentication authentication = jwtTokenProvider.getAuthentication(token);
-				SecurityContextHolder.getContext().setAuthentication(authentication);
-		}
-		} catch (Exception e) {
-			response.setContentType("application/json");
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			response.getWriter().write("{\"error\":\"Unauthorized\"}");
-			return;
-		}
-		filterChain.doFilter(request, response);
-	}
+	   private JwtTokenProvider jwtTokenProvider;
+	   
+	   @Override
+	   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+	         throws ServletException, IOException {
+	      
+	      try {
+	         String token = jwtTokenProvider.resolveAccessToken(request);
+	         if (token != null && jwtTokenProvider.validateToken(token)) {
+	            Authentication authentication = jwtTokenProvider.getAuthentication(token);
+	            SecurityContextHolder.getContext().setAuthentication(authentication);
+	         }
+	      } catch (Exception e) {
+	         log.warn("JWT validation failed: {}", e.getMessage());
+	      }
+	      
+	      filterChain.doFilter(request, response);
+	   }
 	
 	
 }
