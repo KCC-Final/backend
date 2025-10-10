@@ -87,11 +87,12 @@ public class UsersApiController {
 	private ResponseCookie buildCookie(String tokenName, String value, long maxAgeSec) {
 	    return ResponseCookie.from(tokenName, value)
 	        .httpOnly(true)
-	        .secure(false)
+	        .secure(true)  // ✅ true로 변경
+	        .domain(".groo.site")  // ✅ 이 줄 추가
 	        .path("/")
-	        .sameSite("Strict")
+	        .sameSite("None")  // ✅ None으로 변경
 	        .maxAge(maxAgeSec)
-	        .build();  // domain을 명시하지 않음
+	        .build();
 	}
 	/**
 	 * @param name
