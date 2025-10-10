@@ -76,18 +76,24 @@ public class UsersApiController {
 	private static final long REFRESH_TOKEN_VALID_TIME_SEC = REFRESH_TOKEN_VALID_TIME / 1000;
 
 	/**
+	 * @author uyh
 	 * @param name
 	 * @param value
 	 * @param maxAgeSec
 	 * @return
-	 * @author kys
 	 * @created 2025-09-29 쿠키 생성
+	 * @modified 2025-10-11 크로스 도메인 쿠키 설정 추가
 	 */
 	private ResponseCookie buildCookie(String tokenName, String value, long maxAgeSec) {
-		return ResponseCookie.from(tokenName, value).httpOnly(true).secure(false) // 개발 환경에서는 false, 운영 환경 true
-				.path("/").sameSite("Strict").maxAge(maxAgeSec).build();
+	    return ResponseCookie.from(tokenName, value)
+	        .httpOnly(true)
+	        .secure(true)  // ✅ true로 변경
+	        .domain(".groo.site")  // ✅ 이 줄 추가
+	        .path("/")
+	        .sameSite("None")  // ✅ None으로 변경
+	        .maxAge(maxAgeSec)
+	        .build();
 	}
-
 	/**
 	 * @param name
 	 * @return
