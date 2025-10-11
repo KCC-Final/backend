@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -77,19 +78,41 @@ public class UsersApiController {
 	private static final long ACCESS_TOKEN_VALID_TIME_SEC = ACCESS_TOKEN_VALID_TIME / 1000;
 	private static final long REFRESH_TOKEN_VALID_TIME_SEC = REFRESH_TOKEN_VALID_TIME / 1000;
 
+	@Value("${cookie.domain:}")
+	private String cookieDomain;
+
+	@Value("${cookie.secure:false}")
+	private boolean cookieSecure;
+
+	@Value("${cookie.same-site:Lax}")
+	private String cookieSameSite;
+
 	/**
+	 * @author uyh
 	 * @param name
 	 * @param value
 	 * @param maxAgeSec
 	 * @return
-	 * @author kys
 	 * @created 2025-09-29 쿠키 생성
+	 * @modified 2025-10-11 크로스 도메인 쿠키 설정 추가
+	 * @modified 2025-10-11 도메인 환경 설정 추가
+	 * @modified 2025-10-11 secure/sameSite 환경 분리
 	 */
 	private ResponseCookie buildCookie(String tokenName, String value, long maxAgeSec) {
-		return ResponseCookie.from(tokenName, value).httpOnly(true).secure(false) // 개발 환경에서는 false, 운영 환경 true
-				.path("/").sameSite("Strict").maxAge(maxAgeSec).build();
-	}
+	    ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(tokenName, value)
+	        .httpOnly(true)
+	        .secure(cookieSecure)
+	        .path("/")
+	        .sameSite(cookieSameSite)
+	        .maxAge(maxAgeSec);
 
+	    // 도메인 값이 있을 때만 설정
+	    if (cookieDomain != null && !cookieDomain.isEmpty()) {
+	        builder.domain(cookieDomain);
+	    }
+
+	    return builder.build();
+	}
 	/**
 	 * @param name
 	 * @return

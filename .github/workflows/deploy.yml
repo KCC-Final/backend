@@ -159,10 +159,6 @@ jobs:
               -e "spring.datasource.password=${{ secrets.DB_PASSWORD }}" \
               -e SPRING_DATA_REDIS_HOST=groo-redis \
               -e "SPRING_DATA_REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" \
-              -e "AWS_ACCESS_KEY_ID=${{ secrets.AWS_UPLOAD_ACCESS_KEY_ID }}" \
-              -e "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_UPLOAD_SECRET_ACCESS_KEY }}" \
-              -e "AWS_REGION=${{ secrets.AWS_REGION }}" \
-              -e "AWS_S3_UPLOAD_BUCKET=${{ secrets.AWS_S3_UPLOAD_BUCKET }}" \
               --restart unless-stopped \
               risania/groo-backend:latest
 
