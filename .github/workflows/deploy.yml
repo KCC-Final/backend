@@ -66,6 +66,22 @@ jobs:
           target: "/home/ubuntu/groo"
           overwrite: true
 
+        # ✅ 여기에 추가 (GitHub Secrets → runner 환경변수 export)
+        env:
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_SMTP_AUTH: ${{ secrets.MAIL_SMTP_AUTH }}
+          MAIL_STARTTLS_ENABLE: ${{ secrets.MAIL_STARTTLS_ENABLE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          EMAIL_TOKEN_EXPIRATION: ${{ secrets.EMAIL_TOKEN_EXPIRATION }}
+          PASSWORD_TOKEN_EXPIRATION: ${{ secrets.PASSWORD_TOKEN_EXPIRATION }}
+          NEXT_PUBLIC_ALADIN_TTBKEY: ${{ secrets.NEXT_PUBLIC_ALADIN_TTBKEY }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
       - name: Verify copied files on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
