@@ -111,7 +111,6 @@ public class UsersApiController {
 
 	    return builder.build();
 	}
-
 	/**
 	 * @param name
 	 * @return
