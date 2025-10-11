@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
  * Review 도메인 에러 코드 정의
  * @author CI/CD 담당자
  * @created 2025-10-02
+ * @modified 2025-10-11 - 컨텐츠 길이 검증 에러 코드 추가
  * 
  * 에러 코드 체계: RVW-XXX (Review)
  * - 001~099: 입력값 검증 오류 (400)
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
  * - 300~399: 리소스 없음 (404)
  * - 400~499: 충돌 (409)
  * - 500~599: 비즈니스 규칙 위반 (422)
+ * - 600~699: 컨텐츠 길이 검증 오류 (400)
  * - 900~999: 서버 오류 (500)
  */
 public enum ReviewErrorCode {
@@ -58,6 +60,14 @@ public enum ReviewErrorCode {
     CANNOT_COMMENT_ON_DELETED("RVW-506", "삭제된 독후감에는 댓글을 작성할 수 없습니다", HttpStatus.UNPROCESSABLE_ENTITY),
     CANNOT_COMMENT_ON_SECRET("RVW-507", "비밀글에는 댓글을 작성할 수 없습니다", HttpStatus.UNPROCESSABLE_ENTITY),
     CANNOT_LIKE_SECRET_REVIEW("RVW-508", "비밀글에는 좋아요를 할 수 없습니다", HttpStatus.UNPROCESSABLE_ENTITY),
+    
+    // 600~699: 컨텐츠 길이 검증 오류 (400 Bad Request)
+    REVIEW_TITLE_TOO_SHORT("RVW-600", "독후감 제목은 최소 2자 이상이어야 합니다", HttpStatus.BAD_REQUEST),
+    REVIEW_CONTENT_TOO_SHORT("RVW-601", "독후감 내용은 최소 10자 이상이어야 합니다", HttpStatus.BAD_REQUEST),
+    REVIEW_TITLE_TOO_LONG("RVW-602", "독후감 제목은 200자를 초과할 수 없습니다", HttpStatus.BAD_REQUEST),
+    REVIEW_CONTENT_TOO_LONG("RVW-603", "독후감 내용은 10,000자를 초과할 수 없습니다", HttpStatus.BAD_REQUEST),
+    COMMENT_CONTENT_TOO_LONG("RVW-604", "댓글은 500자를 초과할 수 없습니다", HttpStatus.BAD_REQUEST),
+    COMMENT_CONTENT_TOO_SHORT("RVW-605", "댓글은 최소 1자 이상이어야 합니다", HttpStatus.BAD_REQUEST),
     
     // 900~999: 서버 오류 (500 Internal Server Error)
     DATABASE_ERROR("RVW-900", "데이터베이스 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR),

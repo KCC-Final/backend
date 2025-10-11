@@ -11,12 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Review 비즈니스 로직 처리 서비스
- * @author uyh
- * @created 2025-09-28
- * @modified 2025-10-02 - 에러 처리 및 검증 로직 강화
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -367,14 +361,7 @@ public class ReviewService implements IReviewService {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
         }
         
-        if (request.getReviewTitle() == null || request.getReviewTitle().trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
-        }
-        
-        if (request.getReviewContent() == null || request.getReviewContent().trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
-        }
-        
+        // ISBN 검증
         if (request.getIsbn() == null || request.getIsbn().trim().isEmpty()) {
             throw new ReviewException(ReviewErrorCode.INVALID_ISBN);
         }
@@ -383,6 +370,35 @@ public class ReviewService implements IReviewService {
         String isbn = request.getIsbn().replaceAll("-", "");
         if (!isbn.matches("^\\d{10}(\\d{3})?$")) {
             throw new ReviewException(ReviewErrorCode.INVALID_ISBN, "ISBN must be 10 or 13 digits");
+        }
+        
+        // 제목 검증
+        if (request.getReviewTitle() == null || request.getReviewTitle().trim().isEmpty()) {
+            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
+        }
+        
+        // 👇 제목 길이 검증 추가
+        if (request.getReviewTitle().trim().length() < 2) {
+            throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
+        }
+        
+        if (request.getReviewTitle().length() > 200) {
+            throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
+        }
+        
+        // 내용 검증
+        if (request.getReviewContent() == null || request.getReviewContent().trim().isEmpty()) {
+            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
+        }
+        
+        // 👇 내용 길이 검증 추가
+        String contentText = request.getReviewContent().replaceAll("<[^>]*>", "").trim();
+        if (contentText.length() < 10) {
+            throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
+        }
+        
+        if (request.getReviewContent().length() > 10000) {
+            throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
         }
     }
     
@@ -394,12 +410,37 @@ public class ReviewService implements IReviewService {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
         }
         
-        if (request.getReviewTitle() == null || request.getReviewTitle().trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
+        // 제목이 있으면 검증
+        if (request.getReviewTitle() != null) {
+            if (request.getReviewTitle().trim().isEmpty()) {
+                throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
+            }
+            
+            // 👇 제목 길이 검증 추가
+            if (request.getReviewTitle().trim().length() < 2) {
+                throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
+            }
+            
+            if (request.getReviewTitle().length() > 200) {
+                throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
+            }
         }
         
-        if (request.getReviewContent() == null || request.getReviewContent().trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
+        // 내용이 있으면 검증
+        if (request.getReviewContent() != null) {
+            if (request.getReviewContent().trim().isEmpty()) {
+                throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
+            }
+            
+            // 👇 내용 길이 검증 추가
+            String contentText = request.getReviewContent().replaceAll("<[^>]*>", "").trim();
+            if (contentText.length() < 10) {
+                throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
+            }
+            
+            if (request.getReviewContent().length() > 10000) {
+                throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
+            }
         }
     }
     
