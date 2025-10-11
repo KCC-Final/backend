@@ -34,10 +34,6 @@ public class UserService implements IUserService {
 	@Autowired
 	MailService mailService;
 
-//	UserService(JwtTokenProvider jwtTokenProvider) {
-//		this.jwtTokenProvider = jwtTokenProvider;
-//	}
-
 	@Override
 	public Users loginUser(String userId, String password) {
 		// TODO Auto-generated method stub
@@ -111,7 +107,6 @@ public class UserService implements IUserService {
 		// TODO Auto-generated method stub
 		return usersRepository.existsByUserId(userId);
 	}
-
 	@Override
 	public Users resetPassword(String userId, String rawPassword) {
 		Users user = usersRepository.selectUserByUserId(userId);
@@ -173,5 +168,11 @@ public class UserService implements IUserService {
 			throw new RuntimeException("failed update user information");
 		}
 
+	}
+
+	@Override
+	public int existsByUserEmail(String email) {
+		// TODO Auto-generated method stub
+		return usersRepository.existsByUserEmail(email);
 	}
 }

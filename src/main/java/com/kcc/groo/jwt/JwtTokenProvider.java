@@ -6,6 +6,7 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,9 +31,15 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class JwtTokenProvider {
 	
-	private static final String SECRET = "mF8zdJXuTPGGUpO6DYRRby62knsq3ozQ9dWbQ/2QUvI="; //고정된 값
-	private static final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-//	private static final String AUTH_HEADER = "Authorization";
+	private final SecretKey key;
+
+    public JwtTokenProvider(@Value("${JWT_SECRET}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public SecretKey getSecretKey() {
+        return key;
+    }
 	
 	//토큰 만료 시간
 	private final long accessTokenValidTime = 15 * 60 * 1000L; //15min

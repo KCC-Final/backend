@@ -98,4 +98,13 @@ public interface IUserService {
 	 */
 	Users requestUpdateUser (String userId, UserUpdateRequest updateRequest);
 	
+	/**
+	 * @param email
+	 * @return
+	 * @author kys
+	 * @created 2025-10-11
+	 * 이메일 존재 확인
+	 */
+	int existsByUserEmail (@Param("email") String email);
+	
 }
