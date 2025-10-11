@@ -10,38 +10,38 @@
     </resultMap>
 
     <select id="getTodayQuote" resultMap="quoteMap">
-        SELECT sentence_id, sentence_content, isbn, selected_date
+   <![CDATA[     SELECT sentence_id, sentence_content, isbn, selected_date
         FROM sentences
         WHERE selected_date = CURDATE()
         ORDER BY sentence_id ASC
-    	LIMIT 1
+    	LIMIT 1 ]]>
     </select>
     
     <select id="getTodayQuoteList" resultMap="quoteMap">
-        SELECT sentence_id, sentence_content, isbn, selected_date
+    <![CDATA[    SELECT sentence_id, sentence_content, isbn, selected_date
         FROM sentences
         WHERE selected_date = CURDATE()
         ORDER BY sentence_id ASC
-        LIMIT 1
+        LIMIT 1 ]]>
     </select>
 
     <update id="updateSelectedDate">
-        UPDATE sentences
+    <![CDATA[    UPDATE sentences
         SET selected_date = #{selectedDate}
-        WHERE sentence_id = #{sentenceId}
+        WHERE sentence_id = #{sentenceId} ]]>
     </update>
 
     <select id="getNextQuote" resultMap="quoteMap">
-        SELECT sentence_id, sentence_content, isbn
+     <![CDATA[   SELECT sentence_id, sentence_content, isbn
         FROM sentences
         WHERE selected_date IS NULL
         ORDER BY sentence_id ASC
-        LIMIT 1
+        LIMIT 1 ]]>
     </select>
 
     <update id="resetAllSelectedDates">
-        UPDATE sentences
-        SET selected_date = NULL
+     <![CDATA[   UPDATE sentences
+        SET selected_date = NULL ]]>
     </update>
 
 </mapper>
