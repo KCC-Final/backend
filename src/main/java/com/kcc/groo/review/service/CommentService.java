@@ -14,12 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Comment 비즈니스 로직 처리 서비스
- * @author uyh, CI/CD 담당자
- * @created 2025-09-29
- * @modified 2025-10-02 - 에러 처리 및 검증 로직 강화, CASCADE DELETE 적용
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -100,15 +94,8 @@ public class CommentService implements ICommentService {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid comment ID");
         }
         
-        if (content == null || content.trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_COMMENT_CONTENT);
-        }
-        
-        // 댓글 최대 길이 검증 (1000자)
-        if (content.length() > 1000) {
-            throw new ReviewException(ReviewErrorCode.INVALID_COMMENT_CONTENT, 
-                                    "Comment content exceeds maximum length of 1000 characters");
-        }
+        // 👇 댓글 내용 검증 (validateCommentContent 사용)
+        validateCommentContent(content);
         
         // 댓글 존재 확인
         CommentResponse existingComment = commentRepository.selectCommentById(commentId);
@@ -201,33 +188,33 @@ public class CommentService implements ICommentService {
     // ============ Private Validation Methods ============
     
     /**
-     * 댓글 요청 검증
+     * 댓글 요청 검증 (CommentRequest)
      */
-    private void validateCommentRequest(CommentRequest req) {
-        if (req == null) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Comment request is null");
+    private void validateCommentRequest(CommentRequest request) {
+        if (request == null) {
+            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
         }
         
-        if (req.getContent() == null || req.getContent().trim().isEmpty()) {
+        validateCommentContent(request.getContent());
+    }
+    
+    /**
+     * 댓글 내용 검증 (공통)
+     */
+    private void validateCommentContent(String content) {
+        // null 또는 빈 문자열 검증
+        if (content == null || content.trim().isEmpty()) {
             throw new ReviewException(ReviewErrorCode.INVALID_COMMENT_CONTENT);
         }
         
-        // 댓글 최소 길이 검증 (1자 이상)
-        if (req.getContent().trim().length() < 1) {
-            throw new ReviewException(ReviewErrorCode.INVALID_COMMENT_CONTENT, 
-                                    "Comment content must be at least 1 character");
+        // 최소 길이 검증
+        if (content.trim().length() < 1) {
+            throw new ReviewException(ReviewErrorCode.COMMENT_CONTENT_TOO_SHORT);
         }
         
-        // 댓글 최대 길이 검증 (1000자)
-        if (req.getContent().length() > 1000) {
-            throw new ReviewException(ReviewErrorCode.INVALID_COMMENT_CONTENT, 
-                                    "Comment content exceeds maximum length of 1000 characters");
-        }
-        
-        // 부모 댓글 ID 검증 (음수 방지)
-        if (req.getParentId() != null && req.getParentId() <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_PARENT_COMMENT, 
-                                    "Parent comment ID must be positive");
+        // 최대 길이 검증 (500자)
+        if (content.length() > 500) {
+            throw new ReviewException(ReviewErrorCode.COMMENT_CONTENT_TOO_LONG);
         }
     }
     

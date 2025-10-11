@@ -63,9 +63,9 @@ services:
         until mysqladmin ping -hdb -ukcc -p\$$MYSQL_PASSWORD --silent; do
           sleep 2;
         done &&
-        
+
         mysql -hdb -ukcc -p\$$MYSQL_PASSWORD -e 'SET NAMES utf8mb4;' &&
-        
+
         echo 'Running init and migrations as kcc...' &&
 
         if [ -f /database/init_codes.sql ]; then
@@ -98,8 +98,20 @@ services:
     restart: unless-stopped
     environment:
       TZ: Asia/Seoul
-    env_file:
-      - ./.env
+      SPRING_PROFILES_ACTIVE: prod           # ✅ 배포 환경 프로파일
+
+      # ✅ GitHub Secrets 값이 deploy.yml에서 주입될 부분
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
+      MAIL_STARTTLS_ENABLE: ${MAIL_STARTTLS_ENABLE}
+
+      JWT_SECRET: ${JWT_SECRET}
+      EMAIL_TOKEN_EXPIRATION: ${EMAIL_TOKEN_EXPIRATION}
+      PASSWORD_TOKEN_EXPIRATION: ${PASSWORD_TOKEN_EXPIRATION}
+      NEXT_PUBLIC_ALADIN_TTBKEY: ${NEXT_PUBLIC_ALADIN_TTBKEY}
     ports:
       - "8081:8080"
     depends_on:

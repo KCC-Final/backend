@@ -63,7 +63,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           source: "nginx/nginx.conf,nginx/default.conf,database/"
-
           target: "/home/ubuntu/groo"
           overwrite: true
 
@@ -79,11 +78,40 @@ jobs:
 
       - name: Deploy containers to EC2
         uses: appleboy/ssh-action@v1.0.0
+
+        # ✅ GitHub Secrets → Runner 환경변수로 export (여기에 있어야 함)
+        env:
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_SMTP_AUTH: ${{ secrets.MAIL_SMTP_AUTH }}
+          MAIL_STARTTLS_ENABLE: ${{ secrets.MAIL_STARTTLS_ENABLE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          EMAIL_TOKEN_EXPIRATION: ${{ secrets.EMAIL_TOKEN_EXPIRATION }}
+          PASSWORD_TOKEN_EXPIRATION: ${{ secrets.PASSWORD_TOKEN_EXPIRATION }}
+          NEXT_PUBLIC_ALADIN_TTBKEY: ${{ secrets.NEXT_PUBLIC_ALADIN_TTBKEY }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+
+          # ============================================================
+          # ✅ GitHub Secrets 환경변수 목록
+          # - CI/CD 실행 시 이 변수들이 EC2에 전달됨
+          # - docker run 명령에서 ${변수명}으로 사용 가능
+          # ============================================================
+          envs: |
+            MAIL_HOST,MAIL_PORT,MAIL_USERNAME,MAIL_PASSWORD,
+            MAIL_SMTP_AUTH,MAIL_STARTTLS_ENABLE,
+            JWT_SECRET,EMAIL_TOKEN_EXPIRATION,PASSWORD_TOKEN_EXPIRATION,
+            NEXT_PUBLIC_ALADIN_TTBKEY,DB_PASSWORD,DB_ROOT_PASSWORD,REDIS_PASSWORD
+
           script: |
             # ====================================================================
             # 1) Docker 네트워크 생성
@@ -159,6 +187,16 @@ jobs:
               -e "spring.datasource.password=${{ secrets.DB_PASSWORD }}" \
               -e SPRING_DATA_REDIS_HOST=groo-redis \
               -e "SPRING_DATA_REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" \
+              -e MAIL_HOST="${MAIL_HOST}" \
+              -e MAIL_PORT="${MAIL_PORT}" \
+              -e MAIL_USERNAME="${MAIL_USERNAME}" \
+              -e MAIL_PASSWORD="${MAIL_PASSWORD}" \
+              -e MAIL_SMTP_AUTH="${MAIL_SMTP_AUTH}" \
+              -e MAIL_STARTTLS_ENABLE="${MAIL_STARTTLS_ENABLE}" \
+              -e JWT_SECRET="${JWT_SECRET}" \
+              -e EMAIL_TOKEN_EXPIRATION="${EMAIL_TOKEN_EXPIRATION}" \
+              -e PASSWORD_TOKEN_EXPIRATION="${PASSWORD_TOKEN_EXPIRATION}" \
+              -e NEXT_PUBLIC_ALADIN_TTBKEY="${NEXT_PUBLIC_ALADIN_TTBKEY}" \
               --restart unless-stopped \
               risania/groo-backend:latest
 
