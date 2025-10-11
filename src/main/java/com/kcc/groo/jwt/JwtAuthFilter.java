@@ -51,7 +51,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             /* ID/PW 찾기, 이메일 인증 */
             "/api/v1/users/id",
             "/api/v1/users/password",
-            "/api/v1/email"
+            "/api/v1/email",
+            
+            /* 오늘의 한 문장 */
+            "/api/v1/quotes/daily"
     };
 
     @Override
