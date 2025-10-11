@@ -68,8 +68,18 @@ jobs:
 
       - name: Verify copied files on EC2
         uses: appleboy/ssh-action@v1.0.0
-        
-        # ✅ 여기에 추가 (GitHub Secrets → runner 환경변수 export)
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "--- Checking contents of /home/ubuntu/groo ---"
+            ls -alR /home/ubuntu/groo
+
+      - name: Deploy containers to EC2
+        uses: appleboy/ssh-action@v1.0.0
+
+        # ✅ GitHub Secrets → Runner 환경변수로 export (여기에 있어야 함)
         env:
           MAIL_HOST: ${{ secrets.MAIL_HOST }}
           MAIL_PORT: ${{ secrets.MAIL_PORT }}
@@ -84,16 +94,7 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "--- Checking contents of /home/ubuntu/groo ---"
-            ls -alR /home/ubuntu/groo
 
-      - name: Deploy containers to EC2
-        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
@@ -198,7 +199,6 @@ jobs:
               -e NEXT_PUBLIC_ALADIN_TTBKEY="${NEXT_PUBLIC_ALADIN_TTBKEY}" \
               --restart unless-stopped \
               risania/groo-backend:latest
-
 
             # ====================================================================
             # 9) Backend 기동 대기 및 로그 확인
