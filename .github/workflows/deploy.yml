@@ -170,27 +170,19 @@ jobs:
               -e "spring.datasource.password=${{ secrets.DB_PASSWORD }}" \
               -e SPRING_DATA_REDIS_HOST=groo-redis \
               -e "SPRING_DATA_REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" \
-              \
-              # ============================================================
-              # ✅ 추가된 환경 변수 섹션 (메일 / JWT / 알라딘 API)
-              # ------------------------------------------------------------
-              # - application-prod.properties에서 ${MAIL_HOST} 등으로 참조
-              # - 배포 환경에서는 .env를 사용하지 않기 때문에 GitHub Secrets을 통해 전달
-              # ============================================================
               -e MAIL_HOST="${MAIL_HOST}" \
               -e MAIL_PORT="${MAIL_PORT}" \
               -e MAIL_USERNAME="${MAIL_USERNAME}" \
               -e MAIL_PASSWORD="${MAIL_PASSWORD}" \
               -e MAIL_SMTP_AUTH="${MAIL_SMTP_AUTH}" \
               -e MAIL_STARTTLS_ENABLE="${MAIL_STARTTLS_ENABLE}" \
-              \
               -e JWT_SECRET="${JWT_SECRET}" \
               -e EMAIL_TOKEN_EXPIRATION="${EMAIL_TOKEN_EXPIRATION}" \
               -e PASSWORD_TOKEN_EXPIRATION="${PASSWORD_TOKEN_EXPIRATION}" \
               -e NEXT_PUBLIC_ALADIN_TTBKEY="${NEXT_PUBLIC_ALADIN_TTBKEY}" \
-              \
               --restart unless-stopped \
               risania/groo-backend:latest
+
 
             # ====================================================================
             # 9) Backend 기동 대기 및 로그 확인
