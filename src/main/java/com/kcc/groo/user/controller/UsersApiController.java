@@ -12,8 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -113,30 +115,57 @@ public class UsersApiController {
 	public ResponseEntity<CommonResponse<?>> login(@RequestBody LoginRequest loginRequest,
 			HttpServletResponse response) {
 
-		Authentication authentication = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(loginRequest.getUserId(), loginRequest.getPassword()));
+		try {
+			
+			//id / pw validation
+			if (loginRequest.getUserId() == null || loginRequest.getUserId().trim().isEmpty()) { //id 미입력
+				return ResponseEntity.badRequest()
+	                    .body(new CommonResponse<>("User ID is required", null));
+			}
+			
+			if (loginRequest.getPassword() == null || loginRequest.getPassword().trim().isEmpty()) { // pw 미입력
+	            return ResponseEntity.badRequest()
+	                    .body(new CommonResponse<>("Password is required", null));
+	        }
+			
+			int checkId = userService.existsByUserId(loginRequest.getUserId());
+			if (checkId <= 0) { //id 존재 여부 확인
+				return ResponseEntity.badRequest()
+	                    .body(new CommonResponse<>("User ID does not exist", null));
+			}
 
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-		Users user = userDetails.getUser();
+			Authentication authentication = authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(loginRequest.getUserId(), loginRequest.getPassword()));
 
-		String accessToken = jwtTokenProvider.generateAccessToken(user);
-		String refreshToken = jwtTokenProvider.generateRefreshToken(user);
-		tokenService.saveToken(loginRequest.getUserId(), refreshToken, REFRESH_TOKEN_VALID_TIME);
+			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+			Users user = userDetails.getUser();
 
-		response.addHeader(HttpHeaders.SET_COOKIE,
-				buildCookie("accessToken", accessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
-		response.addHeader(HttpHeaders.SET_COOKIE,
-				buildCookie("refreshToken", refreshToken, REFRESH_TOKEN_VALID_TIME_SEC).toString());
+			String accessToken = jwtTokenProvider.generateAccessToken(user);
+			String refreshToken = jwtTokenProvider.generateRefreshToken(user);
+			tokenService.saveToken(loginRequest.getUserId(), refreshToken, REFRESH_TOKEN_VALID_TIME);
 
-		Map<String, String> tokens = Map.of("accessToken", accessToken, "refreshToken", refreshToken);
-		return ResponseEntity.ok(new CommonResponse<>("Login success", tokens));
+			response.addHeader(HttpHeaders.SET_COOKIE,
+					buildCookie("accessToken", accessToken, ACCESS_TOKEN_VALID_TIME_SEC).toString());
+			response.addHeader(HttpHeaders.SET_COOKIE,
+					buildCookie("refreshToken", refreshToken, REFRESH_TOKEN_VALID_TIME_SEC).toString());
+
+			Map<String, String> tokens = Map.of("accessToken", accessToken, "refreshToken", refreshToken);
+			return ResponseEntity.ok(new CommonResponse<>("Login success", tokens));
+		} catch (BadCredentialsException e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommonResponse<>("Incorrect password", null));
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new CommonResponse<>("error occurred during login", null));
+		}
 	}
 
 	/**
 	 * @param refreshToken
 	 * @return
 	 * @created 2025-09-29
-	 * @author kys 토큰 재발급 (header 또는 cookie에서 refresh token 가져와 access token 새로 발급
+	 * @author kys
+	 * 토큰 재발급 (header 또는 cookie에서 refresh token 가져와 access token 새로 발급
 	 */
 	@PostMapping("/token-refresh")
 	public ResponseEntity<CommonResponse<?>> refresh(HttpServletRequest request, HttpServletResponse response) {
@@ -192,16 +221,26 @@ public class UsersApiController {
 	 * @param email
 	 * @return CommonResponse
 	 * @author kys
-	 * @created 2025-09-23 회원가입 시 입력된 이메일에 인증 코드를 전송
+	 * @created 2025-09-23 입력된 이메일에 인증 코드를 전송
 	 */
 	@PostMapping("/email")
 	public ResponseEntity<CommonResponse<?>> confirmEmail(@RequestParam("purpose") String purpose,
 			@RequestParam("email") String email) {
 		String code = emailVerificationService.createVerificationCode(purpose, email);
 		mailService.sendVerificationEmail(email, code);
+		
+		//email 존재 확인
+		int result = userService.existsByUserEmail(email);
+		
+		if (purpose.equals("signup") && result > 0) {
+			return ResponseEntity.badRequest()
+					.body(new CommonResponse<>("Email already exists", null));
+		}
 
-		if (purpose.equals("signup")) {
-			return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", code));
+		if (purpose.equals("signup") && result <= 0) {
+			
+				return ResponseEntity.ok(new CommonResponse<>("Signup verification code sent", code));
+			
 		} else if (purpose.equals("findId")) {
 			return ResponseEntity.ok(new CommonResponse<>("FindId verification code sent", code));
 		} else if (purpose.equals("updateEmail")) {
@@ -351,7 +390,7 @@ public class UsersApiController {
 		}
 
 		Users resetPw = userService.resetPassword(userId, resetPasswordRequest.getPassword1());
-		
+
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(new CommonResponse<>("updated reset password info success", resetPw));
 
@@ -364,9 +403,8 @@ public class UsersApiController {
 	 * @return ResponseEntity<CommonResponse<?>>
 	 * @throws IOException
 	 * @author kys
-	 * @created 2025-10-02
-	 * 회원 정보 수정 (비밀번호, 이메일, 이름, 닉네임, 자기소개, 프로필 이미지) 이메일 정보가
-	 * 입력된 이메일과 다를 경우에만 이메일 인증 진행 비밀번호 일치 여부 확인 프로필 이미지 blob 타입으로 저장
+	 * @created 2025-10-02 회원 정보 수정 (비밀번호, 이메일, 이름, 닉네임, 자기소개, 프로필 이미지) 이메일 정보가 입력된
+	 *          이메일과 다를 경우에만 이메일 인증 진행 비밀번호 일치 여부 확인 프로필 이미지 blob 타입으로 저장
 	 */
 	@PutMapping(value = "/users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<CommonResponse<?>> updateUser(
@@ -403,23 +441,21 @@ public class UsersApiController {
 				.body(new CommonResponse<>("updated user info success", updatedUser));
 
 	}
-	
+
 	/**
 	 * @param request
 	 * @return ResponseEntity<CommonResponse<?>>
 	 * @author kys
-	 * @created 2025-10-02
-	 * 현재 로그인한 사용자 정보 조회
+	 * @created 2025-10-02 현재 로그인한 사용자 정보 조회
 	 */
 	@GetMapping("/users")
-	public ResponseEntity<CommonResponse<?>> getUserInfo (HttpServletRequest request) {
+	public ResponseEntity<CommonResponse<?>> getUserInfo(HttpServletRequest request) {
 		String accessToken = jwtTokenProvider.resolveAccessToken(request);
 		String userId = jwtTokenProvider.getUserId(accessToken);
 		Users getUser = userService.findByUserId(userId);
-		
-			return ResponseEntity.ok()
-					.body(new CommonResponse<>("get current user info", getUser));
-		
+
+		return ResponseEntity.ok().body(new CommonResponse<>("get current user info", getUser));
+
 	}
-	
+
 }

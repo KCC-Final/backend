@@ -1,32 +1,34 @@
 package com.kcc.groo.quote.controller;
 
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kcc.groo.common.dto.CommonResponse;
+import com.kcc.groo.quote.data.dto.TodayQuoteDto;
 import com.kcc.groo.quote.service.QuoteService;
 
-import lombok.RequiredArgsConstructor;
-
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/v1/quotes")
 public class QuoteController {
 
-    private final QuoteService quoteService;
+	@Autowired
+    private QuoteService quoteService;
 
-    @GetMapping("/today")
-    public ResponseEntity<?> getTodayQuote() {
-        Map<String, Object> todayQuote = quoteService.getTodayQuoteWithBook();
+    /**
+     * @return
+	 * @author kys
+	 * @created 2025-10-10
+	 * 오늘의 명언 조회 api
+     */
+    @GetMapping("/daily")
+    public ResponseEntity<CommonResponse<?>> getTodayQuote() {
+    	TodayQuoteDto todayQuote = quoteService.getTodayQuote();
         if (todayQuote == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "can not found TodayQuote"));
+            return ResponseEntity.badRequest().body(new CommonResponse<>("fail to get today quote", null));
         }
-        return ResponseEntity.ok(todayQuote);
+        return ResponseEntity.ok(new CommonResponse<>("success to get today quote", todayQuote));
     }
-
 }

@@ -49,7 +49,8 @@ public class SpringSecurityConfig {
 	                "/api/v1/users/id/**",
 	                "/api/v1/users/password",
 	                "/api/v1/email",
-	                "/api/v1/email/verify"
+	                "/api/v1/email/verify",
+	                "/api/v1/quotes/**"
 	            ).permitAll()
 	            
 	            // 나머지는 인증 필요

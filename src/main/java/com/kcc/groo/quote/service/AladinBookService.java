@@ -18,9 +18,16 @@ public class AladinBookService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String BASE_URL = "https://www.aladin.co.kr/ttb/api/ItemLookUp.aspx";
-    @Value("${TTB_KEY}") //알라딘 API 키
-    private final String TTB_KEY;
+    @Value("${aladin.ttbkey}")
+    private String TTB_KEY;
 
+    /**
+     * @param isbn
+     * @return
+	 * @author kys
+	 * @created 2025-10-10
+	 * 사용자가 db에 저장해둔 isbn을 이용해 api 호출 생성 및 반환
+     */
     public BookInfoDto getBookByIsbn(String isbn) {
         String url = BASE_URL + "?ttbkey=" + TTB_KEY
                 + "&itemIdType=ISBN"
