@@ -151,8 +151,17 @@ public class CommentService implements ICommentService {
         }
     }
 
+    /**
+     * @param reviewId 조회할 리뷰 ID
+     * @param userId 조회하는 사용자 ID (null 가능)
+     * @return List<CommentResponse>
+     * @author uyh
+     * @created 2025-09-29
+     * @updated 2025-10-12
+     * 특정 리뷰의 모든 댓글을 조회
+     */
     @Override
-    public List<CommentResponse> getCommentsByReview(Integer reviewId) {
+    public List<CommentResponse> getCommentsByReview(Integer reviewId, String userId) {
         // 입력 검증
         if (reviewId == null || reviewId <= 0) {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
@@ -174,8 +183,8 @@ public class CommentService implements ICommentService {
             throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_DRAFT_REVIEW);
         }
         
-        log.info("[getCommentsByReview] reviewId: {}", reviewId);
-        return commentRepository.selectCommentsByReview(reviewId);
+        log.info("[getCommentsByReview] reviewId: {}, userId: {}", reviewId, userId);
+        return commentRepository.selectCommentsByReview(reviewId, userId);
     }
 
     @Override
