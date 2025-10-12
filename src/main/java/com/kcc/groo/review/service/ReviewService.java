@@ -1,5 +1,6 @@
 package com.kcc.groo.review.service;
 
+import com.kcc.groo.review.dao.ICommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.*;
 import com.kcc.groo.review.exception.ReviewErrorCode;
@@ -17,6 +18,7 @@ import java.util.List;
 public class ReviewService implements IReviewService {
 
     private final IReviewRepository reviewRepository;
+    private final ICommentRepository commentRepository;  // 추가
 
     @Transactional
     @Override
@@ -111,42 +113,39 @@ public class ReviewService implements IReviewService {
         if (reviewId == null || reviewId <= 0) {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
         }
-        
+
         ReviewResponse review = reviewRepository.selectReviewById(userId, reviewId);
-        
+
         // 리뷰 존재 확인
         if (review == null) {
             throw new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
         }
-        
+
         // 삭제된 리뷰 접근 제한
         if (!review.getStatus()) {
             throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_DELETED_REVIEW);
         }
-        
+
         // 임시저장 글 접근 제한
         if (review.getTemporary()) {
             if (userId == null || !review.getUserId().equals(userId)) {
                 throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_DRAFT_REVIEW);
             }
         }
-        
+
         // 비밀글 접근 제한
         if (review.getSecret()) {
             if (userId == null || !review.getUserId().equals(userId)) {
                 throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_SECRET_REVIEW);
             }
         }
-        
-        // ========== 추가 ==========
+
         // 작성자 여부 설정
         review.setIsOwner(userId != null && userId.equals(review.getUserId()));
-        
-        // 댓글 조회
-        if (review != null) {
-            review.setComments(reviewRepository.selectCommentsByReview(reviewId));
-        }
-        
+
+        // 댓글 조회 시 userId 전달 (isOwner 계산을 위해)
+        review.setComments(commentRepository.selectCommentsByReview(reviewId, userId));
+
         log.info("[getReview] reviewId: {}, userId: {}", reviewId, userId);
         return review;
     }
