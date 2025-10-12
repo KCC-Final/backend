@@ -1,3 +1,6 @@
+# @author uyh
+version: "3.8"
+
 services:
   # -----------------------------------------------------------------
   # MySQL 8.0
@@ -93,10 +96,9 @@ services:
     build: .
     container_name: groo-backend
     restart: unless-stopped
-    env_file:
-      - ./.env  # 다시 추가
     environment:
       TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: prod           # ✅ 배포 환경 프로파일
 
       # ✅ GitHub Secrets 값이 deploy.yml에서 주입될 부분
       MAIL_HOST: ${MAIL_HOST}
