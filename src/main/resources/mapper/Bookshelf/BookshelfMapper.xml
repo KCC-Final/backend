@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.bookshelf.dao.IBookshelfRepository">
+
+<resultMap id="bookshelfMap" type="com.kcc.groo.bookshelf.data.model.Bookshelf">
+        <id property="bookshelfId" column="bookshelf_id"/>
+        <result property="name" column="name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="userId" column="user_id"/>
+</resultMap>
+
+<insert id="createBookShelf" parameterType="com.kcc.groo.bookshelf.data.model.Bookshelf"
+useGeneratedKeys="true" keyProperty="bookshelfId">
+<![CDATA[
+INSERT INTO bookshelf (name, user_id) VALUES (#{name},#{userId})
+]]>
+</insert>
+
+<update id="updateBookShelf">
+<![CDATA[
+UPDATE bookshelf SET name=#{name}, updated_at= NOW()
+WHERE bookshelf_id = #{bookshelfId} AND user_id = #{userId}
+]]>
+</update>
+
+<delete id="deleteBookShelf">
+<![CDATA[
+DELETE FROM bookshelf WHERE user_id=#{userId} AND bookshelf_id=#{bookshelfId}
+]]>
+</delete>
+
+<select id="selectBookshelf" resultMap="bookshelfMap">
+<![CDATA[
+SELECT * FROM bookshelf WHERE bookshelf_id=#{bookshelfId} AND user_id = #{userId}
+]]>
+</select>
+
+<select id="BookshelfList" parameterType="string" resultMap="bookshelfMap">
+<![CDATA[
+SELECT * FROM bookshelf WHERE user_id=#{userId}
+]]>
+</select>
+
+<select id="checkExistsBookshelfByUserId" parameterType="string" resultType="int">
+<![CDATA[	
+SELECT COUNT(*) FROM bookshelf WHERE user_id=#{userId} AND name=#{name}
+]]>
+</select>
+
+<select id="BookshelfNameList" parameterType="string" resultMap="string">
+<![CDATA[
+SELECT name FROM bookshelf WHERE user_id=#{userId}
+]]>
+</select>
+
+
+</mapper>
