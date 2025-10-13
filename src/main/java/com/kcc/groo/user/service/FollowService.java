@@ -68,8 +68,7 @@ public class FollowService implements IFollowService {
 	@Override
 	public boolean removeFollow(String currentUserId, String targetUserId) {
 		if (!StringUtils.hasText(currentUserId)) {
-
-			throw new IllegalArgumentException("로그인된 사용자가 없습니다.");
+			throw new IllegalArgumentException("cannot found logged in user");
 		}
 
 		int deleted = followsRepository.deleteFollow(currentUserId, targetUserId);
