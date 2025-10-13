@@ -7,11 +7,13 @@
 
 	<!-- 댓글 작성 -->
 	<insert id="insertComment">
+		<![CDATA[
 		INSERT INTO review_comments (content, review_id, user_id, parent_id)
 		VALUES (
-		#{req.content},
-		#{reviewId},
-		#{userId},
+			#{req.content},
+			#{reviewId},
+			#{userId},
+		]]>
 		<choose>
 			<when test="req.parentId != null">
 				#{req.parentId}
@@ -20,79 +22,99 @@
 				NULL
 			</otherwise>
 		</choose>
+		<![CDATA[
 		)
+		]]>
 	</insert>
 
-	<!-- 부모 댓글 단건 조회 -->
-<!-- 댓글 단건 조회 -->
-<select id="selectCommentById" resultType="com.kcc.groo.review.data.dto.CommentResponse">
-    SELECT
-        comment_id AS commentId,
-        content AS content,
-        user_id AS userId,
-        created_at AS createdAt,
-        updated_at AS updatedAt,
-        parent_id AS parentId,
-        review_id AS reviewId
-    FROM review_comments
-    WHERE comment_id = #{commentId}
-</select>
+	<!-- 댓글 단건 조회 -->
+	<select id="selectCommentById"
+		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		<![CDATA[
+		SELECT
+			comment_id AS commentId,
+			content AS content,
+			user_id AS userId,
+			created_at AS createdAt,
+			updated_at AS updatedAt,
+			parent_id AS parentId,
+			review_id AS reviewId
+		FROM review_comments
+		WHERE comment_id = #{commentId}
+		]]>
+	</select>
 
 	<!-- 댓글 수정 -->
 	<update id="updateComment">
+		<![CDATA[
 		UPDATE review_comments
 		SET content = #{content},
-		updated_at = CURRENT_TIMESTAMP
+			updated_at = CURRENT_TIMESTAMP
 		WHERE comment_id = #{commentId}
 		AND user_id = #{userId}
+		]]>
 	</update>
+
 
 	<!-- 댓글 삭제 -->
 	<delete id="deleteComment">
+		<![CDATA[
 		DELETE FROM review_comments
-		WHERE comment_id =
-		#{commentId}
+		WHERE comment_id = #{commentId}
 		AND user_id = #{userId}
+		]]>
 	</delete>
 
 	<!-- 특정 리뷰의 댓글 조회 -->
 	<select id="selectCommentsByReview"
 		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		<![CDATA[
 		SELECT
-		c.comment_id AS commentId,
-		c.content AS content,
-		c.user_id AS userId,
-		c.created_at AS createdAt,
-		c.updated_at AS updatedAt,
-		c.parent_id AS parentId
+			c.comment_id AS commentId,
+			c.content AS content,
+			c.user_id AS userId,
+			c.created_at AS createdAt,
+			c.updated_at AS updatedAt,
+			c.parent_id AS parentId,
+		]]>
+		<choose>
+			<when test="userId != null">
+				(c.user_id = #{userId}) AS isOwner
+			</when>
+			<otherwise>
+				FALSE AS isOwner
+			</otherwise>
+		</choose>
+		<![CDATA[
 		FROM review_comments c
-		JOIN reviews r ON c.review_id =
-		r.review_id
+		JOIN reviews r ON c.review_id = r.review_id
 		WHERE c.review_id = #{reviewId}
-		AND r.status = TRUE   <!-- 삭제된 리뷰의 댓글은 노출 안 함 -->
+		AND r.status = TRUE
 		ORDER BY c.created_at ASC
+		]]>
 	</select>
 
 	<!-- 내가 쓴 모든 댓글 조회 -->
 	<select id="selectCommentsByUser"
 		resultType="com.kcc.groo.review.data.dto.CommentResponse">
+		<![CDATA[
 		SELECT
-		c.comment_id AS commentId,
-		c.content AS content,
-		c.user_id AS userId,
-		c.review_id AS reviewId,
-		CASE
-		WHEN r.status = TRUE THEN r.review_title
-		ELSE '삭제된 게시글입니다'
-		END AS reviewTitle,
-		c.created_at AS createdAt,
-		c.updated_at AS updatedAt,
-		c.parent_id AS parentId
+			c.comment_id AS commentId,
+			c.content AS content,
+			c.user_id AS userId,
+			c.review_id AS reviewId,
+			CASE
+				WHEN r.status = TRUE THEN r.review_title
+				ELSE '삭제된 게시글입니다'
+			END AS reviewTitle,
+			c.created_at AS createdAt,
+			c.updated_at AS updatedAt,
+			c.parent_id AS parentId
 		FROM review_comments c
-		JOIN reviews r ON c.review_id =
-		r.review_id
+		JOIN reviews r ON c.review_id = r.review_id
 		WHERE c.user_id = #{userId}
 		ORDER BY c.created_at DESC
+		]]>
 	</select>
 
 </mapper>

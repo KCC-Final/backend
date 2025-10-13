@@ -32,4 +32,7 @@ public class CommentResponse {
     @Schema(description = "댓글이 달린 독후감 제목")
     private String reviewTitle;
     
+    @Schema(description = "본인이 작성한 댓글인지 확인")
+    private Boolean isOwner;  // 추가
+
 }

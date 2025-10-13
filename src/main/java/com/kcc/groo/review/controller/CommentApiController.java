@@ -80,16 +80,20 @@ public class CommentApiController {
 
     /**
      * @param reviewId 조회할 리뷰 ID
-     * @return ResponseEntity<List<CommentResponse>>
+     * @param userId 조회하는 사용자 ID (null 가능)
+     * @return List<CommentResponse>
      * @author uyh
      * @created 2025-09-29
-     * 특정 리뷰의 모든 댓글을 조회
+     * @updated 2025-10-12
+     * 특정 리뷰의 모든 댓글을 조회 (isOwner 필드 추가)
      */
     @Operation(summary = "특정 리뷰의 댓글 조회", description = "리뷰 ID로 댓글을 조회합니다.")
     @GetMapping("/review/{reviewId}")
     public ResponseEntity<List<CommentResponse>> getCommentsByReview(
-            @PathVariable("reviewId") Integer reviewId) {
-        return ResponseEntity.ok(commentService.getCommentsByReview(reviewId));
+            @PathVariable("reviewId") Integer reviewId,
+            Principal principal) {
+        String userId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(commentService.getCommentsByReview(reviewId, userId));
     }
 
     /**

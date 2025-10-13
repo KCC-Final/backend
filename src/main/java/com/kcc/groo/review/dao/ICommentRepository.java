@@ -49,12 +49,14 @@ public interface ICommentRepository {
 
     /**
      * @param reviewId 조회할 리뷰 ID
+     * @param userId 조회하는 사용자 ID (null 가능)
      * @return List<CommentResponse>
      * @author uyh
      * @created 2025-09-29
      * 특정 리뷰의 모든 댓글을 조회
      */
-    List<CommentResponse> selectCommentsByReview(@Param("reviewId") Integer reviewId);
+    List<CommentResponse> selectCommentsByReview(@Param("reviewId") Integer reviewId,
+                                                 @Param("userId") String userId);
 
     /**
      * @param userId 댓글 작성자 ID
