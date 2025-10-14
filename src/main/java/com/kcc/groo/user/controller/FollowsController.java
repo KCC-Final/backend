@@ -166,8 +166,61 @@ public class FollowsController {
         String accessToken = jwtTokenProvider.resolveAccessToken(request);
         String userId = jwtTokenProvider.getUserId(accessToken);
 
-        int countfollowing = followService.getCountFollower(userId);
+        int countfollowing = followService.getCountFollowing(userId);
         
         return ResponseEntity.ok(new CommonResponse<>("get following Count", countfollowing));
     }
+    
+    /**
+     * @param userId 조회할 대상 유저 ID
+     * @return
+     * @author uyh
+     * @created 2025-10-14
+     * 특정 유저의 팔로워 수 카운트
+     */
+    @GetMapping("/{userId}/followers-count")  // /users 제거
+    public ResponseEntity<CommonResponse<?>> getUserFollowerCount(@PathVariable("userId") String userId) {
+        int countFollowers = followService.getCountFollower(userId);
+        return ResponseEntity.ok(new CommonResponse<>("get user follower count", countFollowers));
+    }
+
+    /**
+     * @param userId 조회할 대상 유저 ID
+     * @return
+     * @author uyh
+     * @created 2025-10-14
+     * 특정 유저의 팔로잉 수 카운트
+     */
+    @GetMapping("/{userId}/following-count")  // /users 제거
+    public ResponseEntity<CommonResponse<?>> getUserFollowingCount(@PathVariable("userId") String userId) {
+        int countFollowing = followService.getCountFollowing(userId);
+        return ResponseEntity.ok(new CommonResponse<>("get user following count", countFollowing));
+    }
+    
+    /**
+     * @param userId 조회할 대상 유저 ID
+     * @return
+     * @author uyh
+     * @created 2025-10-14
+     * 특정 유저의 팔로워 리스트 조회
+     */
+    @GetMapping("/{userId}/followers")
+    public ResponseEntity<CommonResponse<?>> getUserFollowerList(@PathVariable("userId") String userId) {
+        List<FollowUserInfoDTO> followerList = followService.getFollowerList(userId);
+        return ResponseEntity.ok(new CommonResponse<>("User follower list", followerList));
+    }
+
+    /**
+     * @param userId 조회할 대상 유저 ID
+     * @return
+     * @author uyh
+     * @created 2025-10-14
+     * 특정 유저의 팔로잉 리스트 조회
+     */
+    @GetMapping("/{userId}/following")
+    public ResponseEntity<CommonResponse<?>> getUserFollowingList(@PathVariable("userId") String userId) {
+        List<FollowUserInfoDTO> followingList = followService.getFollowingList(userId);
+        return ResponseEntity.ok(new CommonResponse<>("User following list", followingList));
+    }
+    
 }

@@ -451,7 +451,15 @@ public class ReviewService implements IReviewService {
             throw new ReviewException(ReviewErrorCode.UNAUTHORIZED_ACCESS);
         }
     }
-    
-    
+
+    @Override
+    public List<ReviewResponse> getReviewsByUserWithAccess(String currentUserId, String targetUserId) {
+        return reviewRepository.selectReviewsByUserWithAccess(currentUserId, targetUserId);
+    }
+
+    @Override
+    public List<ReviewResponse> getLikedReviewsByUser(String currentUserId, String targetUserId) {
+        return reviewRepository.selectLikedReviewsByUser(currentUserId, targetUserId);
+    }
     
 }
