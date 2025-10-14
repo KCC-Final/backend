@@ -2,6 +2,8 @@ package com.kcc.groo.user.service;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.kcc.groo.user.data.dto.FollowRequest;
 import com.kcc.groo.user.data.dto.FollowResponse;
 import com.kcc.groo.user.data.dto.FollowUserInfoDTO;
@@ -55,5 +57,23 @@ public interface IFollowService {
 	 * 팔로워 리스트
      */
     List<FollowUserInfoDTO> getFollowerList(String userId);
+	
+    /**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-14
+	 * 팔로워 수 카운트
+	 */
+    int getCountFollower (String userId);
+    
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-14
+	 * 팔로잉 수 카운트
+	 */
+	int getCountFollowing (String userId);
 
 }

@@ -85,4 +85,16 @@ public class FollowService implements IFollowService {
 		return followsRepository.selectFollowerList(userId);
 	}
 
+	@Override
+	public int getCountFollower(String userId) {
+		// TODO Auto-generated method stub
+		return followsRepository.countFollower(userId);
+	}
+
+	@Override
+	public int getCountFollowing(String userId) {
+		// TODO Auto-generated method stub
+		return followsRepository.countFollowing(userId);
+	}
+
 }

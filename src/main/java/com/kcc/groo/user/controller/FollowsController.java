@@ -134,4 +134,40 @@ public class FollowsController {
         
         return ResponseEntity.ok(new CommonResponse<>("Follower list", followerList));
     }
+    
+    /**
+     * @param request
+     * @return
+	 * @author kys
+	 * @created 2025-10-14
+	 * 팔로워 수 카운트
+     */
+    @GetMapping("/followers-count")
+    public ResponseEntity<CommonResponse<?>> getFollowerCount (HttpServletRequest request) {
+    	
+        String accessToken = jwtTokenProvider.resolveAccessToken(request);
+        String userId = jwtTokenProvider.getUserId(accessToken);
+
+       int countFollowers = followService.getCountFollower(userId);
+        
+        return ResponseEntity.ok(new CommonResponse<>("get Follower Count", countFollowers));
+    }
+    
+    /**
+     * @param request
+     * @return
+	 * @author kys
+	 * @created 2025-10-14
+	 * 팔로잉 수 카운트
+     */
+    @GetMapping("/following-count")
+    public ResponseEntity<CommonResponse<?>> getfollowingCount (HttpServletRequest request) {
+    	
+        String accessToken = jwtTokenProvider.resolveAccessToken(request);
+        String userId = jwtTokenProvider.getUserId(accessToken);
+
+        int countfollowing = followService.getCountFollower(userId);
+        
+        return ResponseEntity.ok(new CommonResponse<>("get following Count", countfollowing));
+    }
 }

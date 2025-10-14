@@ -48,7 +48,7 @@ SELECT COUNT(*) FROM bookshelf WHERE user_id=#{userId} AND name=#{name}
 ]]>
 </select>
 
-<select id="BookshelfNameList" parameterType="string" resultMap="string">
+<select id="BookshelfNameList" parameterType="string" resultType="string">
 <![CDATA[
 SELECT name FROM bookshelf WHERE user_id=#{userId}
 ]]>

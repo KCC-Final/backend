@@ -82,5 +82,17 @@
 		WHERE f.follower = #{userId}
 		ORDER BY f.created_at DESC ]]>
 	</select>
+	
+	<select id="countFollower" parameterType="string" resultType="int">
+	<![CDATA[
+		SELECT count(follower) FROM follows WHERE followed=#{userId}
+	]]>
+	</select>
+
+	<select id="countFollowing" parameterType="string" resultType="int">
+	<![CDATA[	
+	SELECT count(followed) FROM follows WHERE follower=#{userId}
+	]]>
+	</select>
 
 </mapper>

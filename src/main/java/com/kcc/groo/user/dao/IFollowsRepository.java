@@ -91,4 +91,22 @@ public interface IFollowsRepository {
 	 * 팔로워 리스트 조회
 	 */
 	List<FollowUserInfoDTO> selectFollowerList(@Param("userId") String userId);
+	
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-14
+	 * 팔로워 수 카운트
+	 */
+	int countFollower (@Param("userId") String userId);
+	
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-14
+	 * 팔로잉 수 카운트
+	 */
+	int countFollowing (@Param("userId") String userId);
 }
