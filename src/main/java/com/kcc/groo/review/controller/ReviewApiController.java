@@ -285,5 +285,39 @@ public class ReviewApiController {
         String userId = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(reviewService.getReviewsByCategory(category, userId, limit));
     }
+
+    /**
+     * @param userId 조회할 사용자 ID
+     * @param principal 인증된 사용자 정보 (선택)
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author uyh
+     * @created 2025-10-13
+     * 특정 유저의 독후감을 조회 (본인이면 비밀글 포함, 타인이면 공개글만)
+     */
+    @Operation(summary = "특정 유저 독후감 조회", description = "특정 유저의 독후감을 조회합니다. 본인이면 비밀글도 포함되고, 타인이면 공개글만 조회됩니다.")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ReviewResponse>> getReviewsByUser(
+            @PathVariable("userId") String userId,
+            Principal principal) {
+        String currentUserId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getReviewsByUserWithAccess(currentUserId, userId));
+    }
+
+    /**
+     * @param userId 조회할 사용자 ID
+     * @param principal 인증된 사용자 정보 (선택)
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author uyh
+     * @created 2025-10-13
+     * 특정 유저가 좋아요한 독후감을 조회 (항상 공개글만)
+     */
+    @Operation(summary = "특정 유저가 좋아요한 독후감 조회", description = "특정 유저가 좋아요한 독후감을 조회합니다. 항상 공개글만 조회됩니다.")
+    @GetMapping("/user/{userId}/likes")
+    public ResponseEntity<List<ReviewResponse>> getLikedReviewsByUser(
+            @PathVariable("userId") String userId,
+            Principal principal) {
+        String currentUserId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getLikedReviewsByUser(currentUserId, userId));
+    }
     
 }

@@ -169,5 +169,24 @@ public interface IReviewService {
      * 특정 카테고리의 모든 공개 독후감을 조회
      */
     List<ReviewResponse> getReviewsByCategory(String category, String userId, int limit);
-    
+
+    /**
+     * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
+     * @param targetUserId 조회 대상 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-13
+     * 특정 유저의 독후감 조회 (본인이면 비밀글 포함, 타인이면 공개글만)
+     */
+    List<ReviewResponse> getReviewsByUserWithAccess(String currentUserId, String targetUserId);
+
+    /**
+     * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
+     * @param targetUserId 조회 대상 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-13
+     * 특정 유저가 좋아요한 독후감 조회 (항상 공개글만)
+     */
+    List<ReviewResponse> getLikedReviewsByUser(String currentUserId, String targetUserId);
 }

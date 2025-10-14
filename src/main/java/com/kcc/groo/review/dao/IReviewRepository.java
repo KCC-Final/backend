@@ -214,5 +214,27 @@ public interface IReviewRepository {
     List<ReviewResponse> selectReviewsByCategory(@Param("category") String category,
                                                  @Param("userId") String userId,
                                                  @Param("limit") int limit);
-    
+
+    /**
+     * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
+     * @param targetUserId 조회 대상 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-13
+     * 특정 유저의 독후감 조회 (본인이면 비밀글 포함, 타인이면 공개글만)
+     */
+    List<ReviewResponse> selectReviewsByUserWithAccess(@Param("currentUserId") String currentUserId,
+                                                       @Param("targetUserId") String targetUserId);
+
+    /**
+     * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
+     * @param targetUserId 조회 대상 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-13
+     * 특정 유저가 좋아요한 독후감 조회 (항상 공개글만)
+     */
+    List<ReviewResponse> selectLikedReviewsByUser(@Param("currentUserId") String currentUserId,
+                                                  @Param("targetUserId") String targetUserId);
+
 }
