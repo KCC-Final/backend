@@ -166,7 +166,7 @@ public class FollowsController {
         String accessToken = jwtTokenProvider.resolveAccessToken(request);
         String userId = jwtTokenProvider.getUserId(accessToken);
 
-        int countfollowing = followService.getCountFollower(userId);
+        int countfollowing = followService.getCountFollowing(userId);
         
         return ResponseEntity.ok(new CommonResponse<>("get following Count", countfollowing));
     }

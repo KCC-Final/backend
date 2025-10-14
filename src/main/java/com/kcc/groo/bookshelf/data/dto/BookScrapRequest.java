@@ -1,6 +1,4 @@
-package com.kcc.groo.bookshelf.data.model;
-
-import java.time.LocalDateTime;
+package com.kcc.groo.bookshelf.data.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,11 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookScrap {
+public class BookScrapRequest {
 	
 	private int bookshelfId;
 	private String ISBN;
-	private LocalDateTime createdAt;
-	private String userId;
 
 }

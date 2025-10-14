@@ -56,5 +56,7 @@ public interface IBookshelfRepository {
 	 * @return
 	 */
 	List<String> BookshelfNameList (@Param("userId") String userId);
+	
+	int checkExistsBookshelfIdByUserId (@Param("userId") String userId, @Param("bookshelfId") int bookshelfId);
 
 }

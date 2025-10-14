@@ -3,14 +3,12 @@ package com.kcc.groo.bookshelf.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.kcc.groo.bookshelf.dao.IBookshelfRepository;
 import com.kcc.groo.bookshelf.data.dto.BookshelfRequest;
 import com.kcc.groo.bookshelf.data.model.Bookshelf;
-import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.user.dao.IUsersRepository;
 
 @Service
