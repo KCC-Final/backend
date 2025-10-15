@@ -46,13 +46,14 @@ SELECT * FROM book WHERE bookshelf_id=#{bookshelfId} AND user_id = #{userId}
 </select>
 
 <delete id="deleteBooksByIsbnList" parameterType="map">
-    DELETE FROM book
+	DELETE FROM book
     WHERE user_id = #{userId}
       AND bookshelf_id = #{bookshelfId}
       AND ISBN IN
-      <foreach collection="isbnList" item="isbn" open="(" separator="," close=")">
+      <foreach item="isbn" collection="isbnList" open="(" separator="," close=")">
           #{isbn}
       </foreach>
 </delete>
+
 
 </mapper>

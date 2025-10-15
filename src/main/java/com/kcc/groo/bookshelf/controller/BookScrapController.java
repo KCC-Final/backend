@@ -1,7 +1,6 @@
 package com.kcc.groo.bookshelf.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kcc.groo.bookshelf.data.dto.BookScrapDeleteRequest;
 import com.kcc.groo.bookshelf.data.dto.BookScrapRequest;
 import com.kcc.groo.bookshelf.data.dto.getBookScrapInfo;
 import com.kcc.groo.bookshelf.data.model.BookScrap;
@@ -167,10 +167,13 @@ public class BookScrapController {
 	 * 도서 스크랩 다중 삭제
 	 */
 	@DeleteMapping("/{bookshelfId}")
-	public ResponseEntity<CommonResponse<?>> deleteSelectedBooks(@PathVariable("bookshelfId") int bookshelfId, @RequestBody Map<String, List<String>> requestBody,HttpServletRequest request) {
+	public ResponseEntity<CommonResponse<?>> deleteSelectedBooks(@PathVariable("bookshelfId") int bookshelfId, @RequestBody BookScrapDeleteRequest bookScrapDeleteRequest,HttpServletRequest request) {
 
-	    String userId = (String) request.getAttribute("userId");
-	    List<String> isbnList = requestBody.get("isbnList");
+		// get userId
+		String accessToken = jwtTokenProvider.resolveAccessToken(request);
+		String userId = jwtTokenProvider.getUserId(accessToken);
+		
+	    List<String> isbnList = bookScrapDeleteRequest.getIsbnList();
 
 	    if (isbnList == null || isbnList.isEmpty()) {
 	        return ResponseEntity.badRequest()
