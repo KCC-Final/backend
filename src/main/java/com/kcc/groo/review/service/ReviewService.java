@@ -351,7 +351,7 @@ public class ReviewService implements IReviewService {
     }
     
     // ============ Private Validation Methods ============
-    
+
     /**
      * 리뷰 생성 요청 검증
      */
@@ -359,48 +359,56 @@ public class ReviewService implements IReviewService {
         if (request == null) {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
         }
-        
+
         // ISBN 검증
         if (request.getIsbn() == null || request.getIsbn().trim().isEmpty()) {
             throw new ReviewException(ReviewErrorCode.INVALID_ISBN);
         }
-        
+
         // ISBN 형식 검증 (10자리 또는 13자리)
         String isbn = request.getIsbn().replaceAll("-", "");
         if (!isbn.matches("^\\d{10}(\\d{3})?$")) {
             throw new ReviewException(ReviewErrorCode.INVALID_ISBN, "ISBN must be 10 or 13 digits");
         }
-        
+
         // 제목 검증
         if (request.getReviewTitle() == null || request.getReviewTitle().trim().isEmpty()) {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
         }
-        
-        // 👇 제목 길이 검증 추가
+
         if (request.getReviewTitle().trim().length() < 2) {
             throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
         }
-        
+
         if (request.getReviewTitle().length() > 200) {
             throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
         }
-        
+
         // 내용 검증
         if (request.getReviewContent() == null || request.getReviewContent().trim().isEmpty()) {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
         }
-        
-        // 👇 내용 길이 검증 추가
-        String contentText = request.getReviewContent().replaceAll("<[^>]*>", "").trim();
+
+        // 1. DB 저장 크기 검증 (HTML 포함 원본)
+        if (request.getReviewContent().length() > 30000) {
+            throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_DB_SIZE_EXCEEDED);
+        }
+
+        // 2. 순수 텍스트 길이 검증 (HTML 태그, 공백 제거)
+        String contentText = request.getReviewContent()
+                .replaceAll("<[^>]*>", "")
+                .replaceAll("\\s", "")
+                .trim();
+
         if (contentText.length() < 10) {
             throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
         }
-        
-        if (request.getReviewContent().length() > 10000) {
+
+        if (contentText.length() > 10000) {
             throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
         }
     }
-    
+
     /**
      * 리뷰 수정 요청 검증
      */
@@ -408,36 +416,44 @@ public class ReviewService implements IReviewService {
         if (request == null) {
             throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
         }
-        
+
         // 제목이 있으면 검증
         if (request.getReviewTitle() != null) {
             if (request.getReviewTitle().trim().isEmpty()) {
                 throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
             }
-            
-            // 👇 제목 길이 검증 추가
+
             if (request.getReviewTitle().trim().length() < 2) {
                 throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
             }
-            
+
             if (request.getReviewTitle().length() > 200) {
                 throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
             }
         }
-        
+
         // 내용이 있으면 검증
         if (request.getReviewContent() != null) {
             if (request.getReviewContent().trim().isEmpty()) {
                 throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
             }
-            
-            // 👇 내용 길이 검증 추가
-            String contentText = request.getReviewContent().replaceAll("<[^>]*>", "").trim();
+
+            // 1. DB 저장 크기 검증 (HTML 포함 원본)
+            if (request.getReviewContent().length() > 30000) {
+                throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_DB_SIZE_EXCEEDED);
+            }
+
+            // 2. 순수 텍스트 길이 검증 (HTML 태그, 공백 제거)
+            String contentText = request.getReviewContent()
+                    .replaceAll("<[^>]*>", "")
+                    .replaceAll("\\s", "")
+                    .trim();
+
             if (contentText.length() < 10) {
                 throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
             }
-            
-            if (request.getReviewContent().length() > 10000) {
+
+            if (contentText.length() > 10000) {
                 throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
             }
         }
