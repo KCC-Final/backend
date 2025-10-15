@@ -27,7 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 
 @RestController
-@RequestMapping("api/v1/bookshelves")
+@RequestMapping("api/v1/book/scrap")
 public class BookScrapController {
 	
 	@Autowired
@@ -66,7 +66,6 @@ public class BookScrapController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(new CommonResponse<>("createBookScrap success", getBookScrapInfo));
 	}
 	
-	//get
 	/**
 	 * @param bookshelfId
 	 * @param ISBN
