@@ -68,7 +68,8 @@ public enum ReviewErrorCode {
     REVIEW_CONTENT_TOO_LONG("RVW-603", "독후감 내용은 10,000자를 초과할 수 없습니다", HttpStatus.BAD_REQUEST),
     COMMENT_CONTENT_TOO_LONG("RVW-604", "댓글은 500자를 초과할 수 없습니다", HttpStatus.BAD_REQUEST),
     COMMENT_CONTENT_TOO_SHORT("RVW-605", "댓글은 최소 1자 이상이어야 합니다", HttpStatus.BAD_REQUEST),
-    
+    REVIEW_CONTENT_DB_SIZE_EXCEEDED("RVW-606", "독후감 내용이 너무 깁니다. HTML 포함 30,000자를 초과할 수 없습니다", HttpStatus.BAD_REQUEST),  // 추가
+
     // 900~999: 서버 오류 (500 Internal Server Error)
     DATABASE_ERROR("RVW-900", "데이터베이스 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
     REVIEW_CREATE_FAILED("RVW-901", "독후감 작성에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
