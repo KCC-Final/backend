@@ -54,5 +54,11 @@ SELECT name FROM bookshelf WHERE user_id=#{userId}
 ]]>
 </select>
 
+<select id="checkExistsBookshelfIdByUserId" resultType="int">
+<![CDATA[	
+SELECT COUNT(*) FROM bookshelf WHERE user_id=#{userId} AND bookshelf_id=#{bookshelfId}
+]]>
+</select>
+
 
 </mapper>

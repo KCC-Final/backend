@@ -37,6 +37,7 @@ public class BookshelfController {
 	 * @return
 	 * @author kys
 	 * @created 2025-10-13
+	 * 내 서재 생성
 	 */
 	@PostMapping
 	public ResponseEntity<CommonResponse<?>> createBookshelf(@RequestBody BookshelfRequest bookshelfRequest,
@@ -62,6 +63,7 @@ public class BookshelfController {
 	 * @return
 	 * @author kys
 	 * @created 2025-10-13
+	 * 내 서재 상세
 	 */
 	@GetMapping("/{bookshelfId}")
 	public ResponseEntity<CommonResponse<?>> getBookshelf(@PathVariable("bookshelfId") int bookshelfId,
@@ -82,6 +84,7 @@ public class BookshelfController {
 	 * @return
 	 * @author kys
 	 * @created 2025-10-13
+	 * 내 서재 목록
 	 */
 	@GetMapping ("/list")
 	public ResponseEntity<CommonResponse<?>> getBookshelfList (HttpServletRequest request) {
@@ -103,6 +106,7 @@ public class BookshelfController {
 	 * @return
 	 * @author kys
 	 * @created 2025-10-13
+	 * 내 서재 수정
 	 */
 	@PutMapping("/{bookshelfId}")
 	public ResponseEntity<CommonResponse<?>> updateBookshelf (@PathVariable("bookshelfId") int bookshelfId, @RequestBody BookshelfRequest bookshelfRequest,
@@ -134,6 +138,7 @@ public class BookshelfController {
 	 * @return
 	 * @author kys
 	 * @created 2025-10-13
+	 * 내 서재 삭제
 	 */
 	@DeleteMapping("/{bookshelfId}")
 	public ResponseEntity<CommonResponse<?>> deleteBookshelf (@PathVariable("bookshelfId") int bookshelfId, HttpServletRequest request) {

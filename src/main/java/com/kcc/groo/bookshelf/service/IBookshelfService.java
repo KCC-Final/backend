@@ -2,8 +2,6 @@ package com.kcc.groo.bookshelf.service;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Param;
-
 import com.kcc.groo.bookshelf.data.dto.BookshelfRequest;
 import com.kcc.groo.bookshelf.data.model.Bookshelf;
 
