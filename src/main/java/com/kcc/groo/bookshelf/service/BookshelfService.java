@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.kcc.groo.bookshelf.dao.IBookScrapRepository;
 import com.kcc.groo.bookshelf.dao.IBookshelfRepository;
 import com.kcc.groo.bookshelf.data.dto.BookshelfRequest;
 import com.kcc.groo.bookshelf.data.model.Bookshelf;
@@ -18,6 +19,8 @@ public class BookshelfService implements IBookshelfService {
 	IBookshelfRepository bookshelfRepository;
 	@Autowired
 	IUsersRepository usersRepository;
+	@Autowired
+	IBookScrapRepository bookScrapRepository;
 
 	@Override
 	public Bookshelf insertBookshelf(String userId, BookshelfRequest bookshelfRequest) {

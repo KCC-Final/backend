@@ -6,6 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author kys
+ * @created 2025-10-13
+ * Bookshelf VO
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

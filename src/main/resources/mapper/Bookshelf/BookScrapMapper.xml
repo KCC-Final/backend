@@ -11,7 +11,7 @@
 
 <insert id="createBookScrap" parameterType="com.kcc.groo.bookshelf.data.model.BookScrap">
 <![CDATA[
-INSERT INTO book (bookshelf_id, ISBN) VALUES (#{bookshelfId},#{ISBN})
+INSERT INTO book (bookshelf_id, ISBN, user_id) VALUES (#{bookshelfId},#{ISBN}, #{userId})
 ]]>
 </insert>
 
@@ -29,13 +29,13 @@ SELECT * FROM book WHERE ISBN=#{ISBN} AND user_id = #{userId}
 
 <select id="BookScrapList" resultMap="bookScrapMap">
 <![CDATA[
-SELECT * FROM book WHERE ISBN=#{ISBN} AND user_id = #{userId}
+SELECT * FROM book WHERE bookshelf_id=#{bookshelfId} AND user_id = #{userId}
 ]]>
 </select>
 
 <select id="checkExistsBookByUserIdAndbookshelfId" resultType="int">
 <![CDATA[
-	SELECT count(ISBN) from book WHERE user_id=#{userId} AND bookshelf_id=#{bookshelfId}
+	SELECT count(ISBN) from book WHERE user_id=#{userId} AND bookshelf_id=#{bookshelfId} AND ISBN = #{ISBN}
 ]]>
 </select>
 
@@ -44,4 +44,15 @@ SELECT * FROM book WHERE ISBN=#{ISBN} AND user_id = #{userId}
 	SELECT count(*) FROM book WHERE bookshelf_id=#{bookshelfId} AND user_id=#{userId}
 ]]>
 </select>
+
+<delete id="deleteBooksByIsbnList" parameterType="map">
+    DELETE FROM book
+    WHERE user_id = #{userId}
+      AND bookshelf_id = #{bookshelfId}
+      AND ISBN IN
+      <foreach collection="isbnList" item="isbn" open="(" separator="," close=")">
+          #{isbn}
+      </foreach>
+</delete>
+
 </mapper>

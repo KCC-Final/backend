@@ -99,4 +99,10 @@ public class BookScrapService implements IBookScrapService {
 		return bookScrapRepository.countBookScrap(userId, bookshelfId);
 	}
 
+	@Override
+	public int deleteBookByIsbnList(String userId, int bookshelfId, List<String> isbnList) {
+		// TODO Auto-generated method stub
+		return bookScrapRepository.deleteBooksByIsbnList(userId, bookshelfId, isbnList);
+	}
+
 }

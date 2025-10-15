@@ -68,5 +68,16 @@ public interface IBookScrapService {
 	 * 스크랩된 도서 수 확인
 	 */
 	int countBookScrap (String userId, int bookshelfId);
+	
+	/**
+	 * @param userId
+	 * @param bookshelfId
+	 * @param isbnList
+	 * @return
+	 * @author kys
+	 * @created 2025-10-15
+	 * 선택된 도서 삭제
+	 */
+	int deleteBookByIsbnList (String userId, int bookshelfId, List<String> isbnList);
 
 }

@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 /**
  * @author kys
- * @created 2025-10-14
+ * @created 2025-10-15
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookScrapRequest {
+public class getBookScrapInfo {
 	
 	private int bookshelfId;
 	private String ISBN;
