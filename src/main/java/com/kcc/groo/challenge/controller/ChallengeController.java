@@ -1,6 +1,7 @@
 package com.kcc.groo.challenge.controller;
 
 import com.kcc.groo.challenge.data.dto.UserBadgeResponse;
+import com.kcc.groo.challenge.data.dto.UserBadgeStatusResponse;
 import com.kcc.groo.challenge.service.IChallengeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,13 @@ public class ChallengeController {
     @GetMapping("/users/{userId}/badges")
     public ResponseEntity<List<UserBadgeResponse>> getUserBadges(@PathVariable String userId) {
         List<UserBadgeResponse> badges = challengeService.getBadgesByUserId(userId);
+        return ResponseEntity.ok(badges);
+    }
+
+    @Operation(summary = "특정 사용자의 전체 뱃지 목록과 획득 상태 조회", description = "전체 뱃지 목록을 조회하고, 사용자가 획득한 뱃지인지 여부와 획득 날짜를 함께 반환합니다.")
+    @GetMapping("/users/{userId}/badges/all")
+    public ResponseEntity<List<UserBadgeStatusResponse>> getAllBadgesWithUserStatus(@PathVariable String userId) {
+        List<UserBadgeStatusResponse> badges = challengeService.getAllBadgesWithUserStatus(userId);
         return ResponseEntity.ok(badges);
     }
 }

@@ -1,6 +1,8 @@
 package com.kcc.groo.challenge.service;
 
 import com.kcc.groo.challenge.data.dto.UserBadgeResponse;
+import com.kcc.groo.challenge.data.dto.UserBadgeStatusResponse;
+
 import java.util.List;
 
 /**
@@ -30,4 +32,12 @@ public interface IChallengeService {
      * @author uyh
      */
     List<UserBadgeResponse> getBadgesByUserId(String userId);
+
+    /**
+     * 특정 사용자의 전체 뱃지 목록과 획득 상태를 함께 조회
+     * @param userId 사용자 ID
+     * @return 전체 뱃지 정보 및 획득 상태 목록
+     * @author uyh
+     */
+    List<UserBadgeStatusResponse> getAllBadgesWithUserStatus(String userId);
 }
