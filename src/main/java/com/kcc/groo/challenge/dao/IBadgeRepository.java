@@ -1,5 +1,6 @@
 package com.kcc.groo.challenge.dao;
 
+import com.kcc.groo.challenge.data.dto.UserBadgeResponse;
 import com.kcc.groo.challenge.data.model.Badge;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -28,4 +29,12 @@ public interface IBadgeRepository {
      * @author uyh
      */
     Badge findBadgeByName(@Param("badgeName") String badgeName);
+
+    /**
+     * 특정 사용자가 획득한 모든 뱃지의 상세 정보를 조회
+     * @param userId 사용자 ID
+     * @return List<UserBadgeResponse> 뱃지 정보 목록
+     * @author uyh
+     */
+    List<UserBadgeResponse> findBadgesByUserId(@Param("userId") String userId);
 }

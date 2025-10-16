@@ -2,6 +2,7 @@ package com.kcc.groo.challenge.service;
 
 import com.kcc.groo.bookshelf.dao.IBookScrapRepository;
 import com.kcc.groo.challenge.dao.IBadgeRepository;
+import com.kcc.groo.challenge.data.dto.UserBadgeResponse;
 import com.kcc.groo.challenge.data.model.Badge;
 import com.kcc.groo.review.dao.ICommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
@@ -153,5 +154,11 @@ public class ChallengeService implements IChallengeService {
         } catch (Exception e) {
             log.error("Error checking pioneer badge for userId: {} and isbn: {}", userId, isbn, e);
         }
+    }
+
+    @Override
+    public List<UserBadgeResponse> getBadgesByUserId(String userId) {
+        log.info("Getting badges for user: {}", userId);
+        return badgeRepository.findBadgesByUserId(userId);
     }
 }

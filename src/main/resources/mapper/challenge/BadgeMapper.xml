@@ -56,4 +56,20 @@
         WHERE badge_name = #{badgeName}
     </select>
 
+    <select id="findBadgesByUserId" parameterType="String" resultType="com.kcc.groo.challenge.data.dto.UserBadgeResponse">
+        SELECT
+            b.badge_id AS badgeId,
+            b.badge_name AS badgeName,
+            b.badge_description AS badgeDescription,
+            c.succeeded_at AS succeededAt
+        FROM
+            badges b
+        JOIN
+            challenge c ON b.badge_id = c.badge_id
+        WHERE
+            c.user_id = #{userId}
+        ORDER BY
+            c.succeeded_at DESC
+    </select>
+
 </mapper>

@@ -1,5 +1,8 @@
 package com.kcc.groo.challenge.service;
 
+import com.kcc.groo.challenge.data.dto.UserBadgeResponse;
+import java.util.List;
+
 /**
  * 사용자의 활동에 따라 도전과제를 확인하고 뱃지를 부여하는 서비스 인터페이스.
  * @author uyh
@@ -19,4 +22,12 @@ public interface IChallengeService {
      * @author uyh
      */
     void checkPioneerBadge(String userId, String isbn);
+
+    /**
+     * 특정 사용자의 뱃지 획득 목록 조회
+     * @param userId 사용자 ID
+     * @return 획득한 뱃지 상세 정보 목록
+     * @author uyh
+     */
+    List<UserBadgeResponse> getBadgesByUserId(String userId);
 }
