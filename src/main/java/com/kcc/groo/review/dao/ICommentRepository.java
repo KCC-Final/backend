@@ -75,4 +75,13 @@ public interface ICommentRepository {
      * 부모 댓글 단건 조회
      */
     CommentResponse selectCommentById(@Param("commentId") Integer commentId);
+
+    /**
+     * @param userId 댓글 작성자 ID
+     * @return int
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 사용자가 작성한 모든 댓글 수를 조회
+     */
+    int countCommentsByUserId(@Param("userId") String userId);
 }

@@ -237,4 +237,22 @@ public interface IReviewRepository {
     List<ReviewResponse> selectLikedReviewsByUser(@Param("currentUserId") String currentUserId,
                                                   @Param("targetUserId") String targetUserId);
 
+    /**
+     * @param userId 조회할 사용자 ID
+     * @return int
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 사용자가 누른 좋아요 수를 조회
+     */
+    int countLikesByUserId(@Param("userId") String userId);
+
+    /**
+     * @param isbn 조회할 ISBN
+     * @return int
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 ISBN으로 작성된 독후감 수를 조회
+     */
+    int countReviewsByIsbn(@Param("isbn") String isbn);
+
 }

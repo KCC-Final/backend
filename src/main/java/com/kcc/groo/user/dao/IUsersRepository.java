@@ -105,5 +105,13 @@ public interface IUsersRepository {
 	 */
 	int updateUser (Users user);
 
+	/**
+	 * @return 모든 활성 사용자의 ID 목록
+	 * @author uyh
+	 * @created 2025-10-16
+	 * 뱃지 재계산을 위해 모든 활성 사용자의 ID만 조회
+	 */
+	List<String> findAllUserIds();
+
 	
 }

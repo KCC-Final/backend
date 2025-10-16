@@ -508,4 +508,16 @@
     ]]>
     </select>
 
+<select id="countLikesByUserId" parameterType="String" resultType="int">
+    <![CDATA[
+    SELECT COUNT(*) FROM likes WHERE user_id = #{userId}
+    ]]>
+</select>
+
+<select id="countReviewsByIsbn" parameterType="String" resultType="int">
+    <![CDATA[
+    SELECT COUNT(*) FROM reviews WHERE ISBN = #{isbn} AND temporary = 0
+    ]]>
+</select>
+
 </mapper>

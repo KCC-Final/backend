@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.challenge.dao.IBadgeRepository">
+
+    <select id="findAllBadges" resultType="com.kcc.groo.challenge.data.model.Badge">
+        SELECT badge_id, badge_name, badge_description, badge_conditions
+        FROM badges
+    </select>
+
+    <select id="findBadgeIdsByUserId" parameterType="String" resultType="int">
+        SELECT badge_id
+        FROM challenge
+        WHERE user_id = #{userId}
+    </select>
+
+    <insert id="awardBadgeToUser">
+        INSERT IGNORE INTO challenge (user_id, badge_id, succeeded_at)
+        VALUES (#{userId}, #{badgeId}, NOW())
+    </insert>
+
+    <select id="countReviewsByUserId" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE user_id = #{userId} AND temporary = 0
+    </select>
+
+    <select id="countDistinctCategoriesByUserId" parameterType="String" resultType="int">
+        SELECT COUNT(DISTINCT category)
+        FROM reviews
+        WHERE user_id = #{userId} AND temporary = 0
+    </select>
+    
+    <select id="getMaxReviewCountForSingleCategory" parameterType="String" resultType="Integer">
+        SELECT COUNT(*) as review_count
+        FROM reviews
+        WHERE user_id = #{userId} AND temporary = 0
+        GROUP BY category
+        ORDER BY review_count DESC
+        LIMIT 1
+    </select>
+
+    <select id="getCategoryCountWithMinReviews" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+            SELECT category
+            FROM reviews
+            WHERE user_id = #{userId} AND temporary = 0
+            GROUP BY category
+            HAVING COUNT(*) >= #{minReviewCount}
+        ) as category_counts
+    </select>
+
+    <select id="findBadgeByName" parameterType="String" resultType="com.kcc.groo.challenge.data.model.Badge">
+        SELECT badge_id, badge_name, badge_description, badge_conditions
+        FROM badges
+        WHERE badge_name = #{badgeName}
+    </select>
+
+</mapper>
