@@ -1,9 +1,9 @@
 package com.kcc.groo.dashboard.exception;
 
 /**
+ * Dashboard 도메인에서 발생하는 비즈니스 예외
  * @author uyh
  * @created 2025-01-16
- * Dashboard 커스텀 예외
  */
 public class DashboardException extends RuntimeException {
 
@@ -14,16 +14,12 @@ public class DashboardException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public DashboardException(DashboardErrorCode errorCode, String customMessage) {
-        super(customMessage);
+    public DashboardException(DashboardErrorCode errorCode, String additionalMessage) {
+        super(errorCode.getMessage() + " : " + additionalMessage);
         this.errorCode = errorCode;
     }
 
     public DashboardErrorCode getErrorCode() {
         return errorCode;
-    }
-
-    public String getCode() {
-        return errorCode.getCode();
     }
 }

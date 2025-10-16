@@ -8,16 +8,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.review.exception.ReviewException;
+import com.kcc.groo.dashboard.exception.DashboardException;
 
 import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-	
-	 /**
-	 * @author kys
-	 * @since 2025-09-23
+
+    /**
+     * @author kys
+     * @since 2025-09-23
      * Validation 실패
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -31,7 +32,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author kys
-	 * @since 2025-09-23
+     * @since 2025-09-23
      * IllegalArgumentException
      */
     @ExceptionHandler(IllegalArgumentException.class)
@@ -44,7 +45,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author kys
-	 * @since 2025-09-23
+     * @since 2025-09-23
      * 인증/인가 관련 예외
      */
     @ExceptionHandler(SecurityException.class)
@@ -57,7 +58,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author kys
-	 * @since 2025-09-23
+     * @since 2025-09-23
      * 그 외 모든 예외 처리
      */
     @ExceptionHandler(Exception.class)
@@ -67,7 +68,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new CommonResponse<>("Internal server error", null));
     }
-    
+
     /**
      * @author uyh
      * @since 2025-10-02
@@ -75,14 +76,30 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ReviewException.class)
     public ResponseEntity<CommonResponse<?>> handleReviewException(ReviewException e) {
-        log.error("[ReviewException] ErrorCode: {}, Message: {}", 
-                  e.getErrorCode().getCode(), e.getMessage());
+        log.error("[ReviewException] ErrorCode: {}, Message: {}",
+                e.getErrorCode().getCode(), e.getMessage());
         return ResponseEntity
                 .status(e.getErrorCode().getHttpStatus())
                 .body(new CommonResponse<>(
-                    e.getErrorCode().getCode() + " - " + e.getMessage(), 
-                    null
+                        e.getErrorCode().getCode() + " - " + e.getMessage(),
+                        null
                 ));
     }
 
+    /**
+     * @author uyh
+     * @since 2025-01-16
+     * Dashboard 도메인 비즈니스 예외 처리
+     */
+    @ExceptionHandler(DashboardException.class)
+    public ResponseEntity<CommonResponse<?>> handleDashboardException(DashboardException e) {
+        log.error("[DashboardException] ErrorCode: {}, Message: {}",
+                e.getErrorCode().getCode(), e.getMessage());
+        return ResponseEntity
+                .status(e.getErrorCode().getHttpStatus())
+                .body(new CommonResponse<>(
+                        e.getErrorCode().getCode() + " - " + e.getMessage(),
+                        null
+                ));
+    }
 }
