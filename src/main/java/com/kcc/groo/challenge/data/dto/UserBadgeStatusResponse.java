@@ -9,6 +9,11 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 사용자의 뱃지 획득 상태를 포함한 뱃지 정보 응답 DTO
+ * @author uyh
+ * @created 2025-10-16
+ */
 @Getter
 @Builder
 @NoArgsConstructor
@@ -37,6 +42,16 @@ public class UserBadgeStatusResponse {
     @Schema(description = "뱃지 획득 날짜 (획득하지 않았을 경우 null)", example = "2025-10-16T10:30:00")
     private LocalDateTime acquiredDate;
 
+    /**
+     * @param badge 뱃지 엔티티
+     * @param currentProgress 현재 진행도
+     * @param acquired 획득 여부
+     * @param acquiredDate 획득 날짜
+     * @return UserBadgeStatusResponse
+     * @author uyh
+     * @created 2025-10-16
+     * Badge 엔티티로부터 UserBadgeStatusResponse DTO를 생성
+     */
     public static UserBadgeStatusResponse from(Badge badge, Integer currentProgress, boolean acquired, LocalDateTime acquiredDate) {
         return UserBadgeStatusResponse.builder()
                 .badgeId(badge.getBadgeId())

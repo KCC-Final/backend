@@ -23,6 +23,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * 도전과제 및 뱃지 부여 관련 비즈니스 로직을 처리하는 서비스 클래스
+ * @author uyh
+ * @created 2025-10-16
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,7 +40,13 @@ public class ChallengeService implements IChallengeService {
     private final ICommentRepository commentRepository;
     private final IBookScrapRepository bookScrapRepository;
 
-
+    /**
+     * @param userId 사용자 ID
+     * @return void
+     * @author uyh
+     * @created 2025-10-16
+     * 사용자의 활동 기록을 확인하고 달성 가능한 뱃지를 자동으로 부여
+     */
     @Override
     @Transactional
     public void checkAndAwardBadges(String userId) {
@@ -118,6 +129,12 @@ public class ChallengeService implements IChallengeService {
         }
     }
 
+    /**
+     * @return void
+     * @author uyh
+     * @created 2025-10-16
+     * 모든 사용자의 뱃지를 재계산하여 부여
+     */
     @Override
     @Transactional
     public void recalculateAllUsersBadges() {
@@ -134,24 +151,35 @@ public class ChallengeService implements IChallengeService {
         log.info("Finished badge recalculation for all users.");
     }
 
+    /**
+     * @param userId 사용자 ID
+     * @return void
+     * @author uyh
+     * @created 2025-10-16
+     * 리뷰 작성과 관련된 뱃지 조건을 확인하고 부여
+     */
     @Override
     public void checkReviewRelatedBadges(String userId) {
         checkAndAwardBadges(userId);
     }
 
+    /**
+     * @param userId 사용자 ID
+     * @param isbn 도서 ISBN
+     * @return void
+     * @author uyh
+     * @created 2025-10-16
+     * 개척자 뱃지 (새로운 도서에 대한 첫 독후감) 달성 여부를 확인하고 뱃지를 부여
+     */
     @Override
     @Transactional
     public void checkPioneerBadge(String userId, String isbn) {
         try {
-            // 1. 해당 ISBN으로 작성된 리뷰 수 확인
             int reviewCount = reviewRepository.countReviewsByIsbn(isbn);
 
-            // 2. 리뷰 수가 1개일 경우 (방금 작성된 리뷰가 첫 리뷰)
             if (reviewCount == 1) {
-                // 3. '개척자' 뱃지 정보 조회
                 Badge pioneerBadge = badgeRepository.findBadgeByName("개척자");
                 if (pioneerBadge != null) {
-                    // 4. 뱃지 부여
                     badgeRepository.awardBadgeToUser(userId, pioneerBadge.getBadgeId());
                     log.info("User {} achieved a new badge: {}", userId, pioneerBadge.getBadgeName());
                 }
@@ -161,12 +189,26 @@ public class ChallengeService implements IChallengeService {
         }
     }
 
+    /**
+     * @param userId 사용자 ID
+     * @return List<UserBadgeResponse>
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 사용자의 뱃지 획득 목록 조회
+     */
     @Override
     public List<UserBadgeResponse> getBadgesByUserId(String userId) {
         log.info("Getting badges for user: {}", userId);
         return badgeRepository.findBadgesByUserId(userId);
     }
 
+    /**
+     * @param userId 사용자 ID
+     * @return List<UserBadgeStatusResponse>
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 사용자의 전체 뱃지 목록과 획득 상태를 함께 조회
+     */
     @Override
     public List<UserBadgeStatusResponse> getAllBadgesWithUserStatus(String userId) {
         log.info("Getting all badges with user status for user: {}", userId);
@@ -181,12 +223,11 @@ public class ChallengeService implements IChallengeService {
                     UserBadgeResponse acquiredBadge = acquiredBadgesMap.get(badge.getBadgeId());
                     boolean isAcquired = acquiredBadge != null;
                     LocalDateTime acquiredDate = isAcquired ? acquiredBadge.getSucceededAt() : null;
-                    
+
                     int currentProgress = 0;
                     if (isAcquired) {
                         currentProgress = badge.getBadgeConditions();
                     } else {
-                        // Calculate progress for unacquired badges
                         try {
                             switch (badge.getBadgeName()) {
                                 case "첫 발자국":
@@ -225,7 +266,6 @@ public class ChallengeService implements IChallengeService {
                                     currentProgress = (user != null && StringUtils.hasText(user.getIntroduction())) ? 1 : 0;
                                     break;
                                 case "개척자":
-                                    // '개척자'는 리뷰 작성 시점에만 판별 가능하므로, 이 API에서는 진행도를 0으로 표시
                                     currentProgress = 0;
                                     break;
                                 default:
@@ -234,7 +274,7 @@ public class ChallengeService implements IChallengeService {
                             }
                         } catch (Exception e) {
                             log.error("Error calculating progress for badgeId: {} and userId: {}", badge.getBadgeId(), userId, e);
-                            currentProgress = 0; // Set to 0 in case of error
+                            currentProgress = 0;
                         }
                     }
 
