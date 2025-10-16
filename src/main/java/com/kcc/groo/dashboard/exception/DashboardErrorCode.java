@@ -34,10 +34,7 @@ public enum DashboardErrorCode {
     // 300~399: 리소스 없음 (404 Not Found)
     USER_NOT_FOUND("DSH-300", "사용자를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     NO_DATA_FOUND("DSH-301", "조회된 데이터가 없습니다", HttpStatus.NOT_FOUND),
-
-    // 500~599: 비즈니스 규칙 위반 (422 Unprocessable Entity)
-    NO_REVIEW_DATA("DSH-500", "작성한 독후감이 없습니다", HttpStatus.UNPROCESSABLE_ENTITY),
-
+    
     // 900~999: 서버 오류 (500 Internal Server Error)
     DATABASE_ERROR("DSH-900", "데이터베이스 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
     SUMMARY_STATS_FAILED("DSH-901", "대시보드 통계 조회에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
