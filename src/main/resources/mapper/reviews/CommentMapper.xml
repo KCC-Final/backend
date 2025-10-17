@@ -117,4 +117,10 @@
 		]]>
 	</select>
 
+<select id="countCommentsByUserId" parameterType="String" resultType="int">
+        <![CDATA[
+        SELECT COUNT(*) FROM review_comments WHERE user_id = #{userId}
+        ]]>
+    </select>
+
 </mapper>

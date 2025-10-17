@@ -101,5 +101,11 @@ SELECT user_id FROM users
     WHERE user_id = #{userId}
 </update>
 
+<select id="findAllUserIds" resultType="string">
+    <![CDATA[
+    SELECT user_id FROM users WHERE withdrawal_status = 0
+    ]]>
+</select>
+
 </mapper>
 

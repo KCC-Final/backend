@@ -84,6 +84,14 @@ public interface IBookScrapRepository {
 	 */
 	int deleteBooksByIsbnList(@Param("userId") String userId, @Param("bookshelfId") int bookshelfId, @Param("isbnList") List<String> isbnList);
 	
+	/**
+	 * @param userId
+	 * @return
+	 * @author uyh
+	 * @created 2025-10-16
+	 * 사용자의 전체 스크랩 수 조회
+	 */
+	int countTotalBookScrapByUserId(@Param("userId") String userId);
 	
 
 }
