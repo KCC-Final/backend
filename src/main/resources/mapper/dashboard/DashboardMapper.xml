@@ -103,4 +103,21 @@
         ]]>
 	</select>
 
+    <!-- ========================================= -->
+    <!-- 연도별 독후감 통계 조회 -->
+    <!-- 최근 5년 기준으로 연도별 독후감 개수를 조회 -->
+    <!-- ========================================= -->
+    <select id="findYearlyStats" parameterType="string" resultType="com.kcc.groo.dashboard.data.dto.YearlyStat">
+        <![CDATA[
+        SELECT
+        YEAR(created_at) AS year,
+        COUNT(*) AS count
+        FROM reviews
+        WHERE user_id = #{userId}
+        AND YEAR(created_at) >= YEAR(CURDATE()) - 4
+        GROUP BY YEAR(created_at)
+        ORDER BY YEAR(created_at);
+        ]]>
+    </select>
+
 </mapper>

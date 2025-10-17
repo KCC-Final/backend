@@ -3,6 +3,7 @@ package com.kcc.groo.dashboard.service;
 import com.kcc.groo.dashboard.data.dto.DashboardSummaryResponse;
 import com.kcc.groo.dashboard.data.dto.MonthlyStatsResponse;
 import com.kcc.groo.dashboard.data.dto.MonthlyReportResponse;
+import com.kcc.groo.dashboard.data.dto.YearlyStatsResponse;
 
 /**
  * @author uyh
@@ -40,4 +41,12 @@ public interface IDashboardService {
      * 월간 리포트 조회 (특정 연월 나 vs 평균)
      */
     MonthlyReportResponse getMonthlyReport(String userId, Integer year, Integer month);
+
+    /**
+     * 연도별 독후감 통계 조회
+     * @param userId 로그인 사용자 ID
+     * @return 연도별 통계 리스트
+     */
+    YearlyStatsResponse getYearlyStats(String userId);
+
 }
