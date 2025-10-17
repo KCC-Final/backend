@@ -56,4 +56,11 @@ SELECT * FROM book WHERE bookshelf_id=#{bookshelfId} AND user_id = #{userId}
 </delete>
 
 
+<select id="countTotalBookScrapByUserId" parameterType="String" resultType="int">
+    SELECT count(b.ISBN)
+    FROM book b
+    JOIN bookshelf bs ON b.bookshelf_id = bs.bookshelf_id
+    WHERE bs.user_id = #{userId}
+</select>
+
 </mapper>

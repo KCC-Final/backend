@@ -1,5 +1,6 @@
 package com.kcc.groo.review.service;
 
+import com.kcc.groo.challenge.service.IChallengeService;
 import com.kcc.groo.review.dao.ICommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.*;
@@ -18,7 +19,8 @@ import java.util.List;
 public class ReviewService implements IReviewService {
 
     private final IReviewRepository reviewRepository;
-    private final ICommentRepository commentRepository;  // 추가
+    private final ICommentRepository commentRepository;
+    private final IChallengeService challengeService; // 의존성 주입
 
     @Transactional
     @Override
@@ -30,6 +32,12 @@ public class ReviewService implements IReviewService {
         try {
             reviewRepository.insertReview(userId, request);
             log.info("[createReview] userId: {}, temporary: {}", userId, request.getTemporary());
+
+            // 임시저장 글이 아닐 경우, 도전과제 달성 여부 확인
+            if (request.getTemporary() == null || !request.getTemporary()) {
+                challengeService.checkReviewRelatedBadges(userId);
+                challengeService.checkPioneerBadge(userId, request.getIsbn());
+            }
         } catch (Exception e) {
             log.error("[createReview] Failed - userId: {}, error: {}", userId, e.getMessage());
             throw new ReviewException(ReviewErrorCode.REVIEW_CREATE_FAILED, e.getMessage());

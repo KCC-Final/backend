@@ -4,6 +4,7 @@ import com.kcc.groo.review.data.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
@@ -236,5 +237,33 @@ public interface IReviewRepository {
      */
     List<ReviewResponse> selectLikedReviewsByUser(@Param("currentUserId") String currentUserId,
                                                   @Param("targetUserId") String targetUserId);
+
+    /**
+     * @param userId 조회할 사용자 ID
+     * @return int
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 사용자가 누른 좋아요 수를 조회
+     */
+    int countLikesByUserId(@Param("userId") String userId);
+
+    /**
+     * @param isbn 조회할 ISBN
+     * @return int
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 ISBN으로 작성된 독후감 수를 조회
+     */
+    int countReviewsByIsbn(@Param("isbn") String isbn);
+
+    /**
+     * @param startTime 조회 시작 시간
+     * @param endTime 조회 종료 시간
+     * @return List<TopReviewerDto>
+     * @author uyh
+     * @created 2025-10-16
+     * 특정 기간 동안 가장 많은 독후감을 작성한 사용자 목록을 조회
+     */
+    List<TopReviewerDto> findTopReviewersByPeriod(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
 }
