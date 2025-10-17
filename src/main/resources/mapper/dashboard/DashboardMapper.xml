@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.dashboard.dao.IDashboardRepository">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="monthlyStatMap" type="com.kcc.groo.dashboard.data.dto.MonthlyStat">
+        <result property="month" column="month"/>
+        <result property="count" column="count"/>
+    </resultMap>
+
+    <resultMap id="categoryStatMap" type="com.kcc.groo.dashboard.data.dto.CategoryStat">
+        <result property="category" column="category"/>
+        <result property="count" column="count"/>
+    </resultMap>
+
+    <!-- 1. 특정 유저의 작성한 독후감 총 개수 -->
+    <select id="countReviewsByUser" parameterType="string" resultType="int">
+		<![CDATA[
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE user_id = #{userId}
+          AND status = TRUE
+          AND temporary = FALSE
+        ]]>
+	</select>
+
+    <!-- 2. 특정 유저가 스크랩한 도서 총 개수 -->
+    <select id="countScrappedBooks" parameterType="string" resultType="int">
+		<![CDATA[
+        SELECT COUNT(DISTINCT b.ISBN)
+        FROM book b
+                 JOIN bookshelf bs ON b.bookshelf_id = bs.bookshelf_id
+        WHERE bs.user_id = #{userId}
+        ]]>
+	</select>
+
+    <!-- 3. 특정 유저가 좋아요 누른 독후감 총 개수 -->
+    <select id="countLikedReviews" parameterType="string" resultType="int">
+		<![CDATA[
+        SELECT COUNT(*)
+        FROM likes
+        WHERE user_id = #{userId}
+        ]]>
+	</select>
+
+    <!-- 4. 카테고리별 독서 통계 -->
+    <select id="getCategoryStats" parameterType="string" resultMap="categoryStatMap">
+		<![CDATA[
+        SELECT
+            category,
+            COUNT(*) AS count
+        FROM reviews
+        WHERE user_id = #{userId}
+          AND status = TRUE
+          AND temporary = FALSE
+        GROUP BY category
+        ORDER BY count DESC
+        ]]>
+	</select>
+
+    <!-- 5. 월별 독서량 통계 (특정 연도 1-12월) -->
+    <select id="getMonthlyReviewStats" resultMap="monthlyStatMap">
+		<![CDATA[
+        SELECT
+            DATE_FORMAT(created_at, '%Y-%m') AS month,
+			COUNT(*) AS count
+        FROM reviews
+        WHERE user_id = #{userId}
+          AND status = TRUE
+          AND temporary = FALSE
+          AND YEAR(created_at) = #{year}
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+        ORDER BY month ASC
+        ]]>
+	</select>
+
+    <!-- 6. 특정 연월의 내 독서량 -->
+    <select id="getMonthlyReviewCount" resultType="int">
+		<![CDATA[
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE user_id = #{userId}
+            AND YEAR(created_at) = #{year}
+          AND MONTH(created_at) = #{month}
+          AND status = TRUE
+          AND temporary = FALSE
+        ]]>
+	</select>
+
+    <!-- 7. 특정 연월의 전체 사용자 평균 독서량 -->
+    <select id="getAverageMonthlyReviewCount" resultType="double">
+		<![CDATA[
+        SELECT COALESCE(AVG(cnt), 0.0)
+        FROM (
+                 SELECT COUNT(*) AS cnt
+                 FROM reviews
+                 WHERE YEAR(created_at) = #{year}
+                   AND MONTH(created_at) = #{month}
+                   AND status = TRUE
+                   AND temporary = FALSE
+                 GROUP BY user_id
+             ) AS user_counts
+        ]]>
+	</select>
+
+</mapper>
