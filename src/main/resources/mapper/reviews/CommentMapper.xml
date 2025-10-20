@@ -65,34 +65,37 @@
 		]]>
 	</delete>
 
-	<!-- 특정 리뷰의 댓글 조회 -->
-	<select id="selectCommentsByReview"
-		resultType="com.kcc.groo.review.data.dto.CommentResponse">
-		<![CDATA[
-		SELECT
-			c.comment_id AS commentId,
-			c.content AS content,
-			c.user_id AS userId,
-			c.created_at AS createdAt,
-			c.updated_at AS updatedAt,
-			c.parent_id AS parentId,
-		]]>
-		<choose>
-			<when test="userId != null">
-				(c.user_id = #{userId}) AS isOwner
-			</when>
-			<otherwise>
-				FALSE AS isOwner
-			</otherwise>
-		</choose>
-		<![CDATA[
-		FROM review_comments c
-		JOIN reviews r ON c.review_id = r.review_id
-		WHERE c.review_id = #{reviewId}
-		AND r.status = TRUE
-		ORDER BY c.created_at ASC
-		]]>
-	</select>
+    <!-- 특정 리뷰의 댓글 조회 -->
+    <select id="selectCommentsByReview"
+            resultType="com.kcc.groo.review.data.dto.CommentResponse">
+        <![CDATA[
+    SELECT
+        c.comment_id AS commentId,
+        c.content AS content,
+        c.user_id AS userId,
+        u.nickname AS authorNickname,
+        u.profile_image AS authorProfileImage,
+        c.created_at AS createdAt,
+        c.updated_at AS updatedAt,
+        c.parent_id AS parentId,
+    ]]>
+        <choose>
+            <when test="userId != null">
+                (c.user_id = #{userId}) AS isOwner
+            </when>
+            <otherwise>
+                FALSE AS isOwner
+            </otherwise>
+        </choose>
+        <![CDATA[
+    FROM review_comments c
+    JOIN reviews r ON c.review_id = r.review_id
+    LEFT JOIN users u ON c.user_id = u.user_id
+    WHERE c.review_id = #{reviewId}
+    AND r.status = TRUE
+    ORDER BY c.created_at ASC
+    ]]>
+    </select>
 
 	<!-- 내가 쓴 모든 댓글 조회 -->
 	<select id="selectCommentsByUser"
