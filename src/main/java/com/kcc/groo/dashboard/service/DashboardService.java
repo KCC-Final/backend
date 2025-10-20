@@ -3,17 +3,15 @@ package com.kcc.groo.dashboard.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.kcc.groo.dashboard.data.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kcc.groo.dashboard.dao.IDashboardRepository;
-import com.kcc.groo.dashboard.data.dto.CategoryStat;
-import com.kcc.groo.dashboard.data.dto.DashboardSummaryResponse;
-import com.kcc.groo.dashboard.data.dto.MonthlyStat;
-import com.kcc.groo.dashboard.data.dto.MonthlyStatsResponse;
-import com.kcc.groo.dashboard.data.dto.MonthlyReportResponse;
 import com.kcc.groo.dashboard.exception.DashboardErrorCode;
 import com.kcc.groo.dashboard.exception.DashboardException;
+import com.kcc.groo.dashboard.data.dto.YearlyStat;
+import com.kcc.groo.dashboard.data.dto.YearlyStatsResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -155,4 +153,19 @@ public class DashboardService implements IDashboardService {
             throw new DashboardException(DashboardErrorCode.INVALID_MONTH);
         }
     }
+
+
+
+    /**
+     * 최근 5년간의 연도별 독후감 통계 조회
+     */
+    @Override
+    public YearlyStatsResponse getYearlyStats(String userId) {
+        List<YearlyStat> stats = dashboardRepository.findYearlyStats(userId);
+
+        YearlyStatsResponse response = new YearlyStatsResponse();
+        response.setYearlyStats(stats);
+        return response;
+    }
+
 }

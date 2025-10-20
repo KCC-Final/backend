@@ -2,6 +2,7 @@ package com.kcc.groo.dashboard.dao;
 
 import java.util.List;
 
+import com.kcc.groo.dashboard.data.dto.YearlyStat;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -84,4 +85,16 @@ public interface IDashboardRepository {
      * 특정 연월의 전체 사용자 평균 독서량
      */
     Double getAverageMonthlyReviewCount(@Param("year") int year, @Param("month") int month);
+
+    /**
+     * @param userId 사용자 아이디
+     * @return 최근 5년간 연도별 독후감 개수 리스트
+     *         - 각 연도별로 COUNT(*) 결과 반환
+     *         - 가장 오래된 연도부터 최신 연도 순으로 정렬
+     * @author uyh
+     * @created 2025-10-17
+     * 최근 5년 기준의 연도별 독후감 작성 통계 조회
+     */
+    List<YearlyStat> findYearlyStats(@Param("userId") String userId);
+
 }
