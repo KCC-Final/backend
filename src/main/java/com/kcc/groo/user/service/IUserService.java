@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UserProfileUpdateRequest;
 import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
@@ -107,4 +108,13 @@ public interface IUserService {
 	 */
 	int existsByUserEmail (@Param("email") String email);
 	
+	/**
+	 * @param userId
+	 * @param updateRequest
+	 * @return
+	 * @author kys
+	 * @created 2025-10-20
+	 * 회원 이미지 컬럼 값 수정
+	 */
+	Users requestUpdateUserProfileImage (String userId, UserProfileUpdateRequest updateRequest);
 }

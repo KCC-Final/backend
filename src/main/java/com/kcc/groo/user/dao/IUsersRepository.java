@@ -112,6 +112,15 @@ public interface IUsersRepository {
 	 * 뱃지 재계산을 위해 모든 활성 사용자의 ID만 조회
 	 */
 	List<String> findAllUserIds();
+	
+	/**
+	 * @param user
+	 * @return
+	 * @author kys
+	 * @created 2025-10-20
+	 * 회원 프로필 이미지 컬럼 값 update (=null)
+	 */
+	int deleteUserProfileImage(Users user);
 
 	
 }

@@ -16,7 +16,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +37,7 @@ import com.kcc.groo.user.data.dto.FindUserIdRequest;
 import com.kcc.groo.user.data.dto.LoginRequest;
 import com.kcc.groo.user.data.dto.ResetPasswordRequest;
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UserProfileUpdateRequest;
 import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 import com.kcc.groo.user.service.EmailVerificationService;
@@ -478,6 +478,33 @@ public class UsersApiController {
 		Users getUser = userService.findByUserId(userId);
 
 		return ResponseEntity.ok().body(new CommonResponse<>("get current user info", getUser));
+
+	}
+	
+	/**
+	 * @param updateRequestJson
+	 * @param profileImage
+	 * @param request
+	 * @return ResponseEntity<CommonResponse<?>>
+	 * @throws IOException
+	 * @author kys
+	 * @created 2025-10-20
+	 * 회원 프로필 이미지 삭제
+	 */
+	@PutMapping("/users/delete-profile")
+	public ResponseEntity<CommonResponse<?>> updateUserProfile(
+			@RequestBody UserProfileUpdateRequest updateRequest, HttpServletRequest request) throws IOException {
+
+		String accessToken = jwtTokenProvider.resolveAccessToken(request);
+		String userId = jwtTokenProvider.getUserId(accessToken);
+		Users updatedUser = userService.findByUserId(userId);
+
+		if (updatedUser.getProfileImage() != null && updateRequest.getProfileImage() == null) {
+	        updatedUser = userService.requestUpdateUserProfileImage(userId, updateRequest);
+	    }
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new CommonResponse<>("User profile image deleted successfully", updatedUser));
 
 	}
 

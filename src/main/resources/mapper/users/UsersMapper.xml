@@ -101,6 +101,10 @@ SELECT user_id FROM users
     WHERE user_id = #{userId}
 </update>
 
+<update id="deleteUserProfileImage" parameterType="com.kcc.groo.user.data.model.Users">
+UPDATE users SET profile_image = NULL WHERE user_id = #{userId}
+</update>
+
 <select id="findAllUserIds" resultType="string">
     <![CDATA[
     SELECT user_id FROM users WHERE withdrawal_status = 0
