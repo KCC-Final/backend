@@ -19,6 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -477,20 +478,32 @@ public class UsersApiController {
 
 	}
 
-	/**
-	 * @param updateRequestJson
-	 * @param profileImage
-	 * @param request
-	 * @return ResponseEntity<CommonResponse<?>>
-	 * @throws IOException
-	 * @author kys
-	 * @created 2025-10-20
-	 * 회원 프로필 이미지 삭제
-	 */
-	@PutMapping("/users/delete-profile")
-	public ResponseEntity<CommonResponse<?>> updateUserProfile(
-			@RequestBody UserProfileUpdateRequest updateRequest, HttpServletRequest request) throws IOException {
+    /**
+     * @param updateRequestJson
+     * @param profileImage
+     * @param request
+     * @return ResponseEntity<CommonResponse<?>>
+     * @throws IOException
+     * @author kys
+     * @created 2025-10-20
+     * 회원 프로필 이미지 삭제
+     */
+    @PutMapping("/users/delete-profile")
+    public ResponseEntity<CommonResponse<?>> updateUserProfile(
+            @RequestBody UserProfileUpdateRequest updateRequest, HttpServletRequest request) throws IOException {
 
+        String accessToken = jwtTokenProvider.resolveAccessToken(request);
+        String userId = jwtTokenProvider.getUserId(accessToken);
+        Users updatedUser = userService.findByUserId(userId);
+
+        if (updatedUser.getProfileImage() != null && updateRequest.getProfileImage() == null) {
+            updatedUser = userService.requestUpdateUserProfileImage(userId, updateRequest);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CommonResponse<>("User profile image deleted successfully", updatedUser));
+
+    }
     /**
      * @param userId 조회할 사용자 ID
      * @param principal 인증된 사용자 정보 (선택)
@@ -512,18 +525,5 @@ public class UsersApiController {
         return ResponseEntity.ok(feed);
     }
 
-
-		String accessToken = jwtTokenProvider.resolveAccessToken(request);
-		String userId = jwtTokenProvider.getUserId(accessToken);
-		Users updatedUser = userService.findByUserId(userId);
-
-		if (updatedUser.getProfileImage() != null && updateRequest.getProfileImage() == null) {
-	        updatedUser = userService.requestUpdateUserProfileImage(userId, updateRequest);
-	    }
-
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new CommonResponse<>("User profile image deleted successfully", updatedUser));
-
-	}
 
 }
