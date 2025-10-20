@@ -1,10 +1,13 @@
 package com.kcc.groo.user.controller;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.kcc.groo.user.data.dto.*;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -19,14 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,11 +30,6 @@ import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.config.CustomUserDetails;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.dao.IUsersRepository;
-import com.kcc.groo.user.data.dto.FindUserIdRequest;
-import com.kcc.groo.user.data.dto.LoginRequest;
-import com.kcc.groo.user.data.dto.ResetPasswordRequest;
-import com.kcc.groo.user.data.dto.SignupRequest;
-import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 import com.kcc.groo.user.service.EmailVerificationService;
 import com.kcc.groo.user.service.MailService;
@@ -480,5 +471,27 @@ public class UsersApiController {
 		return ResponseEntity.ok().body(new CommonResponse<>("get current user info", getUser));
 
 	}
+
+    /**
+     * @param userId 조회할 사용자 ID
+     * @param principal 인증된 사용자 정보 (선택)
+     * @return ResponseEntity<UserFeedDTO>
+     * @author uyh
+     * @created 2025-10-20
+     * 사용자 피드 통합 정보 조회 (프로필 + 통계 + 독후감 + 좋아요)
+     */
+    @Operation(
+            summary = "사용자 피드 통합 조회",
+            description = "사용자의 프로필, 통계, 작성한 독후감, 좋아요한 독후감을 한 번에 조회합니다."
+    )
+    @GetMapping("/users/{userId}/feed")
+    public ResponseEntity<UserFeedDTO> getUserFeed(
+            @PathVariable("userId") String userId,
+            Principal principal) {
+        String currentUserId = principal != null ? principal.getName() : null;
+        UserFeedDTO feed = userService.getUserFeed(currentUserId, userId);
+        return ResponseEntity.ok(feed);
+    }
+
 
 }

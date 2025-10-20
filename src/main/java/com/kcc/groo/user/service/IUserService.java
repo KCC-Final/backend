@@ -2,6 +2,7 @@ package com.kcc.groo.user.service;
 
 import java.util.List;
 
+import com.kcc.groo.user.data.dto.UserFeedDTO;
 import org.apache.ibatis.annotations.Param;
 
 import com.kcc.groo.user.data.dto.SignupRequest;
@@ -106,5 +107,14 @@ public interface IUserService {
 	 * 이메일 존재 확인
 	 */
 	int existsByUserEmail (@Param("email") String email);
-	
+
+    /**
+     * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
+     * @param targetUserId 조회할 사용자 ID
+     * @return UserFeedDTO
+     * @author uyh
+     * @created 2025-10-20
+     * 사용자 피드 통합 정보 조회 (프로필 + 통계 + 독후감 + 좋아요)
+     */
+    UserFeedDTO getUserFeed(String currentUserId, String targetUserId);
 }
