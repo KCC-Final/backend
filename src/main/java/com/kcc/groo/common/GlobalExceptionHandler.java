@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author kys
-     * @since 2025-09-23
+     * @created 2025-09-23
      * Validation 실패
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author kys
-     * @since 2025-09-23
+     * @created 2025-09-23
      * IllegalArgumentException
      */
     @ExceptionHandler(IllegalArgumentException.class)
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author kys
-     * @since 2025-09-23
+     * @created 2025-09-23
      * 인증/인가 관련 예외
      */
     @ExceptionHandler(SecurityException.class)
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author kys
-     * @since 2025-09-23
+     * @created 2025-09-23
      * 그 외 모든 예외 처리
      */
     @ExceptionHandler(Exception.class)
@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author uyh
-     * @since 2025-10-02
+     * @created 2025-10-02
      * Review 도메인 비즈니스 예외 처리
      */
     @ExceptionHandler(ReviewException.class)
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
 
     /**
      * @author uyh
-     * @since 2025-01-16
+     * @created 2025-01-16
      * Dashboard 도메인 비즈니스 예외 처리
      */
     @ExceptionHandler(DashboardException.class)

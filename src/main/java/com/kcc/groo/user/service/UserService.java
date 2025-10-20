@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import com.kcc.groo.user.dao.IUsersRepository;
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UserProfileUpdateRequest;
 import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
@@ -174,5 +175,17 @@ public class UserService implements IUserService {
 	public int existsByUserEmail(String email) {
 		// TODO Auto-generated method stub
 		return usersRepository.existsByUserEmail(email);
+	}
+
+	@Override
+	public Users requestUpdateUserProfileImage(String userId, UserProfileUpdateRequest updateRequest) {
+		// TODO Auto-generated method stub
+		Users updateUser = usersRepository.selectUserByUserId(userId);
+		
+		if (updateRequest.getProfileImage() == null) { //not null, length > 0, is not empty
+			updateUser.setUserId(userId);
+			usersRepository.deleteUserProfileImage(updateUser);
+	}
+		return usersRepository.selectUserByUserId(userId);
 	}
 }
