@@ -25,19 +25,19 @@ public class ReviewResponse {
     private List<CommentResponse> comments;  //  댓글 포함
     private Boolean status;
     private Integer commentCount; // 댓글 개수
+    private String authorNickname;
+    private String authorProfileImage;
 
-    
 
     public static ReviewResponse fromModel(Review review) {
         ReviewResponse res = new ReviewResponse();
         res.setReviewId(review.getReviewId());
-        res.setIsbn(review.getIsbn()); //  수정: getIsbn() 호출
+        res.setIsbn(review.getIsbn());
         res.setReviewTitle(review.getReviewTitle());
         res.setReviewContent(review.getReviewContent());
         res.setSecret(review.getSecret());
         res.setTemporary(review.getTemporary());
 
-        //  Date → LocalDateTime 변환
         if (review.getCreatedAt() != null) {
             res.setCreatedAt(review.getCreatedAt().toInstant()
                     .atZone(ZoneId.systemDefault())
@@ -51,8 +51,8 @@ public class ReviewResponse {
 
         res.setUserId(review.getUserId());
         res.setCategory(review.getCategory());
-        res.setLikeCount(review.getLikeCount()); //  좋아요 개수 매핑
-        
+        res.setLikeCount(review.getLikeCount());
+
         return res;
     }
 }
