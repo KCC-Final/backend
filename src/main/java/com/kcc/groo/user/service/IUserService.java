@@ -6,6 +6,7 @@ import com.kcc.groo.user.data.dto.UserFeedDTO;
 import org.apache.ibatis.annotations.Param;
 
 import com.kcc.groo.user.data.dto.SignupRequest;
+import com.kcc.groo.user.data.dto.UserProfileUpdateRequest;
 import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
@@ -107,6 +108,16 @@ public interface IUserService {
 	 * 이메일 존재 확인
 	 */
 	int existsByUserEmail (@Param("email") String email);
+
+	/**
+	 * @param userId
+	 * @param updateRequest
+	 * @return
+	 * @author kys
+	 * @created 2025-10-20
+	 * 회원 이미지 컬럼 값 수정
+	 */
+	Users requestUpdateUserProfileImage (String userId, UserProfileUpdateRequest updateRequest);
 
     /**
      * @param currentUserId 현재 로그인한 사용자 ID (null 가능)

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.notification.dao.INotificationRepository">
+
+<resultMap id="notificationMap" type="com.kcc.groo.notification.data.model.Alerts">
+        <id property="alertId" column="alert_id"/>
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="sendAt" column="send_at"/>
+        <result property="senderType" column="sender_type"/>
+        <result property="senderId" column="sender_id"/>
+        <result property="detailSenderId" column="detail_sender_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="senderUserId" column="sender_user_id"/>
+        <result property="alertsCheckStatus" column="alerts_check_status"/>
+</resultMap>
+
+<insert id="insertNotification" parameterType="com.kcc.groo.notification.data.model.Alerts">
+<![CDATA[
+INSERT INTO alerts (type, content, sender_type, sender_id, detail_sender_id, user_id, sender_user_id)
+VALUES (#{type}, #{content}, #{senderType}, #{senderId}, #{detailSenderId}, #{userId}, #{senderUserId})
+]]>
+</insert>
+
+<update id="updateAlertsCheckStatus">
+<![CDATA[
+UPDATE alerts SET alerts_check_status = #{alerts_check_status}
+]]>
+</update>
+
+<select id="getNotificationList" parameterType="string" resultMap="notificationMap">
+<![CDATA[
+SELECT * FROM alerts WHERE user_id=#{userId}
+]]>
+</select>
+
+<select id="getAlerts"  resultMap="notificationMap">
+<![CDATA[
+SELECT * FROM alerts WHERE user_id=#{userId} AND alert_id = #{alertId}
+]]>
+</select>
+
+</mapper>
