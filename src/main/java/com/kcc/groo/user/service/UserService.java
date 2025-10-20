@@ -39,10 +39,10 @@ public class UserService implements IUserService {
 	@Autowired
 	MailService mailService;
 
-    @Autowired  // ✅ 추가
+    @Autowired  // 추가
     private IReviewRepository reviewRepository;
 
-    @Autowired  // ✅ 추가
+    @Autowired  // 추가
     private IFollowsRepository followsRepository;
 
 	@Override
@@ -226,7 +226,7 @@ public class UserService implements IUserService {
         userInfo.setUserId(user.getUserId());
         userInfo.setNickname(user.getNickname());
 
-        // ✅ byte[]인 경우 String(URL)로 변환
+        // byte[]인 경우 String(URL)로 변환
         String profileImageUrl = null;
         if (user.getProfileImage() != null && user.getProfileImage().length > 0) {
             // byte[]를 String으로 변환 (DB에 URL이 byte로 저장된 경우)
