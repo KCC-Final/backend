@@ -2,13 +2,15 @@ package com.kcc.groo.notification.service;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Param;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.kcc.groo.notification.data.dto.NotificationRequest;
 import com.kcc.groo.notification.data.dto.NotificationUpdateRequest;
 import com.kcc.groo.notification.data.model.Alerts;
 
 public interface INotificationService {
+	
+	SseEmitter subscribe(String userId);
 
 	Alerts insertNotification(String userId, NotificationRequest notificationRequest);
 

@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NotificationUpdateRequest {
 
+	private int alertId;
+	private String userId;
 	private boolean alertsCheckStatus;
 	
 }

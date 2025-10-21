@@ -1,10 +1,15 @@
 package com.kcc.groo.notification.service;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.kcc.groo.challenge.dao.IBadgeRepository;
 import com.kcc.groo.dashboard.dao.IDashboardRepository;
@@ -35,7 +40,30 @@ public class NotificationService implements INotificationService{
 	@Autowired
 	IReviewRepository reviewRepository;//like
 	
+	 private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+	
+	 /**
+     * 실시간 구독 연결
+     */
+    public SseEmitter subscribe(String userId) {
+        SseEmitter emitter = new SseEmitter(1000L * 60 * 5); // 5분 타임아웃
+        emitters.put(userId, emitter);
+
+        emitter.onCompletion(() -> emitters.remove(userId));
+        emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onError((e) -> emitters.remove(userId));
+
+        try {
+            emitter.send(SseEmitter.event().name("connect").data("connected"));
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+        }
+
+        return emitter;
+    }
+	
 	@Override
+	@Transactional
 	public Alerts insertNotification(String userId, NotificationRequest notificationRequest) {
 		// TODO Auto-generated method stub
 		Alerts newAlerts = new Alerts();
@@ -65,6 +93,19 @@ public class NotificationService implements INotificationService{
 		if (result <= 0) {
 			throw new RuntimeException("failed alert");
 		}
+		
+		 // 실시간 전송
+        SseEmitter emitter = emitters.get(newAlerts.getUserId());
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("alert")
+                        .data(newAlerts));
+            } catch (IOException e) {
+                emitters.remove(newAlerts.getUserId());
+            }
+        }
+        
 		Alerts alertInfo = notificationRepository.getAlerts(userId, newAlerts.getAlertId());
 		
 		return alertInfo;
@@ -72,7 +113,15 @@ public class NotificationService implements INotificationService{
 	
 	@Override
 	public Alerts updateAlertsCheckStatus(String userId, NotificationUpdateRequest notificationUpdateRequest) {
-		return null;
+		Alerts alert = new Alerts();
+        alert.setAlertId(notificationUpdateRequest.getAlertId());
+        alert.setUserId(notificationUpdateRequest.getUserId());
+        alert.setAlertsCheckStatus(notificationUpdateRequest.isAlertsCheckStatus());
+        notificationRepository.updateAlertsCheckStatus(alert);
+        
+        Alerts alertInfo = notificationRepository.getAlerts(userId, notificationUpdateRequest.getAlertId());
+		
+		return alertInfo;
 	}
 
 	@Override
@@ -82,7 +131,7 @@ public class NotificationService implements INotificationService{
 
 	@Override
 	public List<Alerts> getNotificationList(String userId) {
-		return null;
+		return notificationRepository.getNotificationList(userId);
 	}
 
 	@Override
