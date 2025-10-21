@@ -1,5 +1,7 @@
 package com.kcc.groo.review.service;
 
+import com.kcc.groo.notification.data.dto.NotificationRequest;
+import com.kcc.groo.notification.service.INotificationService;
 import com.kcc.groo.review.dao.ICommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.CommentRequest;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -21,6 +24,7 @@ public class CommentService implements ICommentService {
 
     private final ICommentRepository commentRepository;
     private final IReviewRepository reviewRepository;
+    private final INotificationService notificationService;
 
     @Transactional
     @Override
@@ -77,6 +81,27 @@ public class CommentService implements ICommentService {
             commentRepository.insertComment(reviewId, userId, req);
             log.info("[addComment] reviewId: {}, userId: {}, parentId: {}", 
                      reviewId, userId, parentId);
+            
+            //added 2025-10-21 kys
+            int commentId = commentRepository.selectLastInsertedCommentId();
+            if (!review.getUserId().equals(userId)) {
+                try {
+                    NotificationRequest notificationRequest = new NotificationRequest();
+                    notificationRequest.setType("comment");                // 알림 종류
+                    notificationRequest.setSenderType("review");        // 알림 출처 (리뷰)
+                    notificationRequest.setSenderId(reviewId);          // 어떤 리뷰에 댓글을 달았는가
+                    notificationRequest.setDetailSenderId(commentId);   // 댓글 id
+                    notificationRequest.setUserId(review.getUserId());  // 수신자 (리뷰 작성자)
+                    notificationRequest.setSenderUserId(userId);        // 발신자 (댓글 작성자)
+                    
+                    notificationService.sendNotification(notificationRequest);
+                    log.info("comment notification success: {} → {}", userId, review.getUserId());
+                } catch (IOException e) {
+                    log.error("comment notification fail - reviewId: {}, sender: {}, receiver: {}", 
+                              reviewId, userId, review.getUserId(), e);
+                }
+            }
+            
         } catch (Exception e) {
             log.error("[addComment] Failed - reviewId: {}, userId: {}, error: {}", 
                       reviewId, userId, e.getMessage());

@@ -96,4 +96,13 @@ public interface IBadgeRepository {
      * 특정 사용자가 획득한 모든 뱃지의 상세 정보 조회
      */
     List<UserBadgeResponse> findBadgesByUserId(@Param("userId") String userId);
+    
+    /**
+     * @param userId
+     * @return
+     * @author kys
+     * @created 2025-10-21
+     * 뱃지명 확인
+     */
+    String getBadgeNameByBadgeId (@Param("badgeId") int badgeId);
 }

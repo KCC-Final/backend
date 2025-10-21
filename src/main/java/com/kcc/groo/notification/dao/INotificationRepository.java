@@ -22,13 +22,14 @@ public interface INotificationRepository {
 	int insertNotification (Alerts alert);
 	
 	/**
-	 * @param alert
+	 * @param status
 	 * @return
 	 * @author kys
 	 * @created 2025-10-17
 	 * 알림 확인 컬럼 단건 업데이트
 	 */
-	int updateAlertsCheckStatus(Alerts alert);
+	 int updateAlertsCheckStatus(@Param("alertId") int alertId,
+             @Param("alertsCheckStatus") Boolean alertsCheckStatus);
 	
 	/**
 	 * @param userId
@@ -60,4 +61,12 @@ public interface INotificationRepository {
 	 */
 	Alerts getAlerts(@Param("userId") String userId, @Param("alertId") int alertId);
 
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-21
+	 * 확인하지 않은 알림 개수 확인
+	 */
+	int countUnreadNotifications(String userId);
 }
