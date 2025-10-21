@@ -200,59 +200,59 @@ public class UserService implements IUserService {
 	}
 
     /**
-     * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
-     * @param targetUserId 조회할 사용자 ID
-     * @return UserFeedDTO
-     * @author uyh
-     * @created 2025-10-20
-     * @modified 2025-10-21
-     * 사용자 피드 통합 정보 조회
-     */
-    @Override
-    public UserFeedDTO getUserFeed(String currentUserId, String targetUserId) {
-        if (targetUserId == null || targetUserId.trim().isEmpty()) {
-            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
-        }
-
-        Users user = usersRepository.selectUserByUserId(targetUserId);
-        if (user == null) {
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
-        }
-
-        UserFeedDTO feedDTO = new UserFeedDTO();
-
-        UserFeedDTO.UserInfo userInfo = new UserFeedDTO.UserInfo();
-        userInfo.setUserId(user.getUserId());
-        userInfo.setNickname(user.getNickname());
-
-        String profileImageBase64 = null;
-        if (user.getProfileImage() != null && user.getProfileImage().length > 0) {
-            profileImageBase64 = java.util.Base64.getEncoder().encodeToString(user.getProfileImage());
-        }
-        userInfo.setProfileImage(profileImageBase64);
-
-        userInfo.setIntroduction(user.getIntroduction());
-        feedDTO.setUser(userInfo);
-
-        UserFeedDTO.UserStats stats = new UserFeedDTO.UserStats();
-
-        List<ReviewResponse> reviews = reviewRepository.selectReviewsByUserWithAccess(
-                currentUserId, targetUserId
-        );
-        stats.setReviewCount(reviews.size());
-        feedDTO.setReviews(reviews);
-
-        stats.setFollowerCount(followsRepository.countFollower(targetUserId));
-        stats.setFollowingCount(followsRepository.countFollowing(targetUserId));
-
-        feedDTO.setStats(stats);
-
-        List<ReviewResponse> likedReviews = reviewRepository.selectLikedReviewsByUser(
-                currentUserId, targetUserId
-        );
-        feedDTO.setLikedReviews(likedReviews);
-
-        return feedDTO;
+ * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
+ * @param targetUserId 조회할 사용자 ID
+ * @return UserFeedDTO
+ * @author uyh
+ * @created 2025-10-20
+ * @modified 2025-10-21
+ * 사용자 피드 통합 정보 조회
+ */
+@Override
+public UserFeedDTO getUserFeed(String currentUserId, String targetUserId) {
+    if (targetUserId == null || targetUserId.trim().isEmpty()) {
+        throw new IllegalArgumentException("사용자 ID는 필수입니다.");
     }
+
+    Users user = usersRepository.selectUserByUserId(targetUserId);
+    if (user == null) {
+        throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+    }
+
+    UserFeedDTO feedDTO = new UserFeedDTO();
+
+    UserFeedDTO.UserInfo userInfo = new UserFeedDTO.UserInfo();
+    userInfo.setUserId(user.getUserId());
+    userInfo.setNickname(user.getNickname());
+
+    String profileImageBase64 = null;
+    if (user.getProfileImage() != null && user.getProfileImage().length > 0) {
+        profileImageBase64 = java.util.Base64.getEncoder().encodeToString(user.getProfileImage());
+    }
+    userInfo.setProfileImage(profileImageBase64);
+
+    userInfo.setIntroduction(user.getIntroduction());
+    feedDTO.setUser(userInfo);
+
+    UserFeedDTO.UserStats stats = new UserFeedDTO.UserStats();
+
+    List<ReviewResponse> reviews = reviewRepository.selectReviewsByUserWithAccess(
+            currentUserId, targetUserId
+    );
+    stats.setReviewCount(reviews.size());
+    feedDTO.setReviews(reviews);
+
+    stats.setFollowerCount(followsRepository.countFollower(targetUserId));
+    stats.setFollowingCount(followsRepository.countFollowing(targetUserId));
+
+    feedDTO.setStats(stats);
+
+    List<ReviewResponse> likedReviews = reviewRepository.selectLikedReviewsByUser(
+            currentUserId, targetUserId
+    );
+    feedDTO.setLikedReviews(likedReviews);
+
+    return feedDTO;
+}
 
 }
