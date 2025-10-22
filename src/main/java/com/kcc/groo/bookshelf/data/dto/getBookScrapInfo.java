@@ -1,5 +1,6 @@
 package com.kcc.groo.bookshelf.data.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,8 @@ import lombok.NoArgsConstructor;
 public class getBookScrapInfo {
 	
 	private int bookshelfId;
+
+    @JsonProperty
 	private String ISBN;
 
 }
