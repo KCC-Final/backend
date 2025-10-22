@@ -46,4 +46,14 @@ public interface IGroupScrapRepository {
      * @created 2025-10-23
      */
     int deleteGroupScrapByUserIdAndGroupId(@Param("userId") String userId, @Param("groupId") int groupId);
+
+    /**
+     * group_id로 특정 독서 모임의 스크랩 수 조회
+     *
+     * @param groupId 게시글 ID
+     * @return 스크랩 수
+     * @author YunSung
+     * @created 2025-10-23
+     */
+    int countScrapsByGroupId(int groupId);
 }

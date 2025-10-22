@@ -1,6 +1,7 @@
 package com.kcc.groo.group.controller;
 
 import com.kcc.groo.common.dto.CommonResponse;
+import com.kcc.groo.group.data.dto.GroupDetailResponseDTO;
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
 import com.kcc.groo.group.data.model.Group;
 import com.kcc.groo.group.service.IGroupService;
@@ -78,12 +79,15 @@ public class GroupController {
      * @created 2025-10-22
      */
     @GetMapping("/{groupId}")
-    public ResponseEntity<CommonResponse<Group>> getGroupById(@PathVariable int groupId) {
-        // 독서 모임 게시글 DB에서 조회
-        Group group = groupService.readGroupByGroupId(groupId);
+    public ResponseEntity<CommonResponse<GroupDetailResponseDTO>> getGroupById(@PathVariable int groupId, HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
+        String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
+
+        // 독서 모임 게시글 상세 정보 조회
+        GroupDetailResponseDTO groupDetails = groupService.readGroupByGroupId(groupId, userId);
 
         // 200 응답. 독서 모임 게시글 정보 반환
-        return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 상세 조회 성공", group));
+        return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 상세 조회 성공", groupDetails));
     }
 
     /**

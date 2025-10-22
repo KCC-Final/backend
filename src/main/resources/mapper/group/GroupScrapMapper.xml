@@ -23,4 +23,10 @@
           AND group_id = #{groupId}
     </delete>
 
+    <select id="countScrapsByGroupId" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM group_scraps
+        WHERE group_id = #{groupId}
+    </select>
+
 </mapper>

@@ -1,5 +1,6 @@
 package com.kcc.groo.group.service;
 
+import com.kcc.groo.group.data.dto.GroupDetailResponseDTO;
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
 import com.kcc.groo.group.data.model.Group;
 
@@ -37,11 +38,12 @@ public interface IGroupService {
      * 독서 모임 ID를 통한 독서 모임 게시글 상세 조회
      *
      * @param groupId 조회할 독서 모임 ID
-     * @return 독서 모임 게시글 정보
+     * @param userId  조회 요청한 사용자 ID
+     * @return 독서 모임 게시글 상세 정보 (댓글, 스크랩 정보 포함)
      * @author YunSung
      * @created 2025-10-22
      */
-    Group readGroupByGroupId(int groupId);
+    GroupDetailResponseDTO readGroupByGroupId(int groupId, String userId);
 
     /**
      * 독서 모임 게시글 수정
