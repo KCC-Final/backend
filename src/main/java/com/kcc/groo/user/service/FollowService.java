@@ -1,12 +1,14 @@
 package com.kcc.groo.user.service;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.kcc.groo.notification.data.dto.NotificationRequest;
+import com.kcc.groo.notification.service.INotificationService;
 import com.kcc.groo.user.dao.IFollowsRepository;
 import com.kcc.groo.user.dao.IUsersRepository;
 import com.kcc.groo.user.data.dto.FollowRequest;
@@ -24,6 +26,8 @@ public class FollowService implements IFollowService {
 	IFollowsRepository followsRepository;
 	@Autowired
 	IUsersRepository usersRepository;
+	@Autowired
+	INotificationService notificationService;
 
 	@Override
 	public FollowResponse requestInsertFollows(String currentUserId, FollowRequest followRequest) {
@@ -50,6 +54,26 @@ public class FollowService implements IFollowService {
 		if (result <= 0) {
 			throw new RuntimeException("failed follow");
 		}
+		
+		// 팔로우 성공 후
+		 if (result > 0 && !followRequest.getFollowed().equals(currentUserId)) {
+			 try {
+				notificationService.sendNotification(
+						    new NotificationRequest(
+						        "follow",          // type
+						        "user",            // senderType
+						        newFollow.getFollowId(),                 // senderId
+						        null,              // content (자동 생성 예정)
+						        0,                 // detailSenderId
+						        followRequest.getFollowed(), // userId
+						        currentUserId      // senderUserId
+						    )
+						);
+			 } catch (IOException e) {
+				e.printStackTrace();
+			 }
+
+		    }
 
 		Follows followInfo = followsRepository.selectFollowInfo(currentUserId, followRequest.getFollowed());
 		boolean isMutual = followsRepository.isMutualFollow(currentUserId, followRequest.getFollowed()) > 0;
@@ -57,6 +81,8 @@ public class FollowService implements IFollowService {
 		return new FollowResponse(followInfo.getFollowId(), followInfo.getFollower(), followInfo.getFollowed(),
 				isMutual, followInfo.getCreatedAt());
 	}
+	
+
 
 	@Override
 	public FollowResponse getFollowInfo(String currentUserId, String targetUserId) {

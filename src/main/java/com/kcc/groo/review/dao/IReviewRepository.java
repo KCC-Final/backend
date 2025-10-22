@@ -266,4 +266,13 @@ public interface IReviewRepository {
      */
     List<TopReviewerDto> findTopReviewersByPeriod(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
+    /**
+     * @param reviewId
+     * @return
+     * @author kys
+     * @created 2025-10-21
+     * 독후감 제목 조회
+     */
+    String getReviewTitleByReviewId (@Param("reviewId") int reviewId);
+
 }

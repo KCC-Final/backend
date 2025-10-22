@@ -1,45 +1,92 @@
 package com.kcc.groo.notification.service;
 
+import java.io.IOException;
 import java.util.List;
 
-import org.apache.ibatis.annotations.Param;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.kcc.groo.notification.data.dto.NotificationRequest;
 import com.kcc.groo.notification.data.dto.NotificationUpdateRequest;
 import com.kcc.groo.notification.data.model.Alerts;
 
 public interface INotificationService {
+	
 
-	Alerts insertNotification(String userId, NotificationRequest notificationRequest);
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-21
+	 * 
+	 */
+	SseEmitter subscribe(String userId);
 
-	Alerts updateAlertsCheckStatus(String userId, NotificationUpdateRequest notificationUpdateRequest);
+	/**
+	 * @param request
+	 * @throws IOException
+	 * @author kys
+	 * @created 2025-10-21
+	 * 알림 전송
+	 */
+	void sendNotification(NotificationRequest request) throws IOException;
+
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-21
+	 * 알림 목록 조회
+	 */
+	List<Alerts> getNotificationList(String userId);
+
+	/**
+	 * @param request
+	 * @return
+	 * @author kys
+	 * @created 2025-10-22
+	 * 알림 단건 읽음처리
+	 */
+	int updateAlertsCheckStatus(String userId, int alertId, NotificationUpdateRequest request);
+
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-22
+	 * 읽지 않은 알림 수
+	 */
+	int getUnreadNotificationCount(String userId);
+
 
 	/**
 	 * @param userId
 	 * @param alertId
-	 * @param statusList
 	 * @return
 	 * @author kys
-	 * @created 2025-10-17 알림 확인 컬럼 여러 건 업데이트
+	 * @created 2025-10-22
+	 * 알림 정보 조회
 	 */
-	Alerts updateAlertsCheckStatusList(String userId, int alertId, List<Boolean> statusList);
-
-	/**
-	 * @param userId
-	 * @return
-	 * @author kys
-	 * @created 2025-10-17 알림 확인 목록
-	 */
-	List<Alerts> getNotificationList(String userId);
+	Alerts getNotificationById(String userId,int alertId);
 	
 	/**
 	 * @param userId
-	 * @param alertId
 	 * @return
 	 * @author kys
-	 * @created 2025-10-17
-	 * 알림 상세 정보
+	 * @created 2025-10-22
+	 * 알림 아이디 리스트
 	 */
-	Alerts getAlerts(String userId, int alertId);
+	List<Integer> alertIdList (String userId, Boolean alertsCheckStatus);
 
+	
+	/**
+	 * @param userId
+	 * @param alertIdList
+	 * @return
+	 * @author kys
+	 * @created 2025-10-22
+	 * 알림 전체 읽음 처리
+	 */
+	int readAllAlerts(String userId, List<Integer> alertIdList);
+	
+	
 }

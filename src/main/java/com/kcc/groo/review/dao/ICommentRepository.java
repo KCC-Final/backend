@@ -84,4 +84,12 @@ public interface ICommentRepository {
      * 특정 사용자가 작성한 모든 댓글 수를 조회
      */
     int countCommentsByUserId(@Param("userId") String userId);
+    
+    /**
+     * @return
+     * @author kys
+     * @created 2025-10-21
+     * 가장 최근에 insert된 comment id 조회
+     */
+    int selectLastInsertedCommentId();
 }

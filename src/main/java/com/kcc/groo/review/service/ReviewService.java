@@ -1,17 +1,24 @@
 package com.kcc.groo.review.service;
 
-import com.kcc.groo.challenge.service.IChallengeService;
-import com.kcc.groo.review.dao.ICommentRepository;
-import com.kcc.groo.review.dao.IReviewRepository;
-import com.kcc.groo.review.data.dto.*;
-import com.kcc.groo.review.exception.ReviewErrorCode;
-import com.kcc.groo.review.exception.ReviewException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.kcc.groo.challenge.service.IChallengeService;
+import com.kcc.groo.notification.data.dto.NotificationRequest;
+import com.kcc.groo.notification.service.INotificationService;
+import com.kcc.groo.review.dao.ICommentRepository;
+import com.kcc.groo.review.dao.IReviewRepository;
+import com.kcc.groo.review.data.dto.ReviewCreateRequest;
+import com.kcc.groo.review.data.dto.ReviewResponse;
+import com.kcc.groo.review.data.dto.ReviewUpdateRequest;
+import com.kcc.groo.review.exception.ReviewErrorCode;
+import com.kcc.groo.review.exception.ReviewException;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -21,6 +28,7 @@ public class ReviewService implements IReviewService {
     private final IReviewRepository reviewRepository;
     private final ICommentRepository commentRepository;
     private final IChallengeService challengeService; // 의존성 주입
+    private final INotificationService notificationService; //added 2025-10-21 kys
 
     @Transactional
     @Override
@@ -301,6 +309,26 @@ public class ReviewService implements IReviewService {
         try {
             reviewRepository.insertLike(userId, reviewId);
             log.info("[likeReview] reviewId: {}, userId: {}", reviewId, userId);
+            
+            //added 2025-10-21 kys
+            if (!review.getUserId().equals(userId)) {
+                try {
+                    NotificationRequest req = new NotificationRequest();
+                    req.setType("like");                // 알림 종류
+                    req.setSenderType("review");        // 알림 출처 (리뷰)
+                    req.setSenderId(reviewId);          // 어떤 리뷰에 좋아요 눌렀는가
+                    req.setDetailSenderId(0);           // 좋아요는 세부 ID 없음
+                    req.setUserId(review.getUserId());  // 수신자 (리뷰 작성자)
+                    req.setSenderUserId(userId);        // 발신자 (좋아요 누른 사람)
+                    
+                    notificationService.sendNotification(req);
+                    log.info("like notification success: {} → {}", userId, review.getUserId());
+                } catch (IOException e) {
+                    log.error("like notification fail - reviewId: {}, sender: {}, receiver: {}", 
+                              reviewId, userId, review.getUserId(), e);
+                }
+            }
+ 
         } catch (Exception e) {
             log.error("[likeReview] Failed - reviewId: {}, userId: {}, error: {}", 
                       reviewId, userId, e.getMessage());
