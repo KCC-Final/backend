@@ -474,7 +474,6 @@ public class UsersApiController {
 		Users getUser = userService.findByUserId(userId);
 
 		return ResponseEntity.ok().body(new CommonResponse<>("get current user info", getUser));
-
 	}
 
     /**
