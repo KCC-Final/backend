@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.group.dao.IGroupCommentRepository">
+
+    <insert id="insertGroupComment" parameterType="com.kcc.groo.group.data.model.GroupComment" useGeneratedKeys="true"
+            keyProperty="commentId">
+        INSERT INTO group_comments (content, flag, group_id, user_id, parent_id)
+        VALUES (#{content}, #{flag}, #{groupId}, #{userId}, #{parentId})
+    </insert>
+
+    <select id="selectAllGroupCommentsByGroupId" parameterType="int"
+            resultType="com.kcc.groo.group.data.model.GroupComment">
+        SELECT comment_id,
+               content,
+               created_at,
+               updated_at,
+               flag,
+               group_id,
+               user_id,
+               parent_id
+        FROM group_comments
+        WHERE group_id = #{groupId}
+        ORDER BY created_at ASC
+    </select>
+
+    <select id="selectGroupCommentByCommentId" parameterType="int"
+            resultType="com.kcc.groo.group.data.model.GroupComment">
+        SELECT comment_id,
+               content,
+               created_at,
+               updated_at,
+               flag,
+               group_id,
+               user_id,
+               parent_id
+        FROM group_comments
+        WHERE comment_id = #{commentId}
+    </select>
+
+
+    <update id="updateGroupComment" parameterType="com.kcc.groo.group.data.model.GroupComment">
+        UPDATE
+            group_comments
+        SET content = #{content},
+            flag    = #{flag}
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <delete id="deleteGroupCommentByCommentId" parameterType="int">
+        DELETE
+        FROM group_comments
+        WHERE comment_id = #{commentId}
+    </delete>
+
+</mapper>
