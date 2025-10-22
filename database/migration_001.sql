@@ -5,10 +5,10 @@
 
 USE kcc;
 
--- 1️⃣ 기존 follows 테이블이 존재한다면 삭제
+-- 1 기존 follows 테이블이 존재한다면 삭제
 DROP TABLE IF EXISTS follows;
 
--- 2️⃣ 새로운 follows 테이블 생성
+-- 2 새로운 follows 테이블 생성
 CREATE TABLE IF NOT EXISTS follows (
     follow_id INT NOT NULL AUTO_INCREMENT COMMENT '팔로우 아이디',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '팔로우 생성일',
