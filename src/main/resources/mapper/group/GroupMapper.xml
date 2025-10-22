@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.group.dao.IGroupRepository">
+
+    <insert id="insertGroup" parameterType="com.kcc.groo.group.data.model.Groups" useGeneratedKeys="true"
+            keyProperty="groupId">
+        INSERT INTO `groups` (group_name, book_title, headcount_min, headcount_max,
+                              content, style, status, end_date, user_id, code_id)
+        VALUES (#{groupName}, #{bookTitle}, #{headcountMin}, #{headcountMax},
+                #{content}, #{style}, #{status}, #{endDate}, #{userId}, #{codeId})
+    </insert>
+
+    <select id="selectAllGroups" resultType="com.kcc.groo.group.data.model.Groups">
+        SELECT group_id,
+               group_name,
+               book_title,
+               headcount_min,
+               headcount_max,
+               content,
+               style,
+               status,
+               end_date,
+               created_at,
+               updated_at,
+               user_id,
+               code_id
+        FROM `groups`
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectGroupByGroupId" parameterType="int" resultType="com.kcc.groo.group.data.model.Groups">
+        SELECT group_id,
+               group_name,
+               book_title,
+               headcount_min,
+               headcount_max,
+               content,
+               style,
+               status,
+               end_date,
+               created_at,
+               updated_at,
+               user_id,
+               code_id
+        FROM `groups`
+        WHERE group_id = #{groupId}
+    </select>
+
+    <update id="updateGroup" parameterType="com.kcc.groo.group.data.model.Groups">
+        UPDATE `groups`
+        <set>
+            <if test="groupName != null">group_name = #{groupName},</if>
+            <if test="bookTitle != null">book_title = #{bookTitle},</if>
+            <if test="headcountMin != null">headcount_min = #{headcountMin},</if>
+            <if test="headcountMax != null">headcount_max = #{headcountMax},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="style != null">style = #{style},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+        </set>
+        WHERE
+        group_id = #{groupId}
+    </update>
+
+    <delete id="deleteGroupByGroupId" parameterType="int">
+        DELETE
+        FROM `groups`
+        WHERE group_id = #{groupId}
+    </delete>
+
+</mapper>
