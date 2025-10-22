@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.group.dao.IGroupScrapRepository">
+
+    <insert id="insertGroupScrap" parameterType="com.kcc.groo.group.data.model.GroupScrap">
+        INSERT INTO group_scraps (user_id, group_id)
+        VALUES (#{userId}, #{groupId})
+    </insert>
+
+    <select id="selectGroupScrapByUserIdAndGroupId" resultType="com.kcc.groo.group.data.model.GroupScrap">
+        SELECT user_id,
+               group_id,
+               created_at
+        FROM group_scraps
+        WHERE user_id = #{userId}
+          AND group_id = #{groupId}
+    </select>
+
+    <delete id="deleteGroupScrapByUserIdAndGroupId">
+        DELETE
+        FROM group_scraps
+        WHERE user_id = #{userId}
+          AND group_id = #{groupId}
+    </delete>
+
+</mapper>

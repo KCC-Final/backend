@@ -39,9 +39,12 @@ public enum GroupErrorCode implements GrooErrorCode {
     NOT_FOUND_GROUP_TO_UPDATE("GRP-301", "수정할 독서모임 게시글이 없습니다", HttpStatus.NOT_FOUND),
     NOT_FOUND_GROUP_TO_DELETE("GRP-302", "삭제할 독서모임 게시글이 없습니다", HttpStatus.NOT_FOUND),
     NOT_FOUND_GROUP_TO_READ_COMMENT("GRP-303", "댓글 조회할 독서모임 게시글이 없습니다", HttpStatus.NOT_FOUND),
-    NOT_FOUND_GROUP_COMMENT_TO_READ("GRP-304", "조회할 독서모임 댓글이 없습니다", HttpStatus.NOT_FOUND),
-    NOT_FOUND_GROUP_COMMENT_TO_UPDATE("GRP-305", "수정할 독서모임 댓글이 없습니다", HttpStatus.NOT_FOUND),
-    NOT_FOUND_GROUP_COMMENT_TO_DELETE("GRP-306", "삭제할 독서모임 댓글이 없습니다", HttpStatus.NOT_FOUND),
+    NOT_FOUND_GROUP_TO_SCRAP("GRP-304", "스크랩할 독서모임 게시글이 없습니다", HttpStatus.NOT_FOUND),
+    NOT_FOUND_GROUP_TO_CHECK_SCRAP("GRP-305", "스크랩 상태를 확인할 독서모임 게시글이 없습니다", HttpStatus.NOT_FOUND),
+    NOT_FOUND_GROUP_TO_CANCEL_SCRAP("GRP-306", "스크랩 취소할 독서모임 게시글이 없습니다", HttpStatus.NOT_FOUND),
+    NOT_FOUND_GROUP_COMMENT_TO_READ("GRP-320", "조회할 독서모임 댓글이 없습니다", HttpStatus.NOT_FOUND),
+    NOT_FOUND_GROUP_COMMENT_TO_UPDATE("GRP-321", "수정할 독서모임 댓글이 없습니다", HttpStatus.NOT_FOUND),
+    NOT_FOUND_GROUP_COMMENT_TO_DELETE("GRP-322", "삭제할 독서모임 댓글이 없습니다", HttpStatus.NOT_FOUND),
 
     // 400~499: 권한 오류 (403 Forbidden)
     FORBIDDEN_UPDATE_GROUP("GRP-400", "독서모임 게시글을 수정할 권한이 없습니다", HttpStatus.FORBIDDEN),
@@ -50,6 +53,8 @@ public enum GroupErrorCode implements GrooErrorCode {
     FORBIDDEN_DELETE_GROUP_COMMENT("GRP-403", "독서모임 댓글을 삭제할 권한이 없습니다", HttpStatus.FORBIDDEN),
 
     // 500~899: 그 외
+    ALREADY_SCRAPPED_GROUP("GRP-500", "이미 스크랩한 독서모임입니다", HttpStatus.CONFLICT),
+    NOT_SCRAPPED_GROUP("GRP-501", "스크랩하지 않은 독서모임입니다", HttpStatus.CONFLICT),
 
     // 900~999: 서버 오류 (500 Internal Server Error)
     FAILED_CREATE_GROUP("GRP-900", "독서모임 게시글 생성에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
@@ -57,7 +62,9 @@ public enum GroupErrorCode implements GrooErrorCode {
     FAILED_DELETE_GROUP("GRP-902", "독서모임 게시글 삭제에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
     FAILED_CREATE_GROUP_COMMENT("GRP-903", "독서모임 댓글 생성에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
     FAILED_UPDATE_GROUP_COMMENT("GRP-904", "독서모임 댓글 수정에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
-    FAILED_DELETE_GROUP_COMMENT("GRP-905", "독서모임 댓글 삭제에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR);
+    FAILED_DELETE_GROUP_COMMENT("GRP-905", "독서모임 댓글 삭제에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
+    FAILED_SCRAP_GROUP("GRP-906", "독서모임 스크랩 생성에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
+    FAILED_CANCEL_SCRAP_GROUP("GRP-907", "독서모임 스크랩 삭제에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     private final String code;
