@@ -1,333 +1,46 @@
+USE kcc;
+
+-- ================================================
+-- migration_002_sentences.sql
+-- sentences 테이블 컬럼 추가 + 중복 없는 데이터 삽입
+-- ================================================
+
+-- 1 selected_date 컬럼 추가 (있으면 무시)
 ALTER TABLE sentences
-ADD COLUMN selected_date DATE NULL COMMENT '오늘의 문장으로 선택된 날짜'
+ADD COLUMN IF NOT EXISTS selected_date DATE NULL COMMENT '오늘의 문장으로 선택된 날짜'
 AFTER ISBN;
 
--- 1. sentences 테이블에 오늘의 문장 데이터 삽입
-INSERT INTO sentences (sentence_content, ISBN, selected_date) VALUES ("부끄럼 많은 생애를 보내 왔습니다. 저는 인간의 삶이라는 것을 도무지 이해할 수 없습니다.", "9788937461033", CURDATE());
-INSERT INTO sentences (sentence_content, ISBN) VALUES ("내 삶의 부피는 너무 얇다. 겨자씨 한 알 심을 만한 깊이도 없다. 이렇게 살아도 되는 것일까.", "9788998441012");
-INSERT INTO sentences (sentence_content, ISBN) VALUES ("소리가 어디에서 오는지, 왜 들리는지 그는 알지 못했지만 야성의 부름은 계속되었다. 숲 속 깊은 곳으로부터 들리는 절체절명의 소리였기에 그는 어디로 그리고 왜라는 물음을 던지지도 않았다.", "9788937426926");
-INSERT INTO sentences (sentence_content, ISBN) VALUES ("법을 지키고 구조되는 것과 사냥을 하고 모든 것을 파괴하는 것 중 어느 편이 좋으냔 말이야?", "9788937460197");
+-- 2 중복 방지 삽입 구문
+INSERT INTO sentences (sentence_content, ISBN, selected_date)
+SELECT "부끄럼 많은 생애를 보내 왔습니다. 저는 인간의 삶이라는 것을 도무지 이해할 수 없습니다.", "9788937461033", CURDATE()
+WHERE NOT EXISTS (
+    SELECT 1 FROM sentences
+    WHERE sentence_content = "부끄럼 많은 생애를 보내 왔습니다. 저는 인간의 삶이라는 것을 도무지 이해할 수 없습니다."
+      AND ISBN = "9788937461033"
+);
 
--- 2. 지역 코드 그룹 추가
-INSERT IGNORE INTO code_groups (group_code, group_name)
-VALUES ('region', '지역코드');
+INSERT INTO sentences (sentence_content, ISBN)
+SELECT "내 삶의 부피는 너무 얇다. 겨자씨 한 알 심을 만한 깊이도 없다. 이렇게 살아도 되는 것일까.", "9788998441012"
+WHERE NOT EXISTS (
+    SELECT 1 FROM sentences
+    WHERE sentence_content = "내 삶의 부피는 너무 얇다. 겨자씨 한 알 심을 만한 깊이도 없다. 이렇게 살아도 되는 것일까."
+      AND ISBN = "9788998441012"
+);
 
--- 3. 지역 코드 데이터 삽입
-INSERT IGNORE INTO codes (code_value, code_name, group_code) VALUES
-('11', '서울특별시', 'region'),
-('21', '부산광역시', 'region'),
-('22', '대구광역시', 'region'),
-('23', '인천광역시', 'region'),
-('24', '광주광역시', 'region'),
-('25', '대전광역시', 'region'),
-('26', '울산광역시', 'region'),
-('29', '세종특별자치시', 'region'),
-('31', '경기도', 'region'),
-('32', '강원특별자치도', 'region'),
-('33', '충청북도', 'region'),
-('34', '충청남도', 'region'),
-('35', '전북특별자치도', 'region'),
-('36', '전라남도', 'region'),
-('37', '경상북도', 'region'),
-('38', '경상남도', 'region'),
-('39', '제주특별자치도', 'region');
+INSERT INTO sentences (sentence_content, ISBN)
+SELECT "소리가 어디에서 오는지, 왜 들리는지 그는 알지 못했지만 야성의 부름은 계속되었다. 숲 속 깊은 곳으로부터 들리는 절체절명의 소리였기에 그는 어디로 그리고 왜라는 물음을 던지지도 않았다.", "9788937426926"
+WHERE NOT EXISTS (
+    SELECT 1 FROM sentences
+    WHERE sentence_content = "소리가 어디에서 오는지, 왜 들리는지 그는 알지 못했지만 야성의 부름은 계속되었다. 숲 속 깊은 곳으로부터 들리는 절체절명의 소리였기에 그는 어디로 그리고 왜라는 물음을 던지지도 않았다."
+      AND ISBN = "9788937426926"
+);
 
--- 4. 세부지역 코드 그룹 추가
-INSERT IGNORE INTO code_groups (group_code, group_name)
-VALUES ('dtl_region', '세부지역코드');
+INSERT INTO sentences (sentence_content, ISBN)
+SELECT "법을 지키고 구조되는 것과 사냥을 하고 모든 것을 파괴하는 것 중 어느 편이 좋으냔 말이야?", "9788937460197"
+WHERE NOT EXISTS (
+    SELECT 1 FROM sentences
+    WHERE sentence_content = "법을 지키고 구조되는 것과 사냥을 하고 모든 것을 파괴하는 것 중 어느 편이 좋으냔 말이야?"
+      AND ISBN = "9788937460197"
+);
 
--- 5. 세부지역 코드 데이터 삽입
-INSERT IGNORE INTO codes (code_value, code_name, group_code) VALUES
--- 서울특별시
-('11010', '종로구', 'dtl_region'),
-('11020', '중구', 'dtl_region'),
-('11030', '용산구', 'dtl_region'),
-('11040', '성동구', 'dtl_region'),
-('11050', '광진구', 'dtl_region'),
-('11060', '동대문구', 'dtl_region'),
-('11070', '중랑구', 'dtl_region'),
-('11080', '성북구', 'dtl_region'),
-('11090', '강북구', 'dtl_region'),
-('11100', '도봉구', 'dtl_region'),
-('11110', '노원구', 'dtl_region'),
-('11120', '은평구', 'dtl_region'),
-('11130', '서대문구', 'dtl_region'),
-('11140', '마포구', 'dtl_region'),
-('11150', '양천구', 'dtl_region'),
-('11160', '강서구', 'dtl_region'),
-('11170', '구로구', 'dtl_region'),
-('11180', '금천구', 'dtl_region'),
-('11190', '영등포구', 'dtl_region'),
-('11200', '동작구', 'dtl_region'),
-('11210', '관악구', 'dtl_region'),
-('11220', '서초구', 'dtl_region'),
-('11230', '강남구', 'dtl_region'),
-('11240', '송파구', 'dtl_region'),
-('11250', '강동구', 'dtl_region'),
--- 부산광역시
-('21010', '중구', 'dtl_region'),
-('21020', '서구', 'dtl_region'),
-('21030', '동구', 'dtl_region'),
-('21040', '영도구', 'dtl_region'),
-('21050', '부산진구', 'dtl_region'),
-('21060', '동래구', 'dtl_region'),
-('21070', '남구', 'dtl_region'),
-('21080', '북구', 'dtl_region'),
-('21090', '해운대구', 'dtl_region'),
-('21100', '사하구', 'dtl_region'),
-('21110', '금정구', 'dtl_region'),
-('21120', '강서구', 'dtl_region'),
-('21130', '연제구', 'dtl_region'),
-('21140', '수영구', 'dtl_region'),
-('21150', '사상구', 'dtl_region'),
-('21310', '기장군', 'dtl_region'),
-
--- 대구광역시
-('22010', '중구', 'dtl_region'),
-('22020', '동구', 'dtl_region'),
-('22030', '서구', 'dtl_region'),
-('22040', '남구', 'dtl_region'),
-('22050', '북구', 'dtl_region'),
-('22060', '수성구', 'dtl_region'),
-('22070', '달서구', 'dtl_region'),
-('22310', '달성군', 'dtl_region'),
-
--- 인천광역시
-('23010', '중구', 'dtl_region'),
-('23020', '동구', 'dtl_region'),
-('23030', '남구', 'dtl_region'),
-('23040', '연수구', 'dtl_region'),
-('23050', '남동구', 'dtl_region'),
-('23060', '부평구', 'dtl_region'),
-('23070', '계양구', 'dtl_region'),
-('23080', '서구', 'dtl_region'),
-('23310', '강화군', 'dtl_region'),
-('23320', '옹진군', 'dtl_region'),
-
--- 광주광역시
-('24010', '동구', 'dtl_region'),
-('24020', '서구', 'dtl_region'),
-('24030', '남구', 'dtl_region'),
-('24040', '북구', 'dtl_region'),
-('24050', '광산구', 'dtl_region'),
-
--- 대전광역시
-('25010', '동구', 'dtl_region'),
-('25020', '중구', 'dtl_region'),
-('25030', '서구', 'dtl_region'),
-('25040', '유성구', 'dtl_region'),
-('25050', '대덕구', 'dtl_region'),
-
--- 울산광역시
-('26010', '중구', 'dtl_region'),
-('26020', '남구', 'dtl_region'),
-('26030', '동구', 'dtl_region'),
-('26040', '북구', 'dtl_region'),
-('26310', '울주군', 'dtl_region'),
-
--- 세종특별자치시
-('29010', '세종시', 'dtl_region'),
-
--- 경기도
-('31010', '수원시', 'dtl_region'),
-('31011', '수원시 장안구', 'dtl_region'),
-('31012', '수원시 권선구', 'dtl_region'),
-('31013', '수원시 팔달구', 'dtl_region'),
-('31014', '수원시 영통구', 'dtl_region'),
-('31020', '성남시', 'dtl_region'),
-('31021', '성남시 수정구', 'dtl_region'),
-('31022', '성남시 중원구', 'dtl_region'),
-('31023', '성남시 분당구', 'dtl_region'),
-('31030', '의정부시', 'dtl_region'),
-('31040', '안양시', 'dtl_region'),
-('31041', '안양시 만안구', 'dtl_region'),
-('31042', '안양시 동안구', 'dtl_region'),
-('31050', '부천시', 'dtl_region'),
-('31060', '광명시', 'dtl_region'),
-('31070', '평택시', 'dtl_region'),
-('31080', '동두천시', 'dtl_region'),
-('31090', '안산시', 'dtl_region'),
-('31091', '안산시 상록구', 'dtl_region'),
-('31092', '안산시 단원구', 'dtl_region'),
-('31100', '고양시', 'dtl_region'),
-('31101', '고양시 덕양구', 'dtl_region'),
-('31103', '고양시 일산동구', 'dtl_region'),
-('31104', '고양시 일산서구', 'dtl_region'),
-('31110', '과천시', 'dtl_region'),
-('31120', '구리시', 'dtl_region'),
-('31130', '남양주시', 'dtl_region'),
-('31140', '오산시', 'dtl_region'),
-('31150', '시흥시', 'dtl_region'),
-('31160', '군포시', 'dtl_region'),
-('31170', '의왕시', 'dtl_region'),
-('31180', '하남시', 'dtl_region'),
-('31190', '용인시', 'dtl_region'),
-('31191', '용인시 처인구', 'dtl_region'),
-('31192', '용인시 기흥구', 'dtl_region'),
-('31193', '용인시 수지구', 'dtl_region'),
-('31200', '파주시', 'dtl_region'),
-('31210', '이천시', 'dtl_region'),
-('31220', '안성시', 'dtl_region'),
-('31230', '김포시', 'dtl_region'),
-('31240', '화성시', 'dtl_region'),
-('31250', '광주시', 'dtl_region'),
-('31260', '양주시', 'dtl_region'),
-('31270', '포천시', 'dtl_region'),
-('31280', '여주시', 'dtl_region'),
-('31350', '연천군', 'dtl_region'),
-('31370', '가평군', 'dtl_region'),
-('31380', '양평군', 'dtl_region'),
-
--- 강원특별자치도
-('32010', '춘천시', 'dtl_region'),
-('32020', '원주시', 'dtl_region'),
-('32030', '강릉시', 'dtl_region'),
-('32040', '동해시', 'dtl_region'),
-('32050', '태백시', 'dtl_region'),
-('32060', '속초시', 'dtl_region'),
-('32070', '삼척시', 'dtl_region'),
-('32310', '홍천군', 'dtl_region'),
-('32320', '횡성군', 'dtl_region'),
-('32330', '영월군', 'dtl_region'),
-('32340', '평창군', 'dtl_region'),
-('32350', '정선군', 'dtl_region'),
-('32360', '철원군', 'dtl_region'),
-('32370', '화천군', 'dtl_region'),
-('32380', '양구군', 'dtl_region'),
-('32390', '인제군', 'dtl_region'),
-('32400', '고성군', 'dtl_region'),
-('32410', '양양군', 'dtl_region'),
-
--- 충청북도
-('33020', '충주시', 'dtl_region'),
-('33030', '제천시', 'dtl_region'),
-('33040', '청주시', 'dtl_region'),
-('33041', '청주시 상당구', 'dtl_region'),
-('33042', '청주시 서원구', 'dtl_region'),
-('33043', '청주시 흥덕구', 'dtl_region'),
-('33044', '청주시 청원구', 'dtl_region'),
-('33320', '보은군', 'dtl_region'),
-('33330', '옥천군', 'dtl_region'),
-('33340', '영동군', 'dtl_region'),
-('33350', '진천군', 'dtl_region'),
-('33360', '괴산군', 'dtl_region'),
-('33370', '음성군', 'dtl_region'),
-('33380', '단양군', 'dtl_region'),
-('33390', '증평군', 'dtl_region'),
-
--- 충청남도
-('34010', '천안시', 'dtl_region'),
-('34011', '천안시 동남구', 'dtl_region'),
-('34012', '천안시 서북구', 'dtl_region'),
-('34020', '공주시', 'dtl_region'),
-('34030', '보령시', 'dtl_region'),
-('34040', '아산시', 'dtl_region'),
-('34050', '서산시', 'dtl_region'),
-('34060', '논산시', 'dtl_region'),
-('34070', '계룡시', 'dtl_region'),
-('34080', '당진시', 'dtl_region'),
-('34310', '금산군', 'dtl_region'),
-('34330', '부여군', 'dtl_region'),
-('34340', '서천군', 'dtl_region'),
-('34350', '청양군', 'dtl_region'),
-('34360', '홍성군', 'dtl_region'),
-('34370', '예산군', 'dtl_region'),
-('34380', '태안군', 'dtl_region'),
-
--- 전북특별자치도
-('35010', '전주시', 'dtl_region'),
-('35011', '전주시 완산구', 'dtl_region'),
-('35012', '전주시 덕진구', 'dtl_region'),
-('35020', '군산시', 'dtl_region'),
-('35030', '익산시', 'dtl_region'),
-('35040', '정읍시', 'dtl_region'),
-('35050', '남원시', 'dtl_region'),
-('35060', '김제시', 'dtl_region'),
-('35310', '완주군', 'dtl_region'),
-('35320', '진안군', 'dtl_region'),
-('35330', '무주군', 'dtl_region'),
-('35340', '장수군', 'dtl_region'),
-('35350', '임실군', 'dtl_region'),
-('35360', '순창군', 'dtl_region'),
-('35370', '고창군', 'dtl_region'),
-('35380', '부안군', 'dtl_region'),
-
--- 전라남도
-('36010', '목포시', 'dtl_region'),
-('36020', '여수시', 'dtl_region'),
-('36030', '순천시', 'dtl_region'),
-('36040', '나주시', 'dtl_region'),
-('36060', '광양시', 'dtl_region'),
-('36310', '담양군', 'dtl_region'),
-('36320', '곡성군', 'dtl_region'),
-('36330', '구례군', 'dtl_region'),
-('36350', '고흥군', 'dtl_region'),
-('36360', '보성군', 'dtl_region'),
-('36370', '화순군', 'dtl_region'),
-('36380', '장흥군', 'dtl_region'),
-('36390', '강진군', 'dtl_region'),
-('36400', '해남군', 'dtl_region'),
-('36410', '영암군', 'dtl_region'),
-('36420', '무안군', 'dtl_region'),
-('36430', '함평군', 'dtl_region'),
-('36440', '영광군', 'dtl_region'),
-('36450', '장성군', 'dtl_region'),
-('36460', '완도군', 'dtl_region'),
-('36470', '진도군', 'dtl_region'),
-('36480', '신안군', 'dtl_region'),
-
--- 경상북도
-('37010', '포항시', 'dtl_region'),
-('37011', '포항시 남구', 'dtl_region'),
-('37012', '포항시 북구', 'dtl_region'),
-('37020', '경주시', 'dtl_region'),
-('37030', '김천시', 'dtl_region'),
-('37040', '안동시', 'dtl_region'),
-('37050', '구미시', 'dtl_region'),
-('37060', '영주시', 'dtl_region'),
-('37070', '영천시', 'dtl_region'),
-('37080', '상주시', 'dtl_region'),
-('37090', '문경시', 'dtl_region'),
-('37100', '경산시', 'dtl_region'),
-('37310', '군위군', 'dtl_region'),
-('37320', '의성군', 'dtl_region'),
-('37330', '청송군', 'dtl_region'),
-('37340', '영양군', 'dtl_region'),
-('37350', '영덕군', 'dtl_region'),
-('37360', '청도군', 'dtl_region'),
-('37370', '고령군', 'dtl_region'),
-('37380', '성주군', 'dtl_region'),
-('37390', '칠곡군', 'dtl_region'),
-('37400', '예천군', 'dtl_region'),
-('37410', '봉화군', 'dtl_region'),
-('37420', '울진군', 'dtl_region'),
-('37430', '울릉군', 'dtl_region'),
-
--- 경상남도
-('38030', '진주시', 'dtl_region'),
-('38050', '통영시', 'dtl_region'),
-('38060', '사천시', 'dtl_region'),
-('38070', '김해시', 'dtl_region'),
-('38080', '밀양시', 'dtl_region'),
-('38090', '거제시', 'dtl_region'),
-('38100', '양산시', 'dtl_region'),
-('38110', '창원시', 'dtl_region'),
-('38111', '창원시 의창구', 'dtl_region'),
-('38112', '창원시 성산구', 'dtl_region'),
-('38113', '창원시 마산합포구', 'dtl_region'),
-('38114', '창원시 마산회원구', 'dtl_region'),
-('38115', '창원시 진해구', 'dtl_region'),
-('38310', '의령군', 'dtl_region'),
-('38320', '함안군', 'dtl_region'),
-('38330', '창녕군', 'dtl_region'),
-('38340', '고성군', 'dtl_region'),
-('38350', '남해군', 'dtl_region'),
-('38360', '하동군', 'dtl_region'),
-('38370', '산청군', 'dtl_region'),
-('38380', '함양군', 'dtl_region'),
-('38390', '거창군', 'dtl_region'),
-('38400', '합천군', 'dtl_region'),
-
--- 제주특별자치도
-('39010', '제주시', 'dtl_region'),
-('39020', '서귀포시', 'dtl_region');
+COMMIT;

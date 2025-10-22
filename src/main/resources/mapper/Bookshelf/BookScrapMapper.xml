@@ -33,11 +33,17 @@ SELECT * FROM book WHERE bookshelf_id=#{bookshelfId} AND user_id = #{userId}
 ]]>
 </select>
 
-<select id="checkExistsBookByUserIdAndbookshelfId" resultType="int">
-<![CDATA[
-	SELECT count(ISBN) from book WHERE user_id=#{userId} AND bookshelf_id=#{bookshelfId} AND ISBN = #{ISBN}
+    <select id="checkExistsBookByUserIdAndbookshelfId" resultType="int">
+        <![CDATA[
+    SELECT COUNT(*)
+    FROM book b
+    JOIN bookshelf s ON b.bookshelf_id = s.bookshelf_id
+    WHERE s.user_id = #{userId}
+      AND b.bookshelf_id = #{bookshelfId}
+      AND b.ISBN = #{ISBN}
 ]]>
-</select>
+    </select>
+
 
 <select id="countBookScrap" resultType="int">
 <![CDATA[
