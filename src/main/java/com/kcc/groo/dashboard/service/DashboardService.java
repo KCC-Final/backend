@@ -1,19 +1,15 @@
 package com.kcc.groo.dashboard.service;
 
-import java.time.LocalDate;
-import java.util.List;
-
+import com.kcc.groo.common.exception.GrooException;
+import com.kcc.groo.dashboard.dao.IDashboardRepository;
 import com.kcc.groo.dashboard.data.dto.*;
+import com.kcc.groo.dashboard.exception.DashboardErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.kcc.groo.dashboard.dao.IDashboardRepository;
-import com.kcc.groo.dashboard.exception.DashboardErrorCode;
-import com.kcc.groo.dashboard.exception.DashboardException;
-import com.kcc.groo.dashboard.data.dto.YearlyStat;
-import com.kcc.groo.dashboard.data.dto.YearlyStatsResponse;
-
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * @author uyh
@@ -55,7 +51,7 @@ public class DashboardService implements IDashboardService {
             );
         } catch (Exception e) {
             log.error("[getSummaryStats] Failed - userId: {}, error: {}", userId, e.getMessage());
-            throw new DashboardException(DashboardErrorCode.SUMMARY_STATS_FAILED, e.getMessage());
+            throw new GrooException(DashboardErrorCode.SUMMARY_STATS_FAILED, e.getMessage());
         }
     }
 
@@ -74,7 +70,7 @@ public class DashboardService implements IDashboardService {
             return new MonthlyStatsResponse(monthlyStats);
         } catch (Exception e) {
             log.error("[getMonthlyStats] Failed - userId: {}, year: {}, error: {}", userId, year, e.getMessage());
-            throw new DashboardException(DashboardErrorCode.MONTHLY_STATS_FAILED, e.getMessage());
+            throw new GrooException(DashboardErrorCode.MONTHLY_STATS_FAILED, e.getMessage());
         }
     }
 
@@ -112,7 +108,7 @@ public class DashboardService implements IDashboardService {
         } catch (Exception e) {
             log.error("[getMonthlyReport] Failed - userId: {}, year: {}, month: {}, error: {}",
                     userId, year, month, e.getMessage());
-            throw new DashboardException(DashboardErrorCode.MONTHLY_REPORT_FAILED, e.getMessage());
+            throw new GrooException(DashboardErrorCode.MONTHLY_REPORT_FAILED, e.getMessage());
         }
     }
 
@@ -126,7 +122,7 @@ public class DashboardService implements IDashboardService {
      */
     private void validateUserId(String userId) {
         if (userId == null || userId.trim().isEmpty()) {
-            throw new DashboardException(DashboardErrorCode.INVALID_USER_ID);
+            throw new GrooException(DashboardErrorCode.INVALID_USER_ID);
         }
     }
 
@@ -138,7 +134,7 @@ public class DashboardService implements IDashboardService {
      */
     private void validateYear(int year) {
         if (year < 1900 || year > 2100) {
-            throw new DashboardException(DashboardErrorCode.YEAR_OUT_OF_RANGE);
+            throw new GrooException(DashboardErrorCode.YEAR_OUT_OF_RANGE);
         }
     }
 
@@ -150,10 +146,9 @@ public class DashboardService implements IDashboardService {
      */
     private void validateMonth(int month) {
         if (month < 1 || month > 12) {
-            throw new DashboardException(DashboardErrorCode.INVALID_MONTH);
+            throw new GrooException(DashboardErrorCode.INVALID_MONTH);
         }
     }
-
 
 
     /**
