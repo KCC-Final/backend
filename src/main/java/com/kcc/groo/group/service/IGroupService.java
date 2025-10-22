@@ -1,7 +1,7 @@
 package com.kcc.groo.group.service;
 
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
-import com.kcc.groo.group.data.model.Groups;
+import com.kcc.groo.group.data.model.Group;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public interface IGroupService {
      * @author YunSung
      * @created 2025-10-22
      */
-    Groups createGroup(GroupRequestDTO group, String userId);
+    Group createGroup(GroupRequestDTO group, String userId);
 
     /**
      * 모든 독서 모임 게시글 목록 조회
@@ -31,7 +31,7 @@ public interface IGroupService {
      * @author YunSung
      * @created 2025-10-22
      */
-    List<Groups> readAllGroups();
+    List<Group> readAllGroups();
 
     /**
      * 독서 모임 ID를 통한 독서 모임 게시글 상세 조회
@@ -41,7 +41,7 @@ public interface IGroupService {
      * @author YunSung
      * @created 2025-10-22
      */
-    Groups readGroupByGroupId(int groupId);
+    Group readGroupByGroupId(int groupId);
 
     /**
      * 독서 모임 게시글 수정
@@ -53,7 +53,7 @@ public interface IGroupService {
      * @author YunSung
      * @created 2025-10-22
      */
-    Groups updateGroup(GroupRequestDTO group, int groupId, String userId);
+    Group updateGroup(GroupRequestDTO group, int groupId, String userId);
 
     /**
      * 특정 독서 모임 게시글 삭제

@@ -3,7 +3,7 @@ package com.kcc.groo.group.service;
 import com.kcc.groo.common.exception.GrooException;
 import com.kcc.groo.group.dao.IGroupRepository;
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
-import com.kcc.groo.group.data.model.Groups;
+import com.kcc.groo.group.data.model.Group;
 import com.kcc.groo.group.exception.GroupErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,9 +31,9 @@ public class GroupService implements IGroupService {
      * 게시글 생성 성공/실패 확인 과정 추가
      */
     @Override
-    public Groups createGroup(GroupRequestDTO group, String userId) {
+    public Group createGroup(GroupRequestDTO group, String userId) {
         // 작성할 독서 모임 게시글 정보 설정
-        Groups newGroup = new Groups();
+        Group newGroup = new Group();
         newGroup.setUserId(userId);
         newGroup.setGroupName(group.getGroupName());
         newGroup.setBookTitle(group.getBookTitle());
@@ -64,7 +64,7 @@ public class GroupService implements IGroupService {
      * @created 2025-10-22
      */
     @Override
-    public List<Groups> readAllGroups() {
+    public List<Group> readAllGroups() {
         // 조회한 독서 모임 게시글 리스트 반환
         return groupRepository.selectAllGroups();
     }
@@ -78,9 +78,9 @@ public class GroupService implements IGroupService {
      * 존재하지 않는 게시글 조회 시 예외 처리 추가
      */
     @Override
-    public Groups readGroupByGroupId(int groupId) {
+    public Group readGroupByGroupId(int groupId) {
         // 독서 모임 게시글 조회
-        Groups readGroup = groupRepository.selectGroupByGroupId(groupId);
+        Group readGroup = groupRepository.selectGroupByGroupId(groupId);
 
         // 독서 모임 게시글이 존재하지 않을 경우 예외 발생
         if (readGroup == null) {
@@ -99,9 +99,9 @@ public class GroupService implements IGroupService {
      * @modified 2025-10-23
      * 수정할 게시글 존재 여부, 수정 권한, 수정 성공/실패 확인 과정 추가
      */
-    public Groups updateGroup(GroupRequestDTO group, int groupId, String userId) {
+    public Group updateGroup(GroupRequestDTO group, int groupId, String userId) {
         // 수정할 독서 모임 게시글 조회
-        Groups targetGroup = groupRepository.selectGroupByGroupId(groupId);
+        Group targetGroup = groupRepository.selectGroupByGroupId(groupId);
 
         // 수정할 독서 모임 게시글 ID의 게시글이 존재하지 않으면 예외 발생
         if (targetGroup == null) {
@@ -147,7 +147,7 @@ public class GroupService implements IGroupService {
     @Override
     public void deleteGroupByGroupId(int groupId, String userId) {
         // 삭제할 독서 모임 게시글 조회
-        Groups deletedGroup = groupRepository.selectGroupByGroupId(groupId);
+        Group deletedGroup = groupRepository.selectGroupByGroupId(groupId);
 
         // 해당 ID의 독서 모임 게시글이 존재하지 않으면 예외 발생
         if (deletedGroup == null) {

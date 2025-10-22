@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Groups {
+public class Group {
 
     private Integer groupId;  // 게시글 ID
 

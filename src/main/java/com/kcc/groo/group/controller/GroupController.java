@@ -2,7 +2,7 @@ package com.kcc.groo.group.controller;
 
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
-import com.kcc.groo.group.data.model.Groups;
+import com.kcc.groo.group.data.model.Group;
 import com.kcc.groo.group.service.IGroupService;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,7 +46,7 @@ public class GroupController {
         String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
 
         // 독서 모임 게시글 생성
-        Groups createdGroup = groupService.createGroup(group, userId);
+        Group createdGroup = groupService.createGroup(group, userId);
 
         // 201 응답. 생성된 독서 모임 게시글 ID 반환
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -61,9 +61,9 @@ public class GroupController {
      * @created 2025-10-22
      */
     @GetMapping
-    public ResponseEntity<CommonResponse<List<Groups>>> findAllGroups() {
+    public ResponseEntity<CommonResponse<List<Group>>> findAllGroups() {
         // 독서 모임 게시글 DB에서 조회
-        List<Groups> groups = groupService.readAllGroups();
+        List<Group> groups = groupService.readAllGroups();
 
         // 200 응답. 독서 모임 게시글 목록 반환
         return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 목록 조회 성공", groups));
@@ -78,9 +78,9 @@ public class GroupController {
      * @created 2025-10-22
      */
     @GetMapping("/{groupId}")
-    public ResponseEntity<CommonResponse<Groups>> getGroupById(@PathVariable int groupId) {
+    public ResponseEntity<CommonResponse<Group>> getGroupById(@PathVariable int groupId) {
         // 독서 모임 게시글 DB에서 조회
-        Groups group = groupService.readGroupByGroupId(groupId);
+        Group group = groupService.readGroupByGroupId(groupId);
 
         // 200 응답. 독서 모임 게시글 정보 반환
         return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 상세 조회 성공", group));
@@ -102,7 +102,7 @@ public class GroupController {
         String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
 
         // 기존 독서 모임 게시글 수정
-        Groups updatedGroup = groupService.updateGroup(group, groupId, userId);
+        Group updatedGroup = groupService.updateGroup(group, groupId, userId);
 
         // 200 응답. 수정된 독서 모임 게시글 ID 반환
         return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 수정 성공", updatedGroup.getGroupId()));

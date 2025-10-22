@@ -4,8 +4,8 @@ import com.kcc.groo.common.exception.GrooException;
 import com.kcc.groo.group.dao.IGroupCommentRepository;
 import com.kcc.groo.group.dao.IGroupRepository;
 import com.kcc.groo.group.data.dto.GroupCommentRequestDTO;
+import com.kcc.groo.group.data.model.Group;
 import com.kcc.groo.group.data.model.GroupComment;
-import com.kcc.groo.group.data.model.Groups;
 import com.kcc.groo.group.exception.GroupErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,7 +68,7 @@ public class GroupCommentService implements IGroupCommentService {
     @Override
     public List<GroupComment> readAllGroupCommentsByGroupId(int groupId) {
         // 댓글 목록을 조회할 독서 모임 게시글 조회
-        Groups readGroup = groupRepository.selectGroupByGroupId(groupId);
+        Group readGroup = groupRepository.selectGroupByGroupId(groupId);
 
         // 존재하지 않는 독서 모임 게시글인 경우 예외 발생
         if (readGroup == null) {

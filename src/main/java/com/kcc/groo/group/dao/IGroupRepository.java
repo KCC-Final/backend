@@ -1,6 +1,6 @@
 package com.kcc.groo.group.dao;
 
-import com.kcc.groo.group.data.model.Groups;
+import com.kcc.groo.group.data.model.Group;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
@@ -24,7 +24,7 @@ public interface IGroupRepository {
      * @author YunSung
      * @created 2025-10-22
      */
-    int insertGroup(Groups group);
+    int insertGroup(Group group);
 
     /**
      * 모든 독서 모임 목록 조회
@@ -33,7 +33,7 @@ public interface IGroupRepository {
      * @author YunSung
      * @created 2025-10-22
      */
-    List<Groups> selectAllGroups();
+    List<Group> selectAllGroups();
 
     /**
      * group_id로 특정 독서 모임 조회
@@ -43,7 +43,7 @@ public interface IGroupRepository {
      * @author YunSung
      * @created 2025-10-22
      */
-    Groups selectGroupByGroupId(int groupId);
+    Group selectGroupByGroupId(int groupId);
 
     /**
      * 독서 모임 정보 수정
@@ -53,7 +53,7 @@ public interface IGroupRepository {
      * @author YunSung
      * @created 2025-10-22
      */
-    int updateGroup(Groups group);
+    int updateGroup(Group group);
 
     /**
      * group_id로 특정 독서 모임 삭제
