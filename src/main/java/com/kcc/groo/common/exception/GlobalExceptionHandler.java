@@ -1,19 +1,17 @@
-package com.kcc.groo.common;
+package com.kcc.groo.common.exception;
 
+import com.kcc.groo.common.dto.CommonResponse;
+import com.kcc.groo.dashboard.exception.DashboardException;
+import com.kcc.groo.review.exception.ReviewException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.kcc.groo.common.dto.CommonResponse;
-import com.kcc.groo.review.exception.ReviewException;
-import com.kcc.groo.dashboard.exception.DashboardException;
-
-import lombok.extern.slf4j.Slf4j;
-
-@RestControllerAdvice
 @Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
