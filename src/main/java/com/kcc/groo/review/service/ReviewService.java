@@ -181,9 +181,33 @@ public class ReviewService implements IReviewService {
     }
 
     @Override
-    public List<ReviewResponse> getAllReviews(String userIdOrNull) {
-        log.info("[getAllReviews] userId: {}", userIdOrNull);
-        return reviewRepository.selectAllReviews(userIdOrNull);
+    public List<ReviewResponse> getAllReviews(String userId) {
+        log.info("[getAllReviews] 호출 - userId: {}", userId);
+
+        List<ReviewResponse> reviews = reviewRepository.selectAllReviews(userId);
+
+        log.info("[getAllReviews] 조회된 독후감 수: {}", reviews != null ? reviews.size() : 0);
+
+        if (reviews != null && !reviews.isEmpty()) {
+            // 첫 번째 독후감의 프로필 이미지 정보 로그
+            ReviewResponse firstReview = reviews.get(0);
+            log.info("[getAllReviews] 첫 번째 독후감 정보:");
+            log.info("  - reviewId: {}", firstReview.getReviewId());
+            log.info("  - authorNickname: {}", firstReview.getAuthorNickname());
+            log.info("  - authorProfileImage: {}",
+                    firstReview.getAuthorProfileImage() != null
+                            ? "존재 (길이: " + firstReview.getAuthorProfileImage().length() + ")"
+                            : "null");
+
+            if (firstReview.getAuthorProfileImage() != null) {
+                // Base64 문자열 시작 부분 확인
+                String profileImage = firstReview.getAuthorProfileImage();
+                log.info("  - authorProfileImage 시작 문자: {}",
+                        profileImage.length() > 20 ? profileImage.substring(0, 20) : profileImage);
+            }
+        }
+
+        return reviews;
     }
 
     @Override

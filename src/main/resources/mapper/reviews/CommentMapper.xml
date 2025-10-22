@@ -5,32 +5,45 @@
 
 <mapper namespace="com.kcc.groo.review.dao.ICommentRepository">
 
-	<!-- 댓글 작성 -->
-	<insert id="insertComment">
-		<![CDATA[
+    <!-- ResultMap 추가 -->
+    <resultMap id="commentResultMap" type="com.kcc.groo.review.data.dto.CommentResponse">
+        <id property="commentId" column="commentId"/>
+        <result property="content" column="content"/>
+        <result property="userId" column="userId"/>
+        <result property="authorNickname" column="authorNickname"/>
+        <result property="authorProfileImage" column="authorProfileImage"
+                typeHandler="com.kcc.groo.config.Base64TypeHandler"/>
+        <result property="createdAt" column="createdAt"/>
+        <result property="updatedAt" column="updatedAt"/>
+        <result property="parentId" column="parentId"/>
+        <result property="isOwner" column="isOwner"/>
+    </resultMap>
+
+    <!-- 댓글 작성 -->
+    <insert id="insertComment">
+        <![CDATA[
 		INSERT INTO review_comments (content, review_id, user_id, parent_id)
 		VALUES (
 			#{req.content},
 			#{reviewId},
 			#{userId},
 		]]>
-		<choose>
-			<when test="req.parentId != null">
-				#{req.parentId}
-			</when>
-			<otherwise>
-				NULL
-			</otherwise>
-		</choose>
-		<![CDATA[
+        <choose>
+            <when test="req.parentId != null">
+                #{req.parentId}
+            </when>
+            <otherwise>
+                NULL
+            </otherwise>
+        </choose>
+        <![CDATA[
 		)
 		]]>
-	</insert>
+    </insert>
 
-	<!-- 댓글 단건 조회 -->
-	<select id="selectCommentById"
-		resultType="com.kcc.groo.review.data.dto.CommentResponse">
-		<![CDATA[
+    <!-- 댓글 단건 조회 -->
+    <select id="selectCommentById" resultMap="commentResultMap">
+        <![CDATA[
 		SELECT
 			comment_id AS commentId,
 			content AS content,
@@ -42,32 +55,30 @@
 		FROM review_comments
 		WHERE comment_id = #{commentId}
 		]]>
-	</select>
+    </select>
 
-	<!-- 댓글 수정 -->
-	<update id="updateComment">
-		<![CDATA[
+    <!-- 댓글 수정 -->
+    <update id="updateComment">
+        <![CDATA[
 		UPDATE review_comments
 		SET content = #{content},
 			updated_at = CURRENT_TIMESTAMP
 		WHERE comment_id = #{commentId}
 		AND user_id = #{userId}
 		]]>
-	</update>
+    </update>
 
-
-	<!-- 댓글 삭제 -->
-	<delete id="deleteComment">
-		<![CDATA[
+    <!-- 댓글 삭제 -->
+    <delete id="deleteComment">
+        <![CDATA[
 		DELETE FROM review_comments
 		WHERE comment_id = #{commentId}
 		AND user_id = #{userId}
 		]]>
-	</delete>
+    </delete>
 
     <!-- 특정 리뷰의 댓글 조회 -->
-    <select id="selectCommentsByReview"
-            resultType="com.kcc.groo.review.data.dto.CommentResponse">
+    <select id="selectCommentsByReview" resultMap="commentResultMap">
         <![CDATA[
     SELECT
         c.comment_id AS commentId,
@@ -97,10 +108,9 @@
     ]]>
     </select>
 
-	<!-- 내가 쓴 모든 댓글 조회 -->
-	<select id="selectCommentsByUser"
-		resultType="com.kcc.groo.review.data.dto.CommentResponse">
-		<![CDATA[
+    <!-- 내가 쓴 모든 댓글 조회 -->
+    <select id="selectCommentsByUser" resultMap="commentResultMap">
+        <![CDATA[
 		SELECT
 			c.comment_id AS commentId,
 			c.content AS content,
@@ -118,9 +128,9 @@
 		WHERE c.user_id = #{userId}
 		ORDER BY c.created_at DESC
 		]]>
-	</select>
+    </select>
 
-<select id="countCommentsByUserId" parameterType="String" resultType="int">
+    <select id="countCommentsByUserId" parameterType="String" resultType="int">
         <![CDATA[
         SELECT COUNT(*) FROM review_comments WHERE user_id = #{userId}
         ]]>
