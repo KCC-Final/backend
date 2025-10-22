@@ -1,10 +1,12 @@
 package com.kcc.groo.group.controller;
 
 import com.kcc.groo.common.dto.CommonResponse;
+import com.kcc.groo.group.data.dto.GroupCommentRequestDTO;
 import com.kcc.groo.group.data.model.GroupComment;
 import com.kcc.groo.group.service.IGroupCommentService;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -40,14 +42,12 @@ public class GroupCommentController {
      * @created 2025-10-22
      */
     @PostMapping("/{groupId}")
-    public ResponseEntity<CommonResponse<?>> createGroupComment(@PathVariable int groupId, @RequestBody GroupComment comment, HttpServletRequest request) {
-        // JWT 토큰에서 사용자 ID 추출 후 댓글 작성자로 설정 및 독서 모임 ID 설정
+    public ResponseEntity<CommonResponse<?>> createGroupComment(@PathVariable int groupId, @Valid @RequestBody GroupCommentRequestDTO comment, HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
         String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
-        comment.setUserId(userId);
-        comment.setGroupId(groupId);
 
         // 독서 모임 댓글 생성
-        GroupComment createdComment = groupCommentService.createGroupComment(comment);
+        GroupComment createdComment = groupCommentService.createGroupComment(comment, groupId, userId);
 
         // 201 응답. 생성된 댓글 정보 반환
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -82,12 +82,12 @@ public class GroupCommentController {
      * @created 2025-10-22
      */
     @PutMapping("/{commentId}")
-    public ResponseEntity<CommonResponse<?>> updateGroupComment(@PathVariable int commentId, @RequestBody GroupComment comment, HttpServletRequest request) {
-        // 댓글 ID 설정
-        comment.setCommentId(commentId);
+    public ResponseEntity<CommonResponse<?>> updateGroupComment(@PathVariable int commentId, @Valid @RequestBody GroupCommentRequestDTO comment, HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
+        String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
 
         // 기존 독서 모임 게시글의 댓글 수정
-        GroupComment updatedComment = groupCommentService.updateGroupComment(comment);
+        GroupComment updatedComment = groupCommentService.updateGroupComment(comment, commentId, userId);
 
         // 200 응답. 수정된 댓글 정보 반환
         return ResponseEntity.ok(new CommonResponse<>("Comment updated successfully", updatedComment.getCommentId()));
@@ -104,8 +104,11 @@ public class GroupCommentController {
      */
     @DeleteMapping("/{commentId}")
     public ResponseEntity<CommonResponse<?>> deleteGroupComment(@PathVariable int commentId, HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
+        String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
+
         // 독서 모임 게시글의 특정 댓글 삭제
-        groupCommentService.deleteGroupCommentByCommentId(commentId);
+        groupCommentService.deleteGroupCommentByCommentId(commentId, userId);
 
         // 200 응답. 댓글 삭제 성공 메시지 반환
         return ResponseEntity.ok(new CommonResponse<>("Comment deleted successfully", null));

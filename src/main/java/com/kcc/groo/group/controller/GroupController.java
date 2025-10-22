@@ -1,10 +1,12 @@
 package com.kcc.groo.group.controller;
 
 import com.kcc.groo.common.dto.CommonResponse;
+import com.kcc.groo.group.data.dto.GroupRequestDTO;
 import com.kcc.groo.group.data.model.Groups;
 import com.kcc.groo.group.service.IGroupService;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -39,13 +41,12 @@ public class GroupController {
      * @created 2025-10-22
      */
     @PostMapping
-    public ResponseEntity<CommonResponse<?>> createGroup(@RequestBody Groups group, HttpServletRequest request) {
-        // JWT 토큰에서 사용자 ID 추출 후 작성자로 설정
+    public ResponseEntity<CommonResponse<?>> createGroup(@Valid @RequestBody GroupRequestDTO group, HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
         String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
-        group.setUserId(userId);
 
         // 독서 모임 게시글 생성
-        Groups createdGroup = groupService.createGroup(group);
+        Groups createdGroup = groupService.createGroup(group, userId);
 
         // 201 응답. 생성된 독서 모임 게시글 ID 반환
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -96,9 +97,12 @@ public class GroupController {
      * @created 2025-10-22
      */
     @PutMapping("/{groupId}")
-    public ResponseEntity<CommonResponse<?>> updateGroup(@PathVariable int groupId, @RequestBody Groups group, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<?>> updateGroup(@PathVariable int groupId, @Valid @RequestBody GroupRequestDTO group, HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
+        String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
+
         // 기존 독서 모임 게시글 수정
-        Groups updatedGroup = groupService.updateGroup(group);
+        Groups updatedGroup = groupService.updateGroup(group, groupId, userId);
 
         // 200 응답. 수정된 독서 모임 게시글 ID 반환
         return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 수정 성공", updatedGroup.getGroupId()));
@@ -115,8 +119,11 @@ public class GroupController {
      */
     @DeleteMapping("/{groupId}")
     public ResponseEntity<CommonResponse<?>> deleteGroup(@PathVariable int groupId, HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
+        String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
+
         // 독서 모임 게시글 삭제
-        groupService.deleteGroupByGroupId(groupId);
+        groupService.deleteGroupByGroupId(groupId, userId);
 
         // 200 응답. 독서 모임 게시글 삭제 완료 메시지 반환
         return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 삭제 성공", null));

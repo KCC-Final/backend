@@ -1,5 +1,6 @@
 package com.kcc.groo.group.service;
 
+import com.kcc.groo.group.data.dto.GroupCommentRequestDTO;
 import com.kcc.groo.group.data.model.GroupComment;
 
 import java.util.List;
@@ -16,10 +17,12 @@ public interface IGroupCommentService {
      * 독서 모임 게시글에 새로운 댓글 생성
      *
      * @param comment 생성할 댓글 정보
+     * @param groupId 독서 모임 ID
+     * @param userId  댓글 작성자 사용자 ID
      * @author YunSung
      * @created 2025-10-22
      */
-    GroupComment createGroupComment(GroupComment comment);
+    GroupComment createGroupComment(GroupCommentRequestDTO comment, int groupId, String userId);
 
     /**
      * 특정 독서 모임 게시글의 모든 댓글 조회
@@ -44,19 +47,22 @@ public interface IGroupCommentService {
     /**
      * 독서 모임 게시글의 댓글 내용 수정
      *
-     * @param comment 수정할 댓글 정보
+     * @param comment   수정할 댓글 정보
+     * @param commentId 수정할 댓글 ID
+     * @param userId    댓글 작성자 사용자 ID
      * @return 수정된 댓글 정보
      * @author YunSung
      * @created 2025-10-22
      */
-    GroupComment updateGroupComment(GroupComment comment);
+    GroupComment updateGroupComment(GroupCommentRequestDTO comment, int commentId, String userId);
 
     /**
      * 독서 모임 게시글의 특정 댓글 삭제
      *
      * @param commentId 삭제할 댓글 ID
+     * @param userId    댓글 작성자 사용자 ID
      * @author YunSung
      * @created 2025-10-22
      */
-    void deleteGroupCommentByCommentId(int commentId);
+    void deleteGroupCommentByCommentId(int commentId, String userId);
 }
