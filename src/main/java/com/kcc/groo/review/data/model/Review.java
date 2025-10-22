@@ -9,7 +9,7 @@ import java.util.Date;
 @Data
 public class Review {
     private Integer reviewId;
-    private String isbn;   // ✅ 필드명도 소문자로
+    private String isbn;   // 필드명도 소문자로
     private String reviewTitle;
     private String reviewContent;
     private Boolean secret;
@@ -20,14 +20,14 @@ public class Review {
     private String userId;
     private String category;
 
-    // ✅ 좋아요 개수
+    // 좋아요 개수
     private Integer likeCount;
 
     /** 생성 요청 → Review 엔티티 변환 */
     public static Review fromCreateRequest(String userId, ReviewCreateRequest request) {
         Review review = new Review();
         review.setUserId(userId);
-        review.setIsbn(request.getIsbn());  // ✅ 올바른 getter/setter 호출
+        review.setIsbn(request.getIsbn());  // 올바른 getter/setter 호출
         review.setReviewTitle(request.getReviewTitle());
         review.setReviewContent(request.getReviewContent());
         review.setSecret(Boolean.TRUE.equals(request.getSecret())); 
