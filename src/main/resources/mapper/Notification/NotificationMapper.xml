@@ -23,11 +23,21 @@ VALUES (#{type}, #{content}, #{senderType}, #{senderId}, #{detailSenderId}, #{us
 ]]>
 </insert>
 
-<update id="updateAlertsCheckStatus" parameterType="map">
+<update id="updateAlertsCheckStatus">
 <![CDATA[
-UPDATE alerts SET alerts_check_status = #{alerts_check_status} WHERE alert_id = #{alertId}
+UPDATE alerts SET alerts_check_status = #{alertsCheckStatus} WHERE alert_id = #{alertId}
 ]]>
 </update>
+
+<update id="readAlertsByAlertIdList">
+    UPDATE alerts
+    SET alerts_check_status = #{alertsCheckStatus}
+    WHERE alert_id IN
+    <foreach item="alertId" collection="alertIdList" open="(" separator="," close=")">
+        #{alertId}
+    </foreach>
+</update>
+
 
 <select id="getNotificationList" parameterType="string" resultMap="notificationMap">
 <![CDATA[
@@ -47,6 +57,12 @@ SELECT * FROM alerts WHERE user_id=#{userId} AND alert_id = #{alertId}
     FROM alerts
     WHERE user_id = #{userId}
       AND alerts_check_status = 0
+]]>
+</select>
+
+<select id="getNotificationIdListByUserId" resultType="int">
+<![CDATA[
+SELECT alert_id FROM alerts WHERE user_id = #{userId} AND alerts_check_status = #{alertsCheckStatus}
 ]]>
 </select>
 

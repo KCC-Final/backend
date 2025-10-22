@@ -69,4 +69,28 @@ public interface INotificationRepository {
 	 * 확인하지 않은 알림 개수 확인
 	 */
 	int countUnreadNotifications(String userId);
+	
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-10-22
+	 * 알림 아이디 리스트 get
+	 */
+	List<Integer> getNotificationIdListByUserId(@Param("userId") String userId, @Param("alertsCheckStatus") Boolean alertsCheckStatus);
+
+	/**
+	 * @param userId
+	 * @param alertIdList
+	 * @return
+	 * @author kys
+	 * @created 2025-10-22
+	 * 알림 전체 읽음 처리
+	 */
+	int readAlertsByAlertIdList(
+			@Param("userId") String userId,
+		    @Param("alertIdList") List<Integer> alertIdList,
+		    @Param("alertsCheckStatus") Boolean alertsCheckStatus
+		);
+
 }

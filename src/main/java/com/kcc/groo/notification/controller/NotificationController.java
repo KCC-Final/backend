@@ -6,11 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.jwt.JwtTokenProvider;
+import com.kcc.groo.notification.data.dto.AllNotificationUpdatedRequest;
 import com.kcc.groo.notification.data.dto.NotificationRequest;
 import com.kcc.groo.notification.data.dto.NotificationUpdateRequest;
 import com.kcc.groo.notification.data.model.Alerts;
@@ -34,20 +41,26 @@ public class NotificationController {
     /**
      * @param request
      * @return
+     * @author kys
+     * @created 2025-10-21
+     * SSE 구독
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<CommonResponse<SseEmitter>> subscribe(HttpServletRequest request) {
+    public  SseEmitter subscribe(HttpServletRequest request) {
         String accessToken = jwtTokenProvider.resolveAccessToken(request);
         String userId = jwtTokenProvider.getUserId(accessToken);
 
         SseEmitter emitter = notificationService.subscribe(userId);
-        return ResponseEntity.ok(new CommonResponse<>("connected SSE success", emitter));
+        return emitter;
     }
 
 
     /**
      * @param request
      * @return
+     * @author kys
+     * @created 2025-10-22
+     * 실시간 알림 전송
      */
     @PostMapping("/send")
     public ResponseEntity<CommonResponse<?>> sendNotification(@RequestBody NotificationRequest request) {
@@ -64,6 +77,9 @@ public class NotificationController {
     /**
      * @param request
      * @return
+     * @author kys
+     * @created 2025-10-22
+     * 알림 정보 조회
      */
     @GetMapping
     public ResponseEntity<CommonResponse<?>> getNotifications(HttpServletRequest request) {
@@ -82,32 +98,27 @@ public class NotificationController {
      * @param alertId
      * @param request
      * @return
+     * @author kys
+     * @created 2025-10-22
+     * 알림 읽음처리 (단건)
      */
-    @PutMapping("/{alertId}/check")
+    @PutMapping("{alertId}/check")
     public ResponseEntity<CommonResponse<?>> updateCheckStatus(
-            @PathVariable int alertId,
-            @RequestBody(required = false) NotificationUpdateRequest notificationUpdateRequest, HttpServletRequest request) {
+    		@PathVariable("alertId") int alertId,
+            @RequestBody NotificationUpdateRequest notificationUpdateRequest, HttpServletRequest request) {
     	
+    	//getId
         String accessToken = jwtTokenProvider.resolveAccessToken(request);
         String userId = jwtTokenProvider.getUserId(accessToken);
-
-        if (notificationUpdateRequest == null) {
-        	notificationUpdateRequest = new NotificationUpdateRequest();
-        }
-        notificationUpdateRequest.setAlertId(alertId);
-
-        if (notificationUpdateRequest.getAlertsCheckStatus() == null) {
-        	notificationUpdateRequest.setAlertsCheckStatus(true);
-        }
-
-        int updated = notificationService.updateAlertsCheckStatus(notificationUpdateRequest);
-        if (updated <= 0) {
-        	log.warn("알림 읽음 처리 실패 alertId={}", alertId);
-            ResponseEntity.badRequest().body(new CommonResponse<>("cannot found this alert", null));
-            
-        }
         
-        log.info("알림 읽음 처리 alertId={}", alertId);
+        int updated = notificationService.updateAlertsCheckStatus(userId, alertId, notificationUpdateRequest);
+        
+        if (updated > 0) {
+        	log.info("알림 읽음 처리 완료: alertId={}, userId={}", alertId, userId);
+        } else {
+        	log.warn("알림 읽음 처리 실패: alertId={}, userId={}", alertId, userId);
+        }
+       
         Alerts alert = notificationService.getNotificationById(userId, alertId);
         return ResponseEntity.ok(new CommonResponse<>("alert status updated success", alert));
     }
@@ -116,6 +127,9 @@ public class NotificationController {
     /**
      * @param request
      * @return
+     * @author kys
+     * @created 2025-10-22
+     * 읽지 않은 알림 수
      */
     @GetMapping("/unread-count")
     public ResponseEntity<CommonResponse<?>> getUnreadNotificationCount(HttpServletRequest request) {
@@ -127,5 +141,52 @@ public class NotificationController {
 
         return ResponseEntity.ok(new CommonResponse<>("count unread alerts", unreadCount));
     }
+    
+    /**
+     * @param userId
+     * @return
+     * @author kys
+     * @created 2025-10-22
+     * 특정 유저의 알림 전체 목록 조회
+     */
+    @GetMapping("/list")
+    public ResponseEntity<CommonResponse<?>> getAlertList(HttpServletRequest request) {
+    	String accessToken = jwtTokenProvider.resolveAccessToken(request);
+        String userId = jwtTokenProvider.getUserId(accessToken);
+        List<Alerts> alertsList = notificationService.getNotificationList(userId);
+        return ResponseEntity.ok(new CommonResponse<>("User alert list", alertsList));
+    }
+    
+    /**
+     * @param alertId
+     * @param request
+     * @return
+     * @author kys
+     * @created 2025-10-22
+     * 알림 전체 읽음처리
+     */
+    @PutMapping("/check-list")
+	public ResponseEntity<CommonResponse<?>> updatedAllAlertsStatus(@RequestBody AllNotificationUpdatedRequest notificationUpdateRequest, HttpServletRequest request) {
+
+		// get userId
+		String accessToken = jwtTokenProvider.resolveAccessToken(request);
+		String userId = jwtTokenProvider.getUserId(accessToken);
+		
+	    List<Integer> alertIdList = notificationUpdateRequest.getAlertIdList();
+
+	    if (alertIdList == null || alertIdList.isEmpty()) {
+	    	alertIdList = notificationService.alertIdList(userId, false);
+	    }
+	    if (alertIdList == null || alertIdList.isEmpty()) {
+	    	return ResponseEntity.badRequest()
+	    			.body(new CommonResponse<>("Please select at least one alert to updated status", null));
+	    }
+
+	    int updatedCount = notificationService.readAllAlerts(userId, alertIdList);
+
+	    return ResponseEntity.ok(
+	        new CommonResponse<>("The selected alerts have been updated successfully", updatedCount)
+	    );
+	}
 
 }

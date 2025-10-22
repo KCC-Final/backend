@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.kcc.groo.notification.NotificationFormatter;
@@ -121,13 +122,17 @@ public class NotificationService implements INotificationService {
 
 
     @Override
-    public int updateAlertsCheckStatus(NotificationUpdateRequest request) {
-        if (request.getAlertId() <= 0) {
-            log.warn("updateAlertsCheckStatus 호출 시 alertId 누락됨");
-            return 0;
-        }
-        return notificationRepository.updateAlertsCheckStatus(
-                request.getAlertId(), request.getAlertsCheckStatus());
+    @Transactional
+    public int updateAlertsCheckStatus(String userId, int alertId, NotificationUpdateRequest notificationUpdateRequest) {
+    	
+    	int updated = notificationRepository.updateAlertsCheckStatus(alertId, notificationUpdateRequest.getAlertsCheckStatus());
+    	
+    	if (updated == 0) {
+    		log.warn("알림 상태 업데이트 실패: alertId={}, userId={}", alertId, userId);
+    	} else {
+    		log.info("알림 상태 업데이트 완료: alertId={}, userId={}", alertId, userId);
+    	}
+        return updated;
     }
 
 	@Override
@@ -140,6 +145,19 @@ public class NotificationService implements INotificationService {
 	@Override
 	public Alerts getNotificationById(String userId, int alertId) {
 		// TODO Auto-generated method stub
-		return notificationRepository.getAlerts(null, alertId);
+		return notificationRepository.getAlerts(userId, alertId);
 	}
+
+	@Override
+	public List<Integer> alertIdList(String userId, Boolean alertsCheckStatus) {
+		// TODO Auto-generated method stub
+		return notificationRepository.getNotificationIdListByUserId(userId, alertsCheckStatus);
+	}
+	
+	@Override
+	@Transactional
+	public int readAllAlerts(String userId, List<Integer> alertIdList) {
+	    return notificationRepository.readAlertsByAlertIdList(userId, alertIdList, true);
+	}
+
 }

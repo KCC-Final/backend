@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NotificationUpdateRequest {
 
-	private int alertId;
+	//private int alertId;
 	private Boolean alertsCheckStatus;
 	
 }
