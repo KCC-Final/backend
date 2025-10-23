@@ -5,6 +5,8 @@ import com.kcc.groo.group.data.dto.GroupCommentRequestDTO;
 import com.kcc.groo.group.data.model.GroupComment;
 import com.kcc.groo.group.service.IGroupCommentService;
 import com.kcc.groo.jwt.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/groups/comments")
+@Tag(name = "독서모임 API")
 public class GroupCommentController {
 
     private final IGroupCommentService groupCommentService;
@@ -41,6 +44,7 @@ public class GroupCommentController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글 댓글 생성")
     @PostMapping("/{groupId}")
     public ResponseEntity<CommonResponse<?>> createGroupComment(@PathVariable int groupId, @Valid @RequestBody GroupCommentRequestDTO comment, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -62,6 +66,7 @@ public class GroupCommentController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 특정 게시글의 댓글 목록 조회")
     @GetMapping("/{groupId}")
     public ResponseEntity<CommonResponse<List<GroupComment>>> getGroupCommentsByGroupId(@PathVariable int groupId) {
         // 특정 독서 모임 게시글의 모든 댓글 조회
@@ -81,6 +86,7 @@ public class GroupCommentController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글의 특정 댓글 수정")
     @PutMapping("/{commentId}")
     public ResponseEntity<CommonResponse<?>> updateGroupComment(@PathVariable int commentId, @Valid @RequestBody GroupCommentRequestDTO comment, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -102,6 +108,7 @@ public class GroupCommentController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글의 특정 댓글 삭제")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<CommonResponse<?>> deleteGroupComment(@PathVariable int commentId, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출

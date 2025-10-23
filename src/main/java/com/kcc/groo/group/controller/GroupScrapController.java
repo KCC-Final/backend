@@ -3,6 +3,8 @@ package com.kcc.groo.group.controller;
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.group.service.IGroupScrapService;
 import com.kcc.groo.jwt.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/groups/scrap")
+@Tag(name = "독서모임 API")
 public class GroupScrapController {
 
     private final IGroupScrapService groupScrapService;
@@ -33,6 +36,7 @@ public class GroupScrapController {
      * @author YunSung
      * @created 2025-10-23
      */
+    @Operation(summary = "독서모임 게시글 스크랩")
     @PostMapping("/{groupId}")
     public ResponseEntity<CommonResponse<?>> createScrap(@PathVariable int groupId, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -54,6 +58,7 @@ public class GroupScrapController {
      * @author YunSung
      * @created 2025-10-23
      */
+    @Operation(summary = "독서모임 게시글 스크랩 상태 조회")
     @GetMapping("/{groupId}")
     public ResponseEntity<CommonResponse<?>> getScrapStatus(@PathVariable int groupId, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -75,6 +80,7 @@ public class GroupScrapController {
      * @author YunSung
      * @created 2025-10-23
      */
+    @Operation(summary = "독서모임 게시글 스크랩 취소")
     @DeleteMapping("/{groupId}")
     public ResponseEntity<CommonResponse<?>> deleteScrap(@PathVariable int groupId, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출

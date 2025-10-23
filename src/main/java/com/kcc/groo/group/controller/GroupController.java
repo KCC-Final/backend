@@ -6,6 +6,8 @@ import com.kcc.groo.group.data.dto.GroupRequestDTO;
 import com.kcc.groo.group.data.model.Group;
 import com.kcc.groo.group.service.IGroupService;
 import com.kcc.groo.jwt.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -31,6 +33,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/groups")
 @Validated
+@Tag(name = "독서모임 API")
 public class GroupController {
 
     private final IGroupService groupService;
@@ -46,6 +49,7 @@ public class GroupController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글 생성")
     @PostMapping
     public ResponseEntity<CommonResponse<?>> createGroup(@Valid @RequestBody GroupRequestDTO group, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -66,6 +70,7 @@ public class GroupController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글 목록 조회", description = "필터링 옵션을 통해 독서 모임 게시글 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<CommonResponse<List<Group>>> findAllGroups(
             @Pattern(
@@ -102,6 +107,7 @@ public class GroupController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글 상세 조회")
     @GetMapping("/{groupId}")
     public ResponseEntity<CommonResponse<GroupDetailResponseDTO>> getGroupById(@PathVariable int groupId, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -124,6 +130,7 @@ public class GroupController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글 수정")
     @PutMapping("/{groupId}")
     public ResponseEntity<CommonResponse<?>> updateGroup(@PathVariable int groupId, @Valid @RequestBody GroupRequestDTO group, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -145,6 +152,7 @@ public class GroupController {
      * @author YunSung
      * @created 2025-10-22
      */
+    @Operation(summary = "독서모임 게시글 삭제")
     @DeleteMapping("/{groupId}")
     public ResponseEntity<CommonResponse<?>> deleteGroup(@PathVariable int groupId, HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
