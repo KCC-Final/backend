@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcc.groo.search.dao.ISearchRepository">
+
+    <select id="searchAll" parameterType="string" resultType="com.kcc.groo.search.data.dto.SearchResult">
+<![CDATA[
+
+    SELECT
+        CAST('USER' AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_0900_ai_ci AS category,
+        user_id AS id,
+        name COLLATE utf8mb4_0900_ai_ci AS title,
+        CONCAT_WS(' | ',
+            nickname COLLATE utf8mb4_0900_ai_ci,
+            email COLLATE utf8mb4_0900_ai_ci,
+            user_id COLLATE utf8mb4_0900_ai_ci
+        ) AS subtext,
+        CASE
+            WHEN CHAR_LENGTH(REGEXP_REPLACE(introduction, '<[^>]*>', '')) > 100
+                THEN CONCAT(LEFT(REGEXP_REPLACE(introduction, '<[^>]*>', ''), 100), '...')
+            ELSE REGEXP_REPLACE(introduction, '<[^>]*>', '')
+        END AS content
+    FROM users
+    WHERE name COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR user_id COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR nickname COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR email COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+
+    UNION ALL
+
+    SELECT
+        CAST('REVIEW' AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_0900_ai_ci AS category,
+        CAST(review_id AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_0900_ai_ci AS id,
+        review_title COLLATE utf8mb4_0900_ai_ci AS title,
+        CONCAT_WS(' | ',
+            user_id COLLATE utf8mb4_0900_ai_ci,
+            isbn COLLATE utf8mb4_0900_ai_ci,
+            category COLLATE utf8mb4_0900_ai_ci
+        ) AS subtext,
+        CASE
+            WHEN CHAR_LENGTH(REGEXP_REPLACE(review_content, '<[^>]*>', '')) > 100
+                THEN CONCAT(LEFT(REGEXP_REPLACE(review_content, '<[^>]*>', ''), 100), '...')
+            ELSE REGEXP_REPLACE(review_content, '<[^>]*>', '')
+        END AS content
+    FROM reviews
+    WHERE review_title COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR review_content COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR isbn COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR category COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+
+    UNION ALL
+
+    SELECT
+        CAST('COMMENT' AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_0900_ai_ci AS category,
+        CAST(c.comment_id AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_0900_ai_ci AS id,
+        CASE
+            WHEN CHAR_LENGTH(REGEXP_REPLACE(c.content, '<[^>]*>', '')) > 100
+                THEN CONCAT(LEFT(REGEXP_REPLACE(c.content, '<[^>]*>', ''), 100), '...')
+            ELSE REGEXP_REPLACE(c.content, '<[^>]*>', '')
+        END AS title,
+        r.review_title COLLATE utf8mb4_0900_ai_ci AS subtext,
+        CONCAT_WS(' | ',
+            u.nickname COLLATE utf8mb4_0900_ai_ci,
+            c.user_id COLLATE utf8mb4_0900_ai_ci
+        ) AS content
+    FROM review_comments c
+    JOIN reviews r ON c.review_id = r.review_id
+    JOIN users u ON c.user_id = u.user_id
+    WHERE c.content COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR r.review_title COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+       OR u.nickname COLLATE utf8mb4_0900_ai_ci LIKE CONCAT('%', #{keyword}, '%')
+
+    ORDER BY category
+
+]]>
+  </select>
+
+
+</mapper>

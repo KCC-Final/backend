@@ -71,5 +71,9 @@
         ORDER BY
             c.succeeded_at DESC
     </select>
+    
+    <select id="getBadgeNameByBadgeId" parameterType="int" resultType="string">
+    SELECT badge_name AS badgeName FROM badges WHERE badge_id = #{badgeId}
+    </select>
 
 </mapper>

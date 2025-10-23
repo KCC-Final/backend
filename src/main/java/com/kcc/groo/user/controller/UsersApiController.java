@@ -19,7 +19,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -475,7 +474,6 @@ public class UsersApiController {
 		Users getUser = userService.findByUserId(userId);
 
 		return ResponseEntity.ok().body(new CommonResponse<>("get current user info", getUser));
-
 	}
 
     /**

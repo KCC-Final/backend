@@ -1,5 +1,6 @@
 package com.kcc.groo.bookshelf.data.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class BookScrapRequest {
 	
 	private int bookshelfId;
-	private String ISBN;
+    @JsonProperty("ISBN")  // JSON의 "ISBN"을 이 필드에 매핑
+    private String ISBN;
 
 }
