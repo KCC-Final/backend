@@ -10,7 +10,7 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: ["main", "develop", "feat/17/CI/CD테스트브랜치"]
+    branches: ["main", "develop"]
   pull_request:
     branches: ["main"]
 
@@ -79,7 +79,7 @@ jobs:
       - name: Deploy containers to EC2
         uses: appleboy/ssh-action@v1.0.0
 
-        # ✅ GitHub Secrets → Runner 환경변수로 export (여기에 있어야 함)
+        # GitHub Secrets → Runner 환경변수로 export (여기에 있어야 함)
         env:
           MAIL_HOST: ${{ secrets.MAIL_HOST }}
           MAIL_PORT: ${{ secrets.MAIL_PORT }}
@@ -102,7 +102,7 @@ jobs:
           port: 22
 
           # ============================================================
-          # ✅ GitHub Secrets 환경변수 목록
+          # GitHub Secrets 환경변수 목록
           # - CI/CD 실행 시 이 변수들이 EC2에 전달됨
           # - docker run 명령에서 ${변수명}으로 사용 가능
           # ============================================================
@@ -142,6 +142,10 @@ jobs:
               -p 3306:3306 \
               --network groo-network \
               -v groo-mysql-data:/var/lib/mysql \
+              #  Host 시간과 컨테이너 동기화
+              -v /etc/localtime:/etc/localtime:ro \
+              -v /etc/timezone:/etc/timezone:ro \
+              -e TZ=Asia/Seoul \
               -e MYSQL_ROOT_PASSWORD='${{ secrets.DB_ROOT_PASSWORD }}' \
               -e MYSQL_DATABASE=kcc \
               -e MYSQL_USER=kcc \
@@ -152,7 +156,8 @@ jobs:
               --character-set-server=utf8mb4 \
               --collation-server=utf8mb4_unicode_ci \
               --skip-character-set-client-handshake \
-              --default-time-zone=+09:00
+              --default-time-zone=Asia/Seoul
+
 
             # ====================================================================
             # 6) Redis 컨테이너 실행

@@ -1,12 +1,14 @@
 package com.kcc.groo.dashboard.exception;
 
+import com.kcc.groo.common.exception.GrooErrorCode;
 import org.springframework.http.HttpStatus;
 
 /**
  * Dashboard 도메인 에러 코드 정의
+ *
  * @author uyh
  * @created 2025-01-16
- *
+ * <p>
  * 에러 코드 체계: DSH-XXX (Dashboard)
  * - 001~099: 입력값 검증 오류 (400)
  * - 100~199: 인증 오류 (401)
@@ -16,7 +18,7 @@ import org.springframework.http.HttpStatus;
  * - 500~599: 비즈니스 규칙 위반 (422)
  * - 900~999: 서버 오류 (500)
  */
-public enum DashboardErrorCode {
+public enum DashboardErrorCode implements GrooErrorCode {
 
     // 001~099: 입력값 검증 오류 (400 Bad Request)
     INVALID_YEAR("DSH-001", "잘못된 연도입니다", HttpStatus.BAD_REQUEST),
@@ -34,7 +36,7 @@ public enum DashboardErrorCode {
     // 300~399: 리소스 없음 (404 Not Found)
     USER_NOT_FOUND("DSH-300", "사용자를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     NO_DATA_FOUND("DSH-301", "조회된 데이터가 없습니다", HttpStatus.NOT_FOUND),
-    
+
     // 900~999: 서버 오류 (500 Internal Server Error)
     DATABASE_ERROR("DSH-900", "데이터베이스 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
     SUMMARY_STATS_FAILED("DSH-901", "대시보드 통계 조회에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
@@ -51,14 +53,17 @@ public enum DashboardErrorCode {
         this.httpStatus = httpStatus;
     }
 
+    @Override
     public String getCode() {
         return code;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }
 
+    @Override
     public HttpStatus getHttpStatus() {
         return httpStatus;
     }
