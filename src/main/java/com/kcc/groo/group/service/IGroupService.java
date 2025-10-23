@@ -1,10 +1,9 @@
 package com.kcc.groo.group.service;
 
 import com.kcc.groo.group.data.dto.GroupDetailResponseDTO;
+import com.kcc.groo.group.data.dto.GroupListResponseDTO;
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
 import com.kcc.groo.group.data.model.Group;
-
-import java.util.List;
 
 /**
  * 독서모임 게시글 관련 비즈니스 로직을 처리하는 Service 인터페이스
@@ -32,12 +31,14 @@ public interface IGroupService {
      * @param status   모집 상태
      * @param location 지역 코드
      * @param scrap    스크랩 여부
+     * @param search   검색어
+     * @param page     페이지 번호
      * @param userId   현재 사용자 ID
      * @return 독서 모임 게시글 리스트
      * @author YunSung
      * @created 2025-10-22
      */
-    List<Group> readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String userId);
+    GroupListResponseDTO readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String search, Integer page, String userId);
 
     /**
      * 독서 모임 ID를 통한 독서 모임 게시글 상세 조회

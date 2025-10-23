@@ -43,8 +43,39 @@
                     AND group_id NOT IN (SELECT group_id FROM group_scraps WHERE user_id = #{userId})
                 </if>
             </if>
+            <if test="search != null">
+                AND (group_name LIKE CONCAT('%', #{search}, '%') OR content LIKE CONCAT('%', #{search}, '%'))
+            </if>
         </where>
         ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAllGroups" resultType="int">
+        SELECT COUNT(*)
+        FROM `groups`
+        <where>
+            <if test="style != null">
+                AND style = #{style}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="location != null">
+                AND code_id = #{location}
+            </if>
+            <if test="scrap != null">
+                <if test="scrap == true">
+                    AND group_id IN (SELECT group_id FROM group_scraps WHERE user_id = #{userId})
+                </if>
+                <if test="scrap == false">
+                    AND group_id NOT IN (SELECT group_id FROM group_scraps WHERE user_id = #{userId})
+                </if>
+            </if>
+            <if test="search != null">
+                AND (group_name LIKE CONCAT('%', #{search}, '%') OR content LIKE CONCAT('%', #{search}, '%'))
+            </if>
+        </where>
     </select>
 
     <select id="selectGroupByGroupId" parameterType="int" resultType="com.kcc.groo.group.data.model.Group">

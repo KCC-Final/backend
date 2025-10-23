@@ -2,6 +2,7 @@ package com.kcc.groo.group.controller;
 
 import com.kcc.groo.common.dto.CommonResponse;
 import com.kcc.groo.group.data.dto.GroupDetailResponseDTO;
+import com.kcc.groo.group.data.dto.GroupListResponseDTO;
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
 import com.kcc.groo.group.data.model.Group;
 import com.kcc.groo.group.service.IGroupService;
@@ -72,7 +73,7 @@ public class GroupController {
      */
     @Operation(summary = "독서모임 게시글 목록 조회", description = "필터링 옵션을 통해 독서 모임 게시글 목록을 조회합니다.")
     @GetMapping
-    public ResponseEntity<CommonResponse<List<Group>>> findAllGroups(
+    public ResponseEntity<CommonResponse<GroupListResponseDTO>> findAllGroups(
             @Pattern(
                     regexp = "^(discussion|reading|free)$",
                     message = "[GRP-160]: 필터링 style값은 'discussion', 'reading', 'free' 중 하나여야 합니다"
@@ -86,6 +87,11 @@ public class GroupController {
             @RequestParam(required = false) Integer location,
 
             @RequestParam(required = false) Boolean scrap,
+            
+            @RequestParam(required = false) String search,
+
+            @Min(value = 1, message = "[GRP-162]: 페이지는 1 이상의 값이어야 합니다")
+            @RequestParam(defaultValue = "1") Integer page,
 
             HttpServletRequest request) {
 
@@ -93,10 +99,10 @@ public class GroupController {
         String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
 
         // 독서 모임 게시글 DB에서 조회
-        List<Group> groups = groupService.readAllGroups(style, status, location, scrap, userId);
+        GroupListResponseDTO groupsWithCount = groupService.readAllGroups(style, status, location, scrap, search, page, userId);
 
         // 200 응답. 독서 모임 게시글 목록 반환
-        return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 목록 조회 성공", groups));
+        return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 목록 조회 성공", groupsWithCount));
     }
 
     /**

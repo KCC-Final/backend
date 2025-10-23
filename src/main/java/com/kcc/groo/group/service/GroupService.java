@@ -5,6 +5,7 @@ import com.kcc.groo.group.dao.IGroupCommentRepository;
 import com.kcc.groo.group.dao.IGroupRepository;
 import com.kcc.groo.group.dao.IGroupScrapRepository;
 import com.kcc.groo.group.data.dto.GroupDetailResponseDTO;
+import com.kcc.groo.group.data.dto.GroupListResponseDTO;
 import com.kcc.groo.group.data.dto.GroupRequestDTO;
 import com.kcc.groo.group.data.model.Group;
 import com.kcc.groo.group.data.model.GroupComment;
@@ -77,14 +78,34 @@ public class GroupService implements IGroupService {
      *
      * @author YunSung
      * @created 2025-10-22
+     * @modified 2025-10-23
+     * query parameter 필터링 기능 구현, 페이징 처리 추가, 응답에 전체 게시글 수 포함
      */
     @Override
-    public List<Group> readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String userId) {
+    public GroupListResponseDTO readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String search, Integer page, String userId) {
         // style 필터링 값 매핑
         String mappedStyle = (style != null) ? STYLE_MAP.get(style) : null;
 
-        // 조회한 독서 모임 게시글 리스트 반환
-        return groupRepository.selectAllGroups(mappedStyle, status, location, scrap, userId);
+        // 페이지 값이 null인 경우 기본값 1 설정
+        if (page == null) {
+            page = 1;
+        }
+
+        // 페이징 처리
+        int limit = 10;
+        int offset = (page - 1) * limit;
+
+        // 필터링 및 페이징 적용된 게시글 목록 조회
+        List<Group> groups = groupRepository.selectAllGroups(mappedStyle, status, location, scrap, search, limit, offset, userId);
+
+        // 필터링된 전체 게시글 수 조회
+        int count = groupRepository.countAllGroups(mappedStyle, status, location, scrap, search, userId);
+
+        // 응답 DTO 생성 및 반환
+        return GroupListResponseDTO.builder()
+                .groups(groups)
+                .count(count)
+                .build();
     }
 
     /**
