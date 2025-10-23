@@ -29,6 +29,8 @@ public enum GroupErrorCode implements GrooErrorCode {
     INVALID_GROUP_CODE_NULL("GRP-140", "모임의 지역 코드는 필수 입력값입니다", HttpStatus.BAD_REQUEST),
     INVALID_GROUP_CODE_MIN("GRP-141", "모임의 지역 코드는 1 이상의 값이어야 합니다", HttpStatus.BAD_REQUEST),
     INVALID_GROUP_CODE_MAX("GRP-142", "모임의 지역 코드는 17 이하의 값이어야 합니다", HttpStatus.BAD_REQUEST),
+    INVALID_FILTER_STYLE("GRP-160", "필터링 style값은 'discussion', 'reading', 'free' 중 하나여야 합니다", HttpStatus.BAD_REQUEST),
+    INVALID_FILTER_LOCATION("GRP-161", "필터링 location값은 1에서 17 사이의 값이어야 합니다", HttpStatus.BAD_REQUEST),
     INVALID_GROUP_COMMENT_COMMENT_BLANK("GRP-200", "댓글 내용은 필수 입력값입니다", HttpStatus.BAD_REQUEST),
     INVALID_GROUP_COMMENT_COMMENT_SIZE("GRP-201", "댓글 내용은 1~500자 이내로 입력해주세요", HttpStatus.BAD_REQUEST),
     INVALID_GROUP_COMMENT_FLAG_NULL("GRP-205", "공개 여부는 필수 입력값입니다", HttpStatus.BAD_REQUEST),

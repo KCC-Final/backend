@@ -28,11 +28,16 @@ public interface IGroupService {
     /**
      * 모든 독서 모임 게시글 목록 조회
      *
+     * @param style    진행 방식
+     * @param status   모집 상태
+     * @param location 지역 코드
+     * @param scrap    스크랩 여부
+     * @param userId   현재 사용자 ID
      * @return 독서 모임 게시글 리스트
      * @author YunSung
      * @created 2025-10-22
      */
-    List<Group> readAllGroups();
+    List<Group> readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String userId);
 
     /**
      * 독서 모임 ID를 통한 독서 모임 게시글 상세 조회

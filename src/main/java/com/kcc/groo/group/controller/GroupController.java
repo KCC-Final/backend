@@ -8,10 +8,14 @@ import com.kcc.groo.group.service.IGroupService;
 import com.kcc.groo.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/groups")
+@Validated
 public class GroupController {
 
     private final IGroupService groupService;
@@ -62,9 +67,28 @@ public class GroupController {
      * @created 2025-10-22
      */
     @GetMapping
-    public ResponseEntity<CommonResponse<List<Group>>> findAllGroups() {
+    public ResponseEntity<CommonResponse<List<Group>>> findAllGroups(
+            @Pattern(
+                    regexp = "^(discussion|reading|free)$",
+                    message = "[GRP-160]: 필터링 style값은 'discussion', 'reading', 'free' 중 하나여야 합니다"
+            )
+            @RequestParam(required = false) String style,
+
+            @RequestParam(required = false) Boolean status,
+
+            @Min(value = 1, message = "[GRP-161]: 필터링 location값은 1에서 17 사이의 값이어야 합니다")
+            @Max(value = 17, message = "[GRP-161]: 필터링 location값은 1에서 17 사이의 값이어야 합니다")
+            @RequestParam(required = false) Integer location,
+
+            @RequestParam(required = false) Boolean scrap,
+
+            HttpServletRequest request) {
+
+        // JWT 토큰에서 사용자 ID 추출
+        String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
+
         // 독서 모임 게시글 DB에서 조회
-        List<Group> groups = groupService.readAllGroups();
+        List<Group> groups = groupService.readAllGroups(style, status, location, scrap, userId);
 
         // 200 응답. 독서 모임 게시글 목록 반환
         return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 목록 조회 성공", groups));

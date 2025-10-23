@@ -12,19 +12,38 @@
 
     <select id="selectAllGroups" resultType="com.kcc.groo.group.data.model.Group">
         SELECT group_id,
-               group_name,
-               book_title,
-               headcount_min,
-               headcount_max,
-               content,
-               style,
-               status,
-               end_date,
-               created_at,
-               updated_at,
-               user_id,
-               code_id
+        group_name,
+        book_title,
+        headcount_min,
+        headcount_max,
+        content,
+        style,
+        status,
+        end_date,
+        created_at,
+        updated_at,
+        user_id,
+        code_id
         FROM `groups`
+        <where>
+            <if test="style != null">
+                AND style = #{style}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="location != null">
+                AND code_id = #{location}
+            </if>
+            <if test="scrap != null">
+                <if test="scrap == true">
+                    AND group_id IN (SELECT group_id FROM group_scraps WHERE user_id = #{userId})
+                </if>
+                <if test="scrap == false">
+                    AND group_id NOT IN (SELECT group_id FROM group_scraps WHERE user_id = #{userId})
+                </if>
+            </if>
+        </where>
         ORDER BY created_at DESC
     </select>
 

@@ -1,6 +1,7 @@
 package com.kcc.groo.common.exception;
 
 import com.kcc.groo.common.dto.CommonResponse;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new CommonResponse<>(errorMessage, null));
+    }
+
+    /**
+     * Query 파라미터(@RequestParam) 및 Path 파라미터(@PathVariable)에 대한 @Validated 검증 실패 처리
+     *
+     * @author YunSung
+     * @created 2025-10-23
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<CommonResponse<?>> handleConstraintViolationException(ConstraintViolationException e) {
+        // 제약 조건 위반 예외에서 첫 번째 위반 항목 가져오기
+        String errorMessage = e.getConstraintViolations().iterator().next().getMessage();
+
+        // 로그에 경고 메시지 기록
+        log.error("[ConstraintViolationException] {}", errorMessage);
+
+        // 400 Bad Request 응답 생성
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new CommonResponse<>(String.format(errorMessage), null));
     }
 
     /**

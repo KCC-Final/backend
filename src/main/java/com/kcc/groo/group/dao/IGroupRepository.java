@@ -2,6 +2,7 @@ package com.kcc.groo.group.dao;
 
 import com.kcc.groo.group.data.model.Group;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,13 +28,22 @@ public interface IGroupRepository {
     int insertGroup(Group group);
 
     /**
-     * 모든 독서 모임 목록 조회
+     * 모든 독서 모임 목록 조회 (필터링 기능 포함)
      *
+     * @param style    진행 방식
+     * @param status   모집 상태
+     * @param location 지역 코드
+     * @param scrap    스크랩 여부
+     * @param userId   현재 사용자 ID
      * @return 독서 모임 리스트
      * @author YunSung
      * @created 2025-10-22
      */
-    List<Group> selectAllGroups();
+    List<Group> selectAllGroups(@Param("style") String style,
+                                @Param("status") Boolean status,
+                                @Param("location") Integer location,
+                                @Param("scrap") Boolean scrap,
+                                @Param("userId") String userId);
 
     /**
      * group_id로 특정 독서 모임 조회

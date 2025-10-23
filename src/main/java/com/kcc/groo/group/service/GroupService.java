@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 독서모임 게시글 관련 비즈니스 로직을 처리하는 Service
@@ -29,6 +30,12 @@ public class GroupService implements IGroupService {
     private final IGroupCommentRepository groupCommentRepository;
 
     private final IGroupScrapRepository groupScrapRepository;
+
+    private static final Map<String, String> STYLE_MAP = Map.of(
+            "discussion", "토론",
+            "reading", "독서",
+            "free", "자"
+    );
 
     /**
      * 새로운 독서 모임 게시글 생성
@@ -72,9 +79,12 @@ public class GroupService implements IGroupService {
      * @created 2025-10-22
      */
     @Override
-    public List<Group> readAllGroups() {
+    public List<Group> readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String userId) {
+        // style 필터링 값 매핑
+        String mappedStyle = (style != null) ? STYLE_MAP.get(style) : null;
+
         // 조회한 독서 모임 게시글 리스트 반환
-        return groupRepository.selectAllGroups();
+        return groupRepository.selectAllGroups(mappedStyle, status, location, scrap, userId);
     }
 
     /**
