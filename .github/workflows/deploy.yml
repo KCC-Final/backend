@@ -142,7 +142,6 @@ jobs:
               -p 3306:3306 \
               --network groo-network \
               -v groo-mysql-data:/var/lib/mysql \
-              #  Host 시간과 컨테이너 동기화
               -v /etc/localtime:/etc/localtime:ro \
               -v /etc/timezone:/etc/timezone:ro \
               -e TZ=Asia/Seoul \
