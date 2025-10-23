@@ -20,9 +20,9 @@ public interface GrooErrorCode {
     String getCode();
 
     /**
-     * 에러 코드 반환
+     * 에러 메시지 반환
      *
-     * @return 에러 코드 문자열
+     * @return 에러 메시지 문자열
      * @author Yunsung
      * @created 2025-10-22
      */

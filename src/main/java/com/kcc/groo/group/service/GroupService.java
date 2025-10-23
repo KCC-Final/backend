@@ -35,7 +35,7 @@ public class GroupService implements IGroupService {
     private static final Map<String, String> STYLE_MAP = Map.of(
             "discussion", "토론",
             "reading", "독서",
-            "free", "자"
+            "free", "자유"
     );
 
     /**
