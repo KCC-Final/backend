@@ -5,10 +5,16 @@ USE kcc;
 -- sentences 테이블 컬럼 추가 + 중복 없는 데이터 삽입
 -- ================================================
 
--- 1 selected_date 컬럼 추가 (있으면 무시)
-ALTER TABLE sentences
-ADD COLUMN IF NOT EXISTS selected_date DATE NULL COMMENT '오늘의 문장으로 선택된 날짜'
-AFTER ISBN;
+-- 1 selected_date 컬럼 추가 (구문 오류 수정)
+SET @col_exist := (
+  SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA='kcc' AND TABLE_NAME='sentences' AND COLUMN_NAME='selected_date'
+);
+SET @sql := IF(@col_exist=0,
+  'ALTER TABLE sentences ADD COLUMN selected_date DATE NULL COMMENT "오늘의 문장으로 선택된 날짜" AFTER ISBN',
+  'SELECT "selected_date column already exists"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 
 -- 2 중복 방지 삽입 구문
 INSERT INTO sentences (sentence_content, ISBN, selected_date)
