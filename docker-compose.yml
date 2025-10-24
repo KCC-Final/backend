@@ -4,7 +4,7 @@ services:
   # -----------------------------------------------------------------
   db:
     image: mysql:8.0
-    container_name: kcc-local-mysql
+    container_name: groo-mysql
     restart: unless-stopped
     env_file:
       - ./db.env

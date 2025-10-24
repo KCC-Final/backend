@@ -97,7 +97,7 @@ SET @sql := IF(@default_exist=0,
   'SELECT "already has default"');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- 9. 데이터베이스 문자셋 및 정렬 방식 통일
-ALTER DATABASE groo CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- 9. 데이터베이스 문자셋 및 정렬 방식 통일 (수정된 부분)
+ALTER DATABASE kcc CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 COMMIT;
