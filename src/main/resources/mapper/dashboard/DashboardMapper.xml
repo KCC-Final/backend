@@ -109,15 +109,17 @@
     <!-- ========================================= -->
     <select id="findYearlyStats" parameterType="string" resultType="com.kcc.groo.dashboard.data.dto.YearlyStat">
         <![CDATA[
-        SELECT
-        YEAR(created_at) AS year,
-        COUNT(*) AS count
-        FROM reviews
-        WHERE user_id = #{userId}
-        AND YEAR(created_at) >= YEAR(CURDATE()) - 4
-        GROUP BY YEAR(created_at)
-        ORDER BY YEAR(created_at);
-        ]]>
+    SELECT
+    YEAR(created_at) AS year,
+    COUNT(*) AS count
+    FROM reviews
+    WHERE user_id = #{userId}
+    AND status = TRUE
+    AND temporary = FALSE
+    AND YEAR(created_at) >= YEAR(CURDATE()) - 4
+    GROUP BY YEAR(created_at)
+    ORDER BY YEAR(created_at);
+    ]]>
     </select>
 
 </mapper>
