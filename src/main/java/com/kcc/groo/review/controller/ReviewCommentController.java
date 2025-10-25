@@ -2,7 +2,7 @@ package com.kcc.groo.review.controller;
 
 import com.kcc.groo.review.data.dto.CommentRequest;
 import com.kcc.groo.review.data.dto.CommentResponse;
-import com.kcc.groo.review.service.ICommentService;
+import com.kcc.groo.review.service.IReviewCommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +16,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/comments")
 @RequiredArgsConstructor
-public class CommentApiController {
+public class ReviewCommentController {
 
-    private final ICommentService commentService;
+    private final IReviewCommentService commentService;
 
     /**
-     * @param reviewId 댓글을 작성할 리뷰 ID
+     * @param reviewId  댓글을 작성할 리뷰 ID
      * @param principal 인증된 사용자 정보
-     * @param req 댓글 내용
+     * @param req       댓글 내용
      * @return ResponseEntity<Void>
      * @author uyh
      * @created 2025-09-29
@@ -43,7 +43,7 @@ public class CommentApiController {
     /**
      * @param commentId 수정할 댓글 ID
      * @param principal 인증된 사용자 정보
-     * @param req 수정할 댓글 내용
+     * @param req       수정할 댓글 내용
      * @return ResponseEntity<Void>
      * @author uyh
      * @created 2025-09-29
@@ -80,7 +80,6 @@ public class CommentApiController {
 
     /**
      * @param reviewId 조회할 리뷰 ID
-     * @param userId 조회하는 사용자 ID (null 가능)
      * @return List<CommentResponse>
      * @author uyh
      * @created 2025-09-29

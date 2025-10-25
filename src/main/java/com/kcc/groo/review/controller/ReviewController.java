@@ -1,6 +1,8 @@
 package com.kcc.groo.review.controller;
 
-import com.kcc.groo.review.data.dto.*;
+import com.kcc.groo.review.data.dto.ReviewCreateRequest;
+import com.kcc.groo.review.data.dto.ReviewResponse;
+import com.kcc.groo.review.data.dto.ReviewUpdateRequest;
 import com.kcc.groo.review.service.IReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,13 +17,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reviews")
 @RequiredArgsConstructor
-public class ReviewApiController {
+public class ReviewController {
 
     private final IReviewService reviewService;
 
     /**
      * @param principal 인증된 사용자 정보
-     * @param request 독후감 작성 정보
+     * @param request   독후감 작성 정보
      * @return ResponseEntity<Void>
      * @author uyh
      * @created 2025-09-28
@@ -52,7 +54,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param id 조회할 임시저장 글 ID
+     * @param id        조회할 임시저장 글 ID
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<ReviewResponse>
      * @author uyh
@@ -69,7 +71,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param id 삭제할 임시저장 글 ID
+     * @param id        삭제할 임시저장 글 ID
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
      * @author uyh
@@ -87,7 +89,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param reviewId 조회할 리뷰 ID
+     * @param reviewId  조회할 리뷰 ID
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<ReviewResponse>
      * @author uyh
@@ -118,9 +120,9 @@ public class ReviewApiController {
     }
 
     /**
-     * @param reviewId 수정할 리뷰 ID
+     * @param reviewId  수정할 리뷰 ID
      * @param principal 인증된 사용자 정보
-     * @param request 수정할 독후감 정보
+     * @param request   수정할 독후감 정보
      * @return ResponseEntity<Void>
      * @author uyh
      * @created 2025-09-28
@@ -152,7 +154,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param reviewId 삭제할 리뷰 ID
+     * @param reviewId  삭제할 리뷰 ID
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
      * @author uyh
@@ -170,7 +172,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param reviewId 좋아요할 리뷰 ID
+     * @param reviewId  좋아요할 리뷰 ID
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
      * @author uyh
@@ -188,7 +190,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param reviewId 좋아요 취소할 리뷰 ID
+     * @param reviewId  좋아요 취소할 리뷰 ID
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<Void>
      * @author uyh
@@ -218,7 +220,7 @@ public class ReviewApiController {
         String userId = principal.getName();
         return ResponseEntity.ok(reviewService.getLikedReviews(userId));
     }
-    
+
     /**
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<List<ReviewResponse>>
@@ -232,7 +234,7 @@ public class ReviewApiController {
         String userId = principal.getName();
         return ResponseEntity.ok(reviewService.getReviewsByFollowing(userId));
     }
-    
+
     /**
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<List<ReviewResponse>>
@@ -246,9 +248,9 @@ public class ReviewApiController {
         String userId = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(reviewService.getAllReviewsOrderByLikes(userId));
     }
-    
+
     /**
-     * @param isbn 조회할 도서의 ISBN
+     * @param isbn      조회할 도서의 ISBN
      * @param principal 인증된 사용자 정보
      * @return ResponseEntity<List<ReviewResponse>>
      * @author uyh
@@ -263,11 +265,11 @@ public class ReviewApiController {
         String userId = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(reviewService.getReviewsByIsbn(isbn, userId));
     }
-    
+
 
     /**
      * TODO
-     * 
+     *
      * @param category
      * @param limit
      * @param principal
@@ -287,7 +289,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param userId 조회할 사용자 ID
+     * @param userId    조회할 사용자 ID
      * @param principal 인증된 사용자 정보 (선택)
      * @return ResponseEntity<List<ReviewResponse>>
      * @author uyh
@@ -304,7 +306,7 @@ public class ReviewApiController {
     }
 
     /**
-     * @param userId 조회할 사용자 ID
+     * @param userId    조회할 사용자 ID
      * @param principal 인증된 사용자 정보 (선택)
      * @return ResponseEntity<List<ReviewResponse>>
      * @author uyh
@@ -319,5 +321,5 @@ public class ReviewApiController {
         String currentUserId = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(reviewService.getLikedReviewsByUser(currentUserId, userId));
     }
-    
+
 }

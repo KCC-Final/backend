@@ -3,7 +3,7 @@ package com.kcc.groo.review.service;
 import com.kcc.groo.common.exception.GrooException;
 import com.kcc.groo.notification.data.dto.NotificationRequest;
 import com.kcc.groo.notification.service.INotificationService;
-import com.kcc.groo.review.dao.ICommentRepository;
+import com.kcc.groo.review.dao.IReviewCommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.CommentRequest;
 import com.kcc.groo.review.data.dto.CommentResponse;
@@ -20,9 +20,9 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CommentService implements ICommentService {
+public class ReviewCommentService implements IReviewCommentService {
 
-    private final ICommentRepository commentRepository;
+    private final IReviewCommentRepository commentRepository;
     private final IReviewRepository reviewRepository;
     private final INotificationService notificationService;
 
