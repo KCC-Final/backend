@@ -1,22 +1,17 @@
 package com.kcc.groo.dashboard.controller;
 
+import com.kcc.groo.common.dto.CommonResponse;
+import com.kcc.groo.dashboard.data.dto.*;
+import com.kcc.groo.dashboard.service.IDashboardService;
+import com.kcc.groo.jwt.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.kcc.groo.common.dto.CommonResponse;
-import com.kcc.groo.dashboard.data.dto.DashboardSummaryResponse;
-import com.kcc.groo.dashboard.data.dto.MonthlyReportResponse;
-import com.kcc.groo.dashboard.data.dto.MonthlyStatsResponse;
-import com.kcc.groo.dashboard.data.dto.YearlyStatsResponse;
-import com.kcc.groo.dashboard.service.IDashboardService;
-import com.kcc.groo.jwt.JwtTokenProvider;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author uyh
@@ -33,6 +28,26 @@ public class DashboardController {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    /**
+     * 대시보드 페이지에 필요한 전체 데이터 조회
+     *
+     * @param request HTTP 요청 객체
+     * @return 대시보드 전체 데이터
+     * @author YunSung
+     * @created 2025-10-25
+     */
+    @GetMapping("/all")
+    public ResponseEntity<CommonResponse<DashboardAllDataResponseDTO>> getDashboardAllData(HttpServletRequest request) {
+        // JWT 토큰에서 사용자 ID 추출
+        String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
+
+        // 대시보드 전체 데이터 조회
+        DashboardAllDataResponseDTO dashboardAllData = dashboardService.getDashboardAllData(userId);
+
+        // 200 응답 반환.
+        return ResponseEntity.ok(new CommonResponse<>("대시보드 전체 데이터 조회 성공", dashboardAllData));
+    }
 
     @Operation(summary = "대시보드 기본 통계 조회",
             description = "작성한 독후감 개수, 스크랩한 도서 개수, 좋아요 누른 독후감 개수, 카테고리별 독서 통계를 조회합니다.")

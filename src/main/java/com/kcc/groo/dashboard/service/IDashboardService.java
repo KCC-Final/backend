@@ -1,9 +1,6 @@
 package com.kcc.groo.dashboard.service;
 
-import com.kcc.groo.dashboard.data.dto.DashboardSummaryResponse;
-import com.kcc.groo.dashboard.data.dto.MonthlyStatsResponse;
-import com.kcc.groo.dashboard.data.dto.MonthlyReportResponse;
-import com.kcc.groo.dashboard.data.dto.YearlyStatsResponse;
+import com.kcc.groo.dashboard.data.dto.*;
 
 /**
  * @author uyh
@@ -11,6 +8,16 @@ import com.kcc.groo.dashboard.data.dto.YearlyStatsResponse;
  * Dashboard Service Interface
  */
 public interface IDashboardService {
+
+    /**
+     * 대시보드 페이지에 필요한 전체 데이터 조회
+     *
+     * @param userId 로그인 사용자 ID
+     * @return 대시보드 전체 데이터 DTO
+     * @author YunSung
+     * @created 2025-10-25
+     */
+    DashboardAllDataResponseDTO getDashboardAllData(String userId);
 
     /**
      * @param userId
@@ -44,6 +51,7 @@ public interface IDashboardService {
 
     /**
      * 연도별 독후감 통계 조회
+     *
      * @param userId 로그인 사용자 ID
      * @return 연도별 통계 리스트
      */

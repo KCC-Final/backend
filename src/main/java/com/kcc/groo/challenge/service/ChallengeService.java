@@ -5,7 +5,7 @@ import com.kcc.groo.challenge.dao.IBadgeRepository;
 import com.kcc.groo.challenge.data.dto.UserBadgeResponse;
 import com.kcc.groo.challenge.data.dto.UserBadgeStatusResponse;
 import com.kcc.groo.challenge.data.model.Badge;
-import com.kcc.groo.review.dao.ICommentRepository;
+import com.kcc.groo.review.dao.IReviewCommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.user.dao.IFollowsRepository;
 import com.kcc.groo.user.dao.IUsersRepository;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 /**
  * 도전과제 및 뱃지 부여 관련 비즈니스 로직을 처리하는 서비스 클래스
+ *
  * @author uyh
  * @created 2025-10-16
  */
@@ -37,7 +38,7 @@ public class ChallengeService implements IChallengeService {
     private final IUsersRepository usersRepository;
     private final IFollowsRepository followsRepository;
     private final IReviewRepository reviewRepository;
-    private final ICommentRepository commentRepository;
+    private final IReviewCommentRepository commentRepository;
     private final IBookScrapRepository bookScrapRepository;
 
     /**
@@ -165,7 +166,7 @@ public class ChallengeService implements IChallengeService {
 
     /**
      * @param userId 사용자 ID
-     * @param isbn 도서 ISBN
+     * @param isbn   도서 ISBN
      * @return void
      * @author uyh
      * @created 2025-10-16

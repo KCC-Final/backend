@@ -4,7 +4,7 @@ import com.kcc.groo.challenge.service.IChallengeService;
 import com.kcc.groo.common.exception.GrooException;
 import com.kcc.groo.notification.data.dto.NotificationRequest;
 import com.kcc.groo.notification.service.INotificationService;
-import com.kcc.groo.review.dao.ICommentRepository;
+import com.kcc.groo.review.dao.IReviewCommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.ReviewCreateRequest;
 import com.kcc.groo.review.data.dto.ReviewResponse;
@@ -25,7 +25,7 @@ import java.util.List;
 public class ReviewService implements IReviewService {
 
     private final IReviewRepository reviewRepository;
-    private final ICommentRepository commentRepository;
+    private final IReviewCommentRepository commentRepository;
     private final IChallengeService challengeService; // 의존성 주입
     private final INotificationService notificationService; //added 2025-10-21 kys
 

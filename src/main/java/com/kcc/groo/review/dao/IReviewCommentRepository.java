@@ -8,12 +8,12 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
-public interface ICommentRepository {
+public interface IReviewCommentRepository {
 
     /**
      * @param reviewId 댓글을 작성할 리뷰 ID
-     * @param userId 댓글 작성자 ID
-     * @param req 댓글 내용
+     * @param userId   댓글 작성자 ID
+     * @param req      댓글 내용
      * @return void
      * @author uyh
      * @created 2025-09-29
@@ -25,8 +25,8 @@ public interface ICommentRepository {
 
     /**
      * @param commentId 수정할 댓글 ID
-     * @param userId 댓글 작성자 ID
-     * @param content 수정할 댓글 내용
+     * @param userId    댓글 작성자 ID
+     * @param content   수정할 댓글 내용
      * @return void
      * @author uyh
      * @created 2025-09-29
@@ -38,7 +38,7 @@ public interface ICommentRepository {
 
     /**
      * @param commentId 삭제할 댓글 ID
-     * @param userId 댓글 작성자 ID
+     * @param userId    댓글 작성자 ID
      * @return void
      * @author uyh
      * @created 2025-09-29
@@ -49,7 +49,7 @@ public interface ICommentRepository {
 
     /**
      * @param reviewId 조회할 리뷰 ID
-     * @param userId 조회하는 사용자 ID (null 가능)
+     * @param userId   조회하는 사용자 ID (null 가능)
      * @return List<CommentResponse>
      * @author uyh
      * @created 2025-09-29
@@ -84,7 +84,7 @@ public interface ICommentRepository {
      * 특정 사용자가 작성한 모든 댓글 수를 조회
      */
     int countCommentsByUserId(@Param("userId") String userId);
-    
+
     /**
      * @return
      * @author kys
