@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * 사용자의 뱃지 획득 상태를 포함한 뱃지 정보 응답 DTO
+ *
  * @author uyh
  * @created 2025-10-16
  */
@@ -43,10 +44,10 @@ public class UserBadgeStatusResponse {
     private LocalDateTime acquiredDate;
 
     /**
-     * @param badge 뱃지 엔티티
+     * @param badge           뱃지 엔티티
      * @param currentProgress 현재 진행도
-     * @param acquired 획득 여부
-     * @param acquiredDate 획득 날짜
+     * @param acquired        획득 여부
+     * @param acquiredDate    획득 날짜
      * @return UserBadgeStatusResponse
      * @author uyh
      * @created 2025-10-16
