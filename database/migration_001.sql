@@ -1,5 +1,4 @@
-USE
-kcc;
+USE kcc;
 
 -- ================================================
 -- migration_002_sentences.sql

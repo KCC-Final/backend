@@ -178,13 +178,20 @@ CREATE TABLE IF NOT EXISTS alerts (
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='알림';
 
 
+-- ================================================
 -- 10. 오늘의 한 문장 테이블 (기본 테이블, 외래키 없음)
+-- ================================================
 CREATE TABLE IF NOT EXISTS sentences (
-                                         sentence_id INT NOT NULL AUTO_INCREMENT COMMENT '오늘의 문장 ID',
-                                         sentence_content VARCHAR(500) NULL COMMENT '문장',
-    ISBN VARCHAR(20) NULL COMMENT 'ISBN',
-    PRIMARY KEY (sentence_id)
-    ) COMMENT='오늘의 한 문장';
+  sentence_id INT NOT NULL AUTO_INCREMENT COMMENT '오늘의 문장 ID',
+  sentence_content VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '문장',
+  ISBN VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT 'ISBN',
+  selected_date DATE NULL COMMENT '오늘의 문장으로 선택된 날짜',
+  PRIMARY KEY (sentence_id)
+) COMMENT='오늘의 한 문장'
+  CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE INDEX idx_sentences_selected_date ON sentences (selected_date);
 
 -- 11. 알림 테이블 (users 참조)
 CREATE TABLE IF NOT EXISTS alerts (

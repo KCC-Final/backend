@@ -3,8 +3,7 @@
 -- 도전과제 뱃지 데이터 삽입 (중복 방지: WHERE NOT EXISTS)
 -- ================================================
 
-USE
-kcc;
+USE kcc;
 
 -- 1. 첫 활동 시리즈
 INSERT INTO badges (badge_name, badge_description, badge_conditions)

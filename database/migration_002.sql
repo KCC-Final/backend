@@ -4,8 +4,7 @@
 -- 기존 migration_002.sql 더미데이터 제거 후 삽입 (중복 방지)
 -- ================================================
 
-USE
-kcc;
+USE kcc;
 
 -- 1 기존 migration_002.sql의 더미 sentences 데이터 제거
 DELETE
