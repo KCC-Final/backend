@@ -1,24 +1,23 @@
 package com.kcc.groo.review.service;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kcc.groo.challenge.service.IChallengeService;
+import com.kcc.groo.common.exception.GrooException;
 import com.kcc.groo.notification.data.dto.NotificationRequest;
 import com.kcc.groo.notification.service.INotificationService;
-import com.kcc.groo.review.dao.ICommentRepository;
+import com.kcc.groo.review.dao.IReviewCommentRepository;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.ReviewCreateRequest;
 import com.kcc.groo.review.data.dto.ReviewResponse;
 import com.kcc.groo.review.data.dto.ReviewUpdateRequest;
 import com.kcc.groo.review.exception.ReviewErrorCode;
-import com.kcc.groo.review.exception.ReviewException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.util.List;
+
 
 @Slf4j
 @Service
@@ -26,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewService implements IReviewService {
 
     private final IReviewRepository reviewRepository;
-    private final ICommentRepository commentRepository;
+    private final IReviewCommentRepository commentRepository;
     private final IChallengeService challengeService; // 의존성 주입
     private final INotificationService notificationService; //added 2025-10-21 kys
 
@@ -36,7 +35,7 @@ public class ReviewService implements IReviewService {
         // 입력 검증
         validateReviewRequest(request);
         validateUserId(userId);
-        
+
         try {
             reviewRepository.insertReview(userId, request);
             log.info("[createReview] userId: {}, temporary: {}", userId, request.getTemporary());
@@ -48,7 +47,7 @@ public class ReviewService implements IReviewService {
             }
         } catch (Exception e) {
             log.error("[createReview] Failed - userId: {}, error: {}", userId, e.getMessage());
-            throw new ReviewException(ReviewErrorCode.REVIEW_CREATE_FAILED, e.getMessage());
+            throw new GrooException(ReviewErrorCode.REVIEW_CREATE_FAILED, e.getMessage());
         }
     }
 
@@ -57,34 +56,34 @@ public class ReviewService implements IReviewService {
     public void updateReview(String userId, Integer reviewId, ReviewUpdateRequest request) {
         // 입력 검증
         if (reviewId == null || reviewId <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
         }
         validateReviewUpdateRequest(request);
         validateUserId(userId);
-        
+
         // 리뷰 존재 및 권한 확인
         ReviewResponse existingReview = reviewRepository.selectReviewById(userId, reviewId);
         if (existingReview == null) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
+            throw new GrooException(ReviewErrorCode.REVIEW_NOT_FOUND);
         }
-        
+
         // 작성자 확인
         if (!existingReview.getUserId().equals(userId)) {
-            throw new ReviewException(ReviewErrorCode.NOT_REVIEW_OWNER);
+            throw new GrooException(ReviewErrorCode.NOT_REVIEW_OWNER);
         }
-        
+
         // 삭제된 리뷰는 수정 불가
         if (!existingReview.getStatus()) {
-            throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_DELETED_REVIEW);
+            throw new GrooException(ReviewErrorCode.CANNOT_ACCESS_DELETED_REVIEW);
         }
-        
+
         try {
             reviewRepository.updateReview(userId, reviewId, request);
             log.info("[updateReview] reviewId: {}, userId: {}", reviewId, userId);
         } catch (Exception e) {
-            log.error("[updateReview] Failed - reviewId: {}, userId: {}, error: {}", 
-                      reviewId, userId, e.getMessage());
-            throw new ReviewException(ReviewErrorCode.REVIEW_UPDATE_FAILED, e.getMessage());
+            log.error("[updateReview] Failed - reviewId: {}, userId: {}, error: {}",
+                    reviewId, userId, e.getMessage());
+            throw new GrooException(ReviewErrorCode.REVIEW_UPDATE_FAILED, e.getMessage());
         }
     }
 
@@ -93,33 +92,33 @@ public class ReviewService implements IReviewService {
     public void deleteReview(String userId, Integer reviewId) {
         // 입력 검증
         if (reviewId == null || reviewId <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
         }
         validateUserId(userId);
-        
+
         // 리뷰 존재 및 권한 확인
         ReviewResponse existingReview = reviewRepository.selectReviewById(userId, reviewId);
         if (existingReview == null) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
+            throw new GrooException(ReviewErrorCode.REVIEW_NOT_FOUND);
         }
-        
+
         // 작성자 확인
         if (!existingReview.getUserId().equals(userId)) {
-            throw new ReviewException(ReviewErrorCode.NOT_REVIEW_OWNER);
+            throw new GrooException(ReviewErrorCode.NOT_REVIEW_OWNER);
         }
-        
+
         // 이미 삭제된 리뷰
         if (!existingReview.getStatus()) {
-            throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_DELETED_REVIEW);
+            throw new GrooException(ReviewErrorCode.CANNOT_ACCESS_DELETED_REVIEW);
         }
-        
+
         try {
             reviewRepository.deleteReview(userId, reviewId);
             log.info("[deleteReview] reviewId: {}, userId: {}", reviewId, userId);
         } catch (Exception e) {
-            log.error("[deleteReview] Failed - reviewId: {}, userId: {}, error: {}", 
-                      reviewId, userId, e.getMessage());
-            throw new ReviewException(ReviewErrorCode.REVIEW_DELETE_FAILED, e.getMessage());
+            log.error("[deleteReview] Failed - reviewId: {}, userId: {}, error: {}",
+                    reviewId, userId, e.getMessage());
+            throw new GrooException(ReviewErrorCode.REVIEW_DELETE_FAILED, e.getMessage());
         }
     }
 
@@ -127,32 +126,32 @@ public class ReviewService implements IReviewService {
     public ReviewResponse getReview(String userId, Integer reviewId) {
         // 입력 검증
         if (reviewId == null || reviewId <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
         }
 
         ReviewResponse review = reviewRepository.selectReviewById(userId, reviewId);
 
         // 리뷰 존재 확인
         if (review == null) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
+            throw new GrooException(ReviewErrorCode.REVIEW_NOT_FOUND);
         }
 
         // 삭제된 리뷰 접근 제한
         if (!review.getStatus()) {
-            throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_DELETED_REVIEW);
+            throw new GrooException(ReviewErrorCode.CANNOT_ACCESS_DELETED_REVIEW);
         }
 
         // 임시저장 글 접근 제한
         if (review.getTemporary()) {
             if (userId == null || !review.getUserId().equals(userId)) {
-                throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_DRAFT_REVIEW);
+                throw new GrooException(ReviewErrorCode.CANNOT_ACCESS_DRAFT_REVIEW);
             }
         }
 
         // 비밀글 접근 제한
         if (review.getSecret()) {
             if (userId == null || !review.getUserId().equals(userId)) {
-                throw new ReviewException(ReviewErrorCode.CANNOT_ACCESS_SECRET_REVIEW);
+                throw new GrooException(ReviewErrorCode.CANNOT_ACCESS_SECRET_REVIEW);
             }
         }
 
@@ -221,22 +220,22 @@ public class ReviewService implements IReviewService {
     public ReviewResponse getDraft(int id, String userId) {
         // 입력 검증
         if (id <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid draft ID");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid draft ID");
         }
         validateUserId(userId);
-        
+
         ReviewResponse draft = reviewRepository.selectDraft(id, userId);
-        
+
         // 임시저장 글 존재 확인
         if (draft == null) {
-            throw new ReviewException(ReviewErrorCode.DRAFT_NOT_FOUND);
+            throw new GrooException(ReviewErrorCode.DRAFT_NOT_FOUND);
         }
-        
+
         // 작성자 확인
         if (!draft.getUserId().equals(userId)) {
-            throw new ReviewException(ReviewErrorCode.NOT_DRAFT_OWNER);
+            throw new GrooException(ReviewErrorCode.NOT_DRAFT_OWNER);
         }
-        
+
         log.info("[getDraft] draftId: {}, userId: {}", id, userId);
         return draft;
     }
@@ -246,28 +245,28 @@ public class ReviewService implements IReviewService {
     public void deleteDraft(int id, String userId) {
         // 입력 검증
         if (id <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid draft ID");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid draft ID");
         }
         validateUserId(userId);
-        
+
         // 임시저장 글 존재 및 권한 확인
         ReviewResponse draft = reviewRepository.selectDraft(id, userId);
         if (draft == null) {
-            throw new ReviewException(ReviewErrorCode.DRAFT_NOT_FOUND);
+            throw new GrooException(ReviewErrorCode.DRAFT_NOT_FOUND);
         }
-        
+
         // 작성자 확인
         if (!draft.getUserId().equals(userId)) {
-            throw new ReviewException(ReviewErrorCode.NOT_DRAFT_OWNER);
+            throw new GrooException(ReviewErrorCode.NOT_DRAFT_OWNER);
         }
-        
+
         try {
             reviewRepository.deleteDraft(id, userId);
             log.info("[deleteDraft] draftId: {}, userId: {}", id, userId);
         } catch (Exception e) {
-            log.error("[deleteDraft] Failed - draftId: {}, userId: {}, error: {}", 
-                      id, userId, e.getMessage());
-            throw new ReviewException(ReviewErrorCode.REVIEW_DELETE_FAILED, e.getMessage());
+            log.error("[deleteDraft] Failed - draftId: {}, userId: {}, error: {}",
+                    id, userId, e.getMessage());
+            throw new GrooException(ReviewErrorCode.REVIEW_DELETE_FAILED, e.getMessage());
         }
     }
 
@@ -276,40 +275,40 @@ public class ReviewService implements IReviewService {
     public void likeReview(String userId, Integer reviewId) {
         // 입력 검증
         if (reviewId == null || reviewId <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
         }
         validateUserId(userId);
-        
+
         // 리뷰 존재 확인
         ReviewResponse review = reviewRepository.selectReviewById(null, reviewId);
         if (review == null) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
+            throw new GrooException(ReviewErrorCode.REVIEW_NOT_FOUND);
         }
-        
+
         // 삭제된 리뷰는 좋아요 불가
         if (!review.getStatus()) {
-            throw new ReviewException(ReviewErrorCode.CANNOT_LIKE_DELETED_REVIEW);
+            throw new GrooException(ReviewErrorCode.CANNOT_LIKE_DELETED_REVIEW);
         }
-        
+
         // 임시저장 글은 좋아요 불가
         if (review.getTemporary()) {
-            throw new ReviewException(ReviewErrorCode.CANNOT_LIKE_DRAFT_REVIEW);
+            throw new GrooException(ReviewErrorCode.CANNOT_LIKE_DRAFT_REVIEW);
         }
-        
+
         // 본인 글은 좋아요 불가
         if (review.getUserId().equals(userId)) {
-            throw new ReviewException(ReviewErrorCode.CANNOT_LIKE_OWN_REVIEW);
+            throw new GrooException(ReviewErrorCode.CANNOT_LIKE_OWN_REVIEW);
         }
-        
+
         // 중복 좋아요 확인
         if (reviewRepository.existsLike(userId, reviewId) > 0) {
-            throw new ReviewException(ReviewErrorCode.DUPLICATE_LIKE);
+            throw new GrooException(ReviewErrorCode.DUPLICATE_LIKE);
         }
-        
+
         try {
             reviewRepository.insertLike(userId, reviewId);
             log.info("[likeReview] reviewId: {}, userId: {}", reviewId, userId);
-            
+
             //added 2025-10-21 kys
             if (!review.getUserId().equals(userId)) {
                 try {
@@ -320,19 +319,19 @@ public class ReviewService implements IReviewService {
                     req.setDetailSenderId(0);           // 좋아요는 세부 ID 없음
                     req.setUserId(review.getUserId());  // 수신자 (리뷰 작성자)
                     req.setSenderUserId(userId);        // 발신자 (좋아요 누른 사람)
-                    
+
                     notificationService.sendNotification(req);
                     log.info("like notification success: {} → {}", userId, review.getUserId());
                 } catch (IOException e) {
-                    log.error("like notification fail - reviewId: {}, sender: {}, receiver: {}", 
-                              reviewId, userId, review.getUserId(), e);
+                    log.error("like notification fail - reviewId: {}, sender: {}, receiver: {}",
+                            reviewId, userId, review.getUserId(), e);
                 }
             }
- 
+
         } catch (Exception e) {
-            log.error("[likeReview] Failed - reviewId: {}, userId: {}, error: {}", 
-                      reviewId, userId, e.getMessage());
-            throw new ReviewException(ReviewErrorCode.DATABASE_ERROR, e.getMessage());
+            log.error("[likeReview] Failed - reviewId: {}, userId: {}, error: {}",
+                    reviewId, userId, e.getMessage());
+            throw new GrooException(ReviewErrorCode.DATABASE_ERROR, e.getMessage());
         }
     }
 
@@ -341,22 +340,22 @@ public class ReviewService implements IReviewService {
     public void unlikeReview(String userId, Integer reviewId) {
         // 입력 검증
         if (reviewId == null || reviewId <= 0) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid review ID");
         }
         validateUserId(userId);
-        
+
         // 좋아요 존재 확인
         if (reviewRepository.existsLike(userId, reviewId) == 0) {
-            throw new ReviewException(ReviewErrorCode.LIKE_NOT_FOUND);
+            throw new GrooException(ReviewErrorCode.LIKE_NOT_FOUND);
         }
-        
+
         try {
             reviewRepository.deleteLike(userId, reviewId);
             log.info("[unlikeReview] reviewId: {}, userId: {}", reviewId, userId);
         } catch (Exception e) {
-            log.error("[unlikeReview] Failed - reviewId: {}, userId: {}, error: {}", 
-                      reviewId, userId, e.getMessage());
-            throw new ReviewException(ReviewErrorCode.DATABASE_ERROR, e.getMessage());
+            log.error("[unlikeReview] Failed - reviewId: {}, userId: {}, error: {}",
+                    reviewId, userId, e.getMessage());
+            throw new GrooException(ReviewErrorCode.DATABASE_ERROR, e.getMessage());
         }
     }
 
@@ -366,50 +365,50 @@ public class ReviewService implements IReviewService {
         log.info("[getLikedReviews] userId: {}", userId);
         return reviewRepository.selectLikedReviews(userId);
     }
-    
+
     @Override
     public List<ReviewResponse> getReviewsByFollowing(String userId) {
         validateUserId(userId);
         log.info("[getReviewsByFollowing] userId: {}", userId);
         return reviewRepository.selectReviewsByFollowing(userId);
     }
-    
+
     @Override
     public List<ReviewResponse> getAllReviewsOrderByLikes(String userId) {
         log.info("[getAllReviewsOrderByLikes] userId: {}", userId);
         return reviewRepository.selectAllReviewsOrderByLikes(userId);
     }
-    
+
     @Override
     public List<ReviewResponse> getReviewsByIsbn(String isbn, String userId) {
         if (isbn == null || isbn.trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_ISBN);
+            throw new GrooException(ReviewErrorCode.INVALID_ISBN);
         }
-        
+
         // ISBN 형식 검증 (10자리 또는 13자리)
         String cleanIsbn = isbn.replaceAll("-", "");
         if (!cleanIsbn.matches("^\\d{10}(\\d{3})?$")) {
-            throw new ReviewException(ReviewErrorCode.INVALID_ISBN, "ISBN must be 10 or 13 digits");
+            throw new GrooException(ReviewErrorCode.INVALID_ISBN, "ISBN must be 10 or 13 digits");
         }
-        
+
         log.info("[getReviewsByIsbn] isbn: {}, userId: {}", isbn, userId);
         return reviewRepository.selectReviewsByIsbn(isbn, userId);
     }
-    
+
     @Override
     public List<ReviewResponse> getReviewsByCategory(String category, String userId, int limit) {
         if (category == null || category.trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Category is required");
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Category is required");
         }
-        
+
         if (limit <= 0 || limit > 100) {
             limit = 20; // 기본값
         }
-        
+
         log.info("[getReviewsByCategory] category: {}, userId: {}, limit: {}", category, userId, limit);
         return reviewRepository.selectReviewsByCategory(category, userId, limit);
     }
-    
+
     // ============ Private Validation Methods ============
 
     /**
@@ -417,41 +416,41 @@ public class ReviewService implements IReviewService {
      */
     private void validateReviewRequest(ReviewCreateRequest request) {
         if (request == null) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
         }
 
         // ISBN 검증
         if (request.getIsbn() == null || request.getIsbn().trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_ISBN);
+            throw new GrooException(ReviewErrorCode.INVALID_ISBN);
         }
 
         // ISBN 형식 검증 (10자리 또는 13자리)
         String isbn = request.getIsbn().replaceAll("-", "");
         if (!isbn.matches("^\\d{10}(\\d{3})?$")) {
-            throw new ReviewException(ReviewErrorCode.INVALID_ISBN, "ISBN must be 10 or 13 digits");
+            throw new GrooException(ReviewErrorCode.INVALID_ISBN, "ISBN must be 10 or 13 digits");
         }
 
         // 제목 검증
         if (request.getReviewTitle() == null || request.getReviewTitle().trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_TITLE);
         }
 
         if (request.getReviewTitle().trim().length() < 2) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
+            throw new GrooException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
         }
 
         if (request.getReviewTitle().length() > 200) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
+            throw new GrooException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
         }
 
         // 내용 검증
         if (request.getReviewContent() == null || request.getReviewContent().trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
         }
 
         // 1. DB 저장 크기 검증 (HTML 포함 원본)
         if (request.getReviewContent().length() > 30000) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_DB_SIZE_EXCEEDED);
+            throw new GrooException(ReviewErrorCode.REVIEW_CONTENT_DB_SIZE_EXCEEDED);
         }
 
         // 2. 순수 텍스트 길이 검증 (HTML 태그, 공백 제거)
@@ -461,11 +460,11 @@ public class ReviewService implements IReviewService {
                 .trim();
 
         if (contentText.length() < 10) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
+            throw new GrooException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
         }
 
         if (contentText.length() > 10000) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
+            throw new GrooException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
         }
     }
 
@@ -474,33 +473,33 @@ public class ReviewService implements IReviewService {
      */
     private void validateReviewUpdateRequest(ReviewUpdateRequest request) {
         if (request == null) {
-            throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
+            throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST);
         }
 
         // 제목이 있으면 검증
         if (request.getReviewTitle() != null) {
             if (request.getReviewTitle().trim().isEmpty()) {
-                throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_TITLE);
+                throw new GrooException(ReviewErrorCode.INVALID_REVIEW_TITLE);
             }
 
             if (request.getReviewTitle().trim().length() < 2) {
-                throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
+                throw new GrooException(ReviewErrorCode.REVIEW_TITLE_TOO_SHORT);
             }
 
             if (request.getReviewTitle().length() > 200) {
-                throw new ReviewException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
+                throw new GrooException(ReviewErrorCode.REVIEW_TITLE_TOO_LONG);
             }
         }
 
         // 내용이 있으면 검증
         if (request.getReviewContent() != null) {
             if (request.getReviewContent().trim().isEmpty()) {
-                throw new ReviewException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
+                throw new GrooException(ReviewErrorCode.INVALID_REVIEW_CONTENT);
             }
 
             // 1. DB 저장 크기 검증 (HTML 포함 원본)
             if (request.getReviewContent().length() > 30000) {
-                throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_DB_SIZE_EXCEEDED);
+                throw new GrooException(ReviewErrorCode.REVIEW_CONTENT_DB_SIZE_EXCEEDED);
             }
 
             // 2. 순수 텍스트 길이 검증 (HTML 태그, 공백 제거)
@@ -510,21 +509,21 @@ public class ReviewService implements IReviewService {
                     .trim();
 
             if (contentText.length() < 10) {
-                throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
+                throw new GrooException(ReviewErrorCode.REVIEW_CONTENT_TOO_SHORT);
             }
 
             if (contentText.length() > 10000) {
-                throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
+                throw new GrooException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
             }
         }
     }
-    
+
     /**
      * userId 검증
      */
     private void validateUserId(String userId) {
         if (userId == null || userId.trim().isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.UNAUTHORIZED_ACCESS);
+            throw new GrooException(ReviewErrorCode.UNAUTHORIZED_ACCESS);
         }
     }
 
@@ -537,5 +536,5 @@ public class ReviewService implements IReviewService {
     public List<ReviewResponse> getLikedReviewsByUser(String currentUserId, String targetUserId) {
         return reviewRepository.selectLikedReviewsByUser(currentUserId, targetUserId);
     }
-    
+
 }

@@ -1,19 +1,16 @@
-package com.kcc.groo.common;
+package com.kcc.groo.common.exception;
 
+import com.kcc.groo.common.dto.CommonResponse;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.kcc.groo.common.dto.CommonResponse;
-import com.kcc.groo.review.exception.ReviewException;
-import com.kcc.groo.dashboard.exception.DashboardException;
-
-import lombok.extern.slf4j.Slf4j;
-
-@RestControllerAdvice
 @Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
@@ -28,6 +25,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new CommonResponse<>(errorMessage, null));
+    }
+
+    /**
+     * Query 파라미터(@RequestParam) 및 Path 파라미터(@PathVariable)에 대한 @Validated 검증 실패 처리
+     *
+     * @author YunSung
+     * @created 2025-10-23
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<CommonResponse<?>> handleConstraintViolationException(ConstraintViolationException e) {
+        // 제약 조건 위반 예외에서 첫 번째 위반 항목 가져오기
+        String errorMessage = e.getConstraintViolations().iterator().next().getMessage();
+
+        // 로그에 경고 메시지 기록
+        log.error("[ConstraintViolationException] {}", errorMessage);
+
+        // 400 Bad Request 응답 생성
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new CommonResponse<>(String.format(errorMessage), null));
     }
 
     /**
@@ -57,6 +74,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Groo 서비스의 비즈니스 예외 처리
+     *
+     * @author YunSung
+     * @created 2025-10-22
+     */
+    @ExceptionHandler(GrooException.class)
+    public ResponseEntity<CommonResponse<?>> handleGrooException(GrooException e) {
+        log.error("[GrooException] ErrorCode: {}, Message: {}", e.getErrorCode().getCode(), e.getMessage());
+        return ResponseEntity
+                .status(e.getErrorCode().getHttpStatus())
+                .body(new CommonResponse<>("[" + e.getErrorCode().getCode() + "]: " + e.getMessage(), null));
+    }
+
+    /**
      * @author kys
      * @created 2025-09-23
      * 그 외 모든 예외 처리
@@ -67,39 +98,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new CommonResponse<>("Internal server error", null));
-    }
-
-    /**
-     * @author uyh
-     * @created 2025-10-02
-     * Review 도메인 비즈니스 예외 처리
-     */
-    @ExceptionHandler(ReviewException.class)
-    public ResponseEntity<CommonResponse<?>> handleReviewException(ReviewException e) {
-        log.error("[ReviewException] ErrorCode: {}, Message: {}",
-                e.getErrorCode().getCode(), e.getMessage());
-        return ResponseEntity
-                .status(e.getErrorCode().getHttpStatus())
-                .body(new CommonResponse<>(
-                        e.getErrorCode().getCode() + " - " + e.getMessage(),
-                        null
-                ));
-    }
-
-    /**
-     * @author uyh
-     * @created 2025-01-16
-     * Dashboard 도메인 비즈니스 예외 처리
-     */
-    @ExceptionHandler(DashboardException.class)
-    public ResponseEntity<CommonResponse<?>> handleDashboardException(DashboardException e) {
-        log.error("[DashboardException] ErrorCode: {}, Message: {}",
-                e.getErrorCode().getCode(), e.getMessage());
-        return ResponseEntity
-                .status(e.getErrorCode().getHttpStatus())
-                .body(new CommonResponse<>(
-                        e.getErrorCode().getCode() + " - " + e.getMessage(),
-                        null
-                ));
     }
 }

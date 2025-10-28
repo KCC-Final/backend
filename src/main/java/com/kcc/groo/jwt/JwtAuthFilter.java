@@ -43,18 +43,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/v3/api-docs",
             "/api-docs",
 
-            /* 로그인, 회원가입, 토큰 재발급 */
+            /* 로그인, 토큰 재발급 */
             "/api/v1/auth/login",
-            "/api/v1/users/signup",
             "/api/v1/token-refresh",
 
-            /* ID/PW 찾기, 이메일 인증 */
+            /* 회원가입, ID중복확인, ID/PW 찾기, 이메일 인증 */
+            "/api/v1/users/signup",
             "/api/v1/users/id",
             "/api/v1/users/password",
-            "/api/v1/email",
-            
-            /* 오늘의 한 문장 */
-            "/api/v1/quotes/daily"
+            "/api/v1/email"
     };
 
     @Override

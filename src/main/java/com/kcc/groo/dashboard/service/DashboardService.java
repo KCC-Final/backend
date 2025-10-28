@@ -1,19 +1,17 @@
 package com.kcc.groo.dashboard.service;
 
-import java.time.LocalDate;
-import java.util.List;
-
+import com.kcc.groo.common.exception.GrooException;
+import com.kcc.groo.dashboard.dao.IDashboardRepository;
 import com.kcc.groo.dashboard.data.dto.*;
+import com.kcc.groo.dashboard.exception.DashboardErrorCode;
+import com.kcc.groo.user.dao.IFollowsRepository;
+import com.kcc.groo.user.data.dto.FollowUserInfoDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.kcc.groo.dashboard.dao.IDashboardRepository;
-import com.kcc.groo.dashboard.exception.DashboardErrorCode;
-import com.kcc.groo.dashboard.exception.DashboardException;
-import com.kcc.groo.dashboard.data.dto.YearlyStat;
-import com.kcc.groo.dashboard.data.dto.YearlyStatsResponse;
-
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * @author uyh
@@ -26,6 +24,56 @@ public class DashboardService implements IDashboardService {
 
     @Autowired
     private IDashboardRepository dashboardRepository;
+
+    @Autowired
+    private IFollowsRepository iFollowsRepository;
+
+    @Override
+    public DashboardAllDataResponseDTO getDashboardAllData(String userId) {
+        // 현재 연월 정보
+        LocalDate now = LocalDate.now();
+        int year = now.getYear();
+        int month = now.getMonthValue();
+
+        // 팔로워 및 팔로잉 목록 조회
+        List<FollowUserInfoDTO> followers = iFollowsRepository.selectFollowerList(userId);
+        List<FollowUserInfoDTO> followings = iFollowsRepository.selectFollowingList(userId);
+
+        // 작성한 독후감 개수, 스크랩한 도서 개수, 좋아요 누른 독후감 개수 조회
+        int totalReviews = dashboardRepository.countReviewsByUser(userId);
+        int totalScrappedBooks = dashboardRepository.countScrappedBooks(userId);
+        int totalLikedReviews = dashboardRepository.countLikedReviews(userId);
+
+        // 월별, 연도별 독서량 통계
+        List<MonthlyStat> monthlyStats = dashboardRepository.getMonthlyReviewStats(userId, java.time.LocalDate.now().getYear());
+        List<YearlyStat> yearlyStats = dashboardRepository.findYearlyStats(userId);
+
+        // 카테고리별 독서 통계 조회
+        List<CategoryStat> categoryStats = dashboardRepository.getCategoryStats(userId);
+
+        // 월간 리포트 정보 조회
+        int myAverage = dashboardRepository.getMonthlyReviewCount(userId, year, month);
+        Double AllUserAverage = dashboardRepository.getAverageMonthlyReviewCount(year, month);
+        double totalAverage = (AllUserAverage != null) ? AllUserAverage : 0.0;
+
+        // 대시보드 전체 데이터 응답 DTO 생성 및 반환
+        return DashboardAllDataResponseDTO.builder()
+                .followers(followers)
+                .followings(followings)
+                .totalReviews(totalReviews)
+                .totalScrappedBooks(totalScrappedBooks)
+                .totalLikedReviews(totalLikedReviews)
+                .monthlyStats(monthlyStats)
+                .yearlyStats(yearlyStats)
+                .categoryStats(categoryStats)
+                .reportInfo(DashboardAllDataResponseDTO.ReportInfo.builder()
+                        .myAverage(myAverage)
+                        .totalAverage(totalAverage)
+                        .year(year)
+                        .month(month)
+                        .build())
+                .build();
+    }
 
     @Override
     public DashboardSummaryResponse getSummaryStats(String userId) {
@@ -55,7 +103,7 @@ public class DashboardService implements IDashboardService {
             );
         } catch (Exception e) {
             log.error("[getSummaryStats] Failed - userId: {}, error: {}", userId, e.getMessage());
-            throw new DashboardException(DashboardErrorCode.SUMMARY_STATS_FAILED, e.getMessage());
+            throw new GrooException(DashboardErrorCode.SUMMARY_STATS_FAILED, e.getMessage());
         }
     }
 
@@ -74,7 +122,7 @@ public class DashboardService implements IDashboardService {
             return new MonthlyStatsResponse(monthlyStats);
         } catch (Exception e) {
             log.error("[getMonthlyStats] Failed - userId: {}, year: {}, error: {}", userId, year, e.getMessage());
-            throw new DashboardException(DashboardErrorCode.MONTHLY_STATS_FAILED, e.getMessage());
+            throw new GrooException(DashboardErrorCode.MONTHLY_STATS_FAILED, e.getMessage());
         }
     }
 
@@ -112,7 +160,7 @@ public class DashboardService implements IDashboardService {
         } catch (Exception e) {
             log.error("[getMonthlyReport] Failed - userId: {}, year: {}, month: {}, error: {}",
                     userId, year, month, e.getMessage());
-            throw new DashboardException(DashboardErrorCode.MONTHLY_REPORT_FAILED, e.getMessage());
+            throw new GrooException(DashboardErrorCode.MONTHLY_REPORT_FAILED, e.getMessage());
         }
     }
 
@@ -126,7 +174,7 @@ public class DashboardService implements IDashboardService {
      */
     private void validateUserId(String userId) {
         if (userId == null || userId.trim().isEmpty()) {
-            throw new DashboardException(DashboardErrorCode.INVALID_USER_ID);
+            throw new GrooException(DashboardErrorCode.INVALID_USER_ID);
         }
     }
 
@@ -138,7 +186,7 @@ public class DashboardService implements IDashboardService {
      */
     private void validateYear(int year) {
         if (year < 1900 || year > 2100) {
-            throw new DashboardException(DashboardErrorCode.YEAR_OUT_OF_RANGE);
+            throw new GrooException(DashboardErrorCode.YEAR_OUT_OF_RANGE);
         }
     }
 
@@ -150,10 +198,9 @@ public class DashboardService implements IDashboardService {
      */
     private void validateMonth(int month) {
         if (month < 1 || month > 12) {
-            throw new DashboardException(DashboardErrorCode.INVALID_MONTH);
+            throw new GrooException(DashboardErrorCode.INVALID_MONTH);
         }
     }
-
 
 
     /**
