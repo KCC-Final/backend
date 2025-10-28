@@ -3,6 +3,7 @@ package com.kcc.groo.review.controller;
 import com.kcc.groo.review.data.dto.ReviewCreateRequest;
 import com.kcc.groo.review.data.dto.ReviewResponse;
 import com.kcc.groo.review.data.dto.ReviewUpdateRequest;
+import com.kcc.groo.review.data.dto.ReviewWithCommentResponseDto;
 import com.kcc.groo.review.service.IReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -322,4 +323,20 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getLikedReviewsByUser(currentUserId, userId));
     }
 
+    /**
+     * @param userId    조회할 사용자 ID
+     * @param principal 인증된 사용자 정보 (선택)
+     * @return ResponseEntity<List<ReviewWithCommentResponseDTO>>
+     * @author uyh
+     * @created 2025-10-28
+     * 특정 유저가 댓글 작성한 독후감과 해당 댓글 내용을 함께 조회
+     */
+    @Operation(summary = "특정 유저가 댓글 작성한 독후감과 댓글 내용 조회", description = "특정 유저가 댓글을 작성한 독후감 목록과 댓글 내용을 함께 조회합니다. 항상 공개글만 조회됩니다.")
+    @GetMapping("/user/{userId}/comments")
+    public ResponseEntity<List<ReviewWithCommentResponseDto>> getReviewsWithCommentsByUser(
+            @PathVariable("userId") String userId,
+            Principal principal) {
+        String currentUserId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getReviewsWithCommentsByUser(currentUserId, userId));
+    }
 }

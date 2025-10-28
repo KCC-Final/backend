@@ -275,4 +275,16 @@ public interface IReviewRepository {
      */
     String getReviewTitleByReviewId (@Param("reviewId") int reviewId);
 
+    /**
+     * @param currentUserId 현재 로그인한 사용자 ID (null 가능)
+     * @param targetUserId 조회 대상 사용자 ID
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-10-28
+     * 특정 유저가 댓글 작성한 독후감 조회 (항상 공개글만)
+     */
+    List<ReviewWithCommentResponseDto> selectReviewsWithCommentsByUser(
+            @Param("currentUserId") String currentUserId,
+            @Param("targetUserId") String targetUserId
+    );
 }

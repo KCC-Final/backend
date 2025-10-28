@@ -9,6 +9,7 @@ import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.ReviewCreateRequest;
 import com.kcc.groo.review.data.dto.ReviewResponse;
 import com.kcc.groo.review.data.dto.ReviewUpdateRequest;
+import com.kcc.groo.review.data.dto.ReviewWithCommentResponseDto;
 import com.kcc.groo.review.exception.ReviewErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -536,5 +537,8 @@ public class ReviewService implements IReviewService {
     public List<ReviewResponse> getLikedReviewsByUser(String currentUserId, String targetUserId) {
         return reviewRepository.selectLikedReviewsByUser(currentUserId, targetUserId);
     }
-
+    @Override
+    public List<ReviewWithCommentResponseDto> getReviewsWithCommentsByUser(String currentUserId, String targetUserId) {
+        return reviewRepository.selectReviewsWithCommentsByUser(currentUserId, targetUserId);
+    }
 }

@@ -217,8 +217,6 @@ CREATE TABLE IF NOT EXISTS sentences (
   CHARACTER SET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE INDEX idx_sentences_selected_date ON sentences (selected_date);
-
 -- 11. 알림 테이블 (users 참조)
 CREATE TABLE IF NOT EXISTS alerts (
                                       alert_id INT NOT NULL AUTO_INCREMENT COMMENT '알림 식별값',
