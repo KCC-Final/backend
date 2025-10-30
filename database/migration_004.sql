@@ -88,7 +88,7 @@ SET @book_col_exist := (
 SET @sql5 := IF(
   @book_col_exist = 0,
   'ALTER TABLE book
-      ADD COLUMN user_id VARCHAR(50) NOT NULL COMMENT "사용자 아이디",
+      ADD COLUMN user_id VARCHAR(50) NOT NULL DEFAULT \'\' COMMENT "사용자 아이디",
       ADD CONSTRAINT fk_book_user FOREIGN KEY (user_id)
           REFERENCES users(user_id)
           ON DELETE CASCADE;',

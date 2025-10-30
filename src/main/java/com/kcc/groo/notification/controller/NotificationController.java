@@ -44,7 +44,7 @@ public class NotificationController {
      * @author kys
      * @author uyh
      * @created 2025-10-21
-     * @yodated 2025-10-30
+     * @updated 2025-10-30
      * SSE 구독
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

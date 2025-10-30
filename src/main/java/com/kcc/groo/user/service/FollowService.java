@@ -64,7 +64,7 @@ public class FollowService implements IFollowService {
         }
 
         // 팔로우 성공 후, 상대방에게 팔로우 알림 발송
-        if (result > 0 && !followRequest.getFollowed().equals(currentUserId)) {
+        if (result > 0) {
             try {
                 notificationService.sendNotification(
                         new NotificationRequest(
