@@ -85,7 +85,6 @@ public class ChallengeService implements IChallengeService {
 
                 // ===  탐험가 계열 (다양한 카테고리) ===
                 else if (List.of("작은 탐험가", "넓은 탐험가", "위대한 탐험가").contains(badgeName)) {
-                    // ✅ 기존 1 → badge별 조건값으로 수정
                     int categoryCount = badgeRepository.getCategoryCountWithMinReviews(userId, badge.getBadgeConditions());
                     achieved = categoryCount >= badge.getBadgeConditions();
                 }
