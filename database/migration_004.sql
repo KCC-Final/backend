@@ -1,6 +1,7 @@
 -- ================================================
 -- migration_004_alerts_if_exists.sql
 -- alerts 테이블 sent_at 컬럼 보정, 상태 컬럼 및 sender_user_id 추가
+-- + challenge 테이블 중복 방지용 PK 제약 추가
 -- ================================================
 
 USE kcc;
@@ -117,6 +118,28 @@ SET @sql6 := IF(
 PREPARE stmt6 FROM @sql6;
 EXECUTE stmt6;
 DEALLOCATE PREPARE stmt6;
+
+-- ================================================
+-- 7. challenge 테이블 중복 방지용 PK 제약 추가
+-- ================================================
+SET @pk_exist := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+  WHERE TABLE_SCHEMA = 'kcc'
+    AND TABLE_NAME = 'challenge'
+    AND CONSTRAINT_TYPE = 'PRIMARY KEY'
+);
+
+SET @sql7 := IF(
+  @pk_exist = 0,
+  'ALTER TABLE challenge ADD CONSTRAINT pk_challenge_user_badge PRIMARY KEY (user_id, badge_id);',
+  'SELECT " challenge 테이블에 기본키가 이미 존재하여 생략"'
+);
+PREPARE stmt7 FROM @sql7;
+EXECUTE stmt7;
+DEALLOCATE PREPARE stmt7;
+
+
 
 -- ================================================
 -- END OF MIGRATION_004

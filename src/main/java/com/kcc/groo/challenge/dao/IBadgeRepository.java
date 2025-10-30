@@ -40,7 +40,7 @@ public interface IBadgeRepository {
      * @created 2025-10-16
      * 사용자에게 뱃지 부여
      */
-    void awardBadgeToUser(@Param("userId") String userId, @Param("badgeId") int badgeId);
+    int awardBadgeToUser(@Param("userId") String userId, @Param("badgeId") int badgeId);
 
     /**
      * @param userId 사용자 ID
