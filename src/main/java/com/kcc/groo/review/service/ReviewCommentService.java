@@ -1,5 +1,6 @@
 package com.kcc.groo.review.service;
 
+import com.kcc.groo.challenge.service.IChallengeService;
 import com.kcc.groo.common.exception.GrooException;
 import com.kcc.groo.notification.data.dto.NotificationRequest;
 import com.kcc.groo.notification.service.INotificationService;
@@ -25,6 +26,7 @@ public class ReviewCommentService implements IReviewCommentService {
     private final IReviewCommentRepository commentRepository;
     private final IReviewRepository reviewRepository;
     private final INotificationService notificationService;
+    private final IChallengeService challengeService;
 
     @Transactional
     @Override
@@ -82,17 +84,17 @@ public class ReviewCommentService implements IReviewCommentService {
             log.info("[addComment] reviewId: {}, userId: {}, parentId: {}",
                     reviewId, userId, parentId);
 
-            //added 2025-10-21 kys
+            // 알림 발송 (기존 코드 그대로)
             int commentId = commentRepository.selectLastInsertedCommentId();
             if (!review.getUserId().equals(userId)) {
                 try {
                     NotificationRequest notificationRequest = new NotificationRequest();
-                    notificationRequest.setType("comment");                // 알림 종류
-                    notificationRequest.setSenderType("review");        // 알림 출처 (리뷰)
-                    notificationRequest.setSenderId(reviewId);          // 어떤 리뷰에 댓글을 달았는가
-                    notificationRequest.setDetailSenderId(commentId);   // 댓글 id
-                    notificationRequest.setUserId(review.getUserId());  // 수신자 (리뷰 작성자)
-                    notificationRequest.setSenderUserId(userId);        // 발신자 (댓글 작성자)
+                    notificationRequest.setType("comment");
+                    notificationRequest.setSenderType("review");
+                    notificationRequest.setSenderId(reviewId);
+                    notificationRequest.setDetailSenderId(commentId);
+                    notificationRequest.setUserId(review.getUserId());
+                    notificationRequest.setSenderUserId(userId);
 
                     notificationService.sendNotification(notificationRequest);
                     log.info("comment notification success: {} → {}", userId, review.getUserId());
@@ -102,11 +104,15 @@ public class ReviewCommentService implements IReviewCommentService {
                 }
             }
 
+            // 댓글 작성 후 뱃지 자동 검사 (첫 소통)
+            challengeService.checkAndAwardBadges(userId);
+
         } catch (Exception e) {
             log.error("[addComment] Failed - reviewId: {}, userId: {}, error: {}",
                     reviewId, userId, e.getMessage());
             throw new GrooException(ReviewErrorCode.COMMENT_CREATE_FAILED, e.getMessage());
         }
+
     }
 
     @Transactional

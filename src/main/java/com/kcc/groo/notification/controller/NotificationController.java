@@ -42,17 +42,27 @@ public class NotificationController {
      * @param request
      * @return
      * @author kys
+     * @author uyh
      * @created 2025-10-21
+     * @updated 2025-10-30
      * SSE 구독
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public  SseEmitter subscribe(HttpServletRequest request) {
-        String accessToken = jwtTokenProvider.resolveAccessToken(request);
-        String userId = jwtTokenProvider.getUserId(accessToken);
+    public SseEmitter subscribe(HttpServletRequest request) {
+        // 쿠키 기반 액세스 토큰 추출
+        String accessToken = jwtTokenProvider.resolveAccessTokenFromCookie(request);
 
-        SseEmitter emitter = notificationService.subscribe(userId);
-        return emitter;
+        // 토큰이 없으면 예외 처리
+        if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
+            throw new RuntimeException("Invalid or missing token");
+        }
+
+        String userId = jwtTokenProvider.getUserId(accessToken);
+        log.info(" SSE 구독 요청 userId={}", userId);
+
+        return notificationService.subscribe(userId);
     }
+
 
 
     /**

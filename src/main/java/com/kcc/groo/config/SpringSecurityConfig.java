@@ -57,6 +57,12 @@ public class SpringSecurityConfig {
                         "/api/v1/email/verify"
                 ).permitAll()
 
+                .requestMatchers(
+                        "/api/v1/notifications/subscribe",
+                        "/api/v1/alerts/subscribe",
+                        "/api/v1/sse/subscribe"
+                ).permitAll()
+
                 // 나머지는 인증 필요
                 .anyRequest().authenticated()
         );

@@ -15,8 +15,6 @@ public interface IChallengeService {
 
     void recalculateAllUsersBadges();
 
-    void checkReviewRelatedBadges(String userId);
-
     /**
      * 개척자 뱃지 (새로운 도서에 대한 첫 독후감) 달성 여부를 확인하고 뱃지를 부여합니다.
      * @param userId 사용자 ID
