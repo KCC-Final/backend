@@ -191,4 +191,25 @@ public class JwtTokenProvider {
 		}
 	}
 
+    /**
+     *
+     * @param request
+     * @return
+     * @created 2025-10-30
+     * @author uyh
+     */
+    public String resolveAccessTokenFromCookie(HttpServletRequest request) {
+        if (request == null || request.getCookies() == null) {
+            return null;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if ("accessToken".equals(cookie.getName())) { // 쿠키 이름이 accessToken일 때
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+    }
+
 }
