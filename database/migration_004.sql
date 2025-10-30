@@ -73,6 +73,32 @@ EXECUTE stmt4;
 DEALLOCATE PREPARE stmt4;
 
 
+
+-- ================================================
+-- 5. book 테이블에 user_id 컬럼 및 외래키 추가
+-- ================================================
+SET @book_col_exist := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = 'kcc'
+    AND TABLE_NAME = 'book'
+    AND COLUMN_NAME = 'user_id'
+);
+
+SET @sql5 := IF(
+  @book_col_exist = 0,
+  'ALTER TABLE book
+      ADD COLUMN user_id VARCHAR(50) NOT NULL COMMENT "사용자 아이디",
+      ADD CONSTRAINT fk_book_user FOREIGN KEY (user_id)
+          REFERENCES users(user_id)
+          ON DELETE CASCADE;',
+  'SELECT " book.user_id 컬럼이 이미 존재하여 ALTER 생략"'
+);
+PREPARE stmt5 FROM @sql5;
+EXECUTE stmt5;
+DEALLOCATE PREPARE stmt5;
+
+
 -- ================================================
 -- END OF MIGRATION_004
 -- ================================================
