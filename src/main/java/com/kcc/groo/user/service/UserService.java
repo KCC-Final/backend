@@ -3,6 +3,7 @@ package com.kcc.groo.user.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.kcc.groo.challenge.service.IChallengeService;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.ReviewResponse;
 import com.kcc.groo.user.dao.IFollowsRepository;
@@ -44,6 +45,9 @@ public class UserService implements IUserService {
 
     @Autowired  // 추가
     private IFollowsRepository followsRepository;
+
+    @Autowired
+    private IChallengeService challengeService;
 
 	@Override
 	public Users loginUser(String userId, String password) {
@@ -133,55 +137,63 @@ public class UserService implements IUserService {
 		return usersRepository.selectUserByUserId(userId);
 	}
 
-	@Override
-	public Users requestUpdateUser(String userId, UserUpdateRequest updateRequest) { 
-		// set userId
-		Users updateUser = usersRepository.selectUserByUserId(userId);
+    @Override
+    public Users requestUpdateUser(String userId, UserUpdateRequest updateRequest) {
+        // set userId
+        Users updateUser = usersRepository.selectUserByUserId(userId);
 
-		// check pw
-		if (!updateUser.getPassword().equals(updateRequest.getPassword1())) { // 기존 비밀번호와 password1 다를 경우
-			if (StringUtils.hasText(updateRequest.getPassword1())
-					&& StringUtils.hasText(updateRequest.getPassword2())) { //not null, length > 0, is not empty
-				updateUser.setPassword(passwordEncoder.encode(updateRequest.getPassword1()));
-				updateUser.setPwdChangedAt(LocalDateTime.now()); // set pwd change date
-			}
-		}
+        // check pw
+        if (!updateUser.getPassword().equals(updateRequest.getPassword1())) { // 기존 비밀번호와 password1 다를 경우
+            if (StringUtils.hasText(updateRequest.getPassword1())
+                    && StringUtils.hasText(updateRequest.getPassword2())) { // not null, length > 0, is not empty
+                updateUser.setPassword(passwordEncoder.encode(updateRequest.getPassword1()));
+                updateUser.setPwdChangedAt(LocalDateTime.now()); // set pwd change date
+            }
+        }
 
-		// email
-		if (!updateUser.getEmail().equals(updateRequest.getEmail())) { // 기존 이메일과 새로 입력된 이메일이 다를 경우
-			if (StringUtils.hasText(updateRequest.getEmail())) { //not null, length > 0, is not empty
-				updateUser.setEmail(updateRequest.getEmail()); //새로 입력된 이메일 set
-				updateUser.setEmailVerified(true);
-			}
-		}
+        // email
+        if (!updateUser.getEmail().equals(updateRequest.getEmail())) { // 기존 이메일과 새로 입력된 이메일이 다를 경우
+            if (StringUtils.hasText(updateRequest.getEmail())) { // not null, length > 0, is not empty
+                updateUser.setEmail(updateRequest.getEmail()); // 새로 입력된 이메일 set
+                updateUser.setEmailVerified(true);
+            }
+        }
 
-		//nickname, introduction, name
-		if (StringUtils.hasText(updateRequest.getNickname())) { //not null, length > 0, is not empty
-			updateUser.setNickname(updateRequest.getNickname());
-		}
-		if (StringUtils.hasText(updateRequest.getIntroduction())) { //not null, length > 0, is not empty
-			updateUser.setIntroduction(updateRequest.getIntroduction());
-		}
-		if (StringUtils.hasText(updateRequest.getName())) { //not null, length > 0, is not empty
-			updateUser.setName(updateRequest.getName());
-		}
+        // nickname, introduction, name
+        if (StringUtils.hasText(updateRequest.getNickname())) { // not null, length > 0, is not empty
+            updateUser.setNickname(updateRequest.getNickname());
+        }
+        if (StringUtils.hasText(updateRequest.getIntroduction())) { // not null, length > 0, is not empty
+            updateUser.setIntroduction(updateRequest.getIntroduction());
+        }
+        if (StringUtils.hasText(updateRequest.getName())) { // not null, length > 0, is not empty
+            updateUser.setName(updateRequest.getName());
+        }
 
-		//profileImage
-		if (updateRequest.getProfileImage() != null) { //not null, length > 0, is not empty
-				updateUser.setProfileImage(updateRequest.getProfileImage()); // convert to byte type
-		}
+        // profileImage
+        if (updateRequest.getProfileImage() != null) { // not null
+            updateUser.setProfileImage(updateRequest.getProfileImage()); // convert to byte type
+        }
 
-		int result = usersRepository.updateUser(updateUser); //check result
+        int result = usersRepository.updateUser(updateUser); // check result
 
-		if (result > 0) { //success
-			return usersRepository.selectUserByUserId(userId);
-		} else { //fail
-			throw new RuntimeException("failed update user information");
-		}
+        if (result > 0) { // success
+            try {
+                // check first introduction badge
+                challengeService.checkAndAwardBadges(userId);
+            } catch (Exception e) {
+                System.err.println("Failed to check badge after profile update: " + e.getMessage());
+            }
 
-	}
+            return usersRepository.selectUserByUserId(userId);
+        } else { // fail
+            throw new RuntimeException("failed update user information");
+        }
+    }
 
-	@Override
+
+
+    @Override
 	public int existsByUserEmail(String email) {
 		// TODO Auto-generated method stub
 		return usersRepository.existsByUserEmail(email);

@@ -43,9 +43,13 @@ public class ReviewService implements IReviewService {
 
             // 임시저장 글이 아닐 경우, 도전과제 달성 여부 확인
             if (request.getTemporary() == null || !request.getTemporary()) {
-                challengeService.checkReviewRelatedBadges(userId);
+                // 모든 리뷰 관련 뱃지 검사 (첫 발자국, 독서가, 한 우물 파기, 탐험가 등)
+                challengeService.checkAndAwardBadges(userId);
+
+                // 개척자 뱃지 (해당 도서 첫 리뷰인 경우)
                 challengeService.checkPioneerBadge(userId, request.getIsbn());
             }
+
         } catch (Exception e) {
             log.error("[createReview] Failed - userId: {}, error: {}", userId, e.getMessage());
             throw new GrooException(ReviewErrorCode.REVIEW_CREATE_FAILED, e.getMessage());
@@ -307,10 +311,14 @@ public class ReviewService implements IReviewService {
         }
 
         try {
+            // 좋아요 DB 저장
             reviewRepository.insertLike(userId, reviewId);
             log.info("[likeReview] reviewId: {}, userId: {}", reviewId, userId);
 
-            //added 2025-10-21 kys
+            // 좋아요 후 뱃지 자동 검사 (첫 공감 등)
+            challengeService.checkAndAwardBadges(userId);
+
+            // 기존 알림 전송 (리뷰 작성자에게)
             if (!review.getUserId().equals(userId)) {
                 try {
                     NotificationRequest req = new NotificationRequest();
@@ -335,6 +343,7 @@ public class ReviewService implements IReviewService {
             throw new GrooException(ReviewErrorCode.DATABASE_ERROR, e.getMessage());
         }
     }
+
 
     @Transactional
     @Override
