@@ -60,7 +60,6 @@ public class ChallengeService implements IChallengeService {
         Users user = usersRepository.selectUserByUserId(userId);
         int reviewCount = badgeRepository.countReviewsByUserId(userId);
         Integer maxReviewInSingleCategory = badgeRepository.getMaxReviewCountForSingleCategory(userId);
-        int categoryCount = badgeRepository.getCategoryCountWithMinReviews(userId, 1);
         int likeCount = reviewRepository.countLikesByUserId(userId);
         int commentCount = commentRepository.countCommentsByUserId(userId);
         int followCount = followsRepository.countFollowing(userId);
@@ -86,6 +85,8 @@ public class ChallengeService implements IChallengeService {
 
                 // ===  탐험가 계열 (다양한 카테고리) ===
                 else if (List.of("작은 탐험가", "넓은 탐험가", "위대한 탐험가").contains(badgeName)) {
+                    // ✅ 기존 1 → badge별 조건값으로 수정
+                    int categoryCount = badgeRepository.getCategoryCountWithMinReviews(userId, badge.getBadgeConditions());
                     achieved = categoryCount >= badge.getBadgeConditions();
                 }
 
@@ -141,6 +142,7 @@ public class ChallengeService implements IChallengeService {
             }
         }
     }
+
 
     /**
      * 개척자 뱃지 (새로운 도서의 첫 리뷰) 별도 처리
