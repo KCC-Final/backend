@@ -98,6 +98,25 @@ PREPARE stmt5 FROM @sql5;
 EXECUTE stmt5;
 DEALLOCATE PREPARE stmt5;
 
+-- ================================================
+-- 6. alerts 테이블 sent_at → send_at 컬럼명 보정 (존재 시)
+-- ================================================
+SET @sent_col_exist := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = 'kcc'
+    AND TABLE_NAME = 'alerts'
+    AND COLUMN_NAME = 'sent_at'
+);
+
+SET @sql6 := IF(
+  @sent_col_exist > 0,
+  'ALTER TABLE alerts CHANGE COLUMN sent_at send_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "전송일";',
+  'SELECT " alerts.sent_at 컬럼이 존재하지 않아 ALTER 생략"'
+);
+PREPARE stmt6 FROM @sql6;
+EXECUTE stmt6;
+DEALLOCATE PREPARE stmt6;
 
 -- ================================================
 -- END OF MIGRATION_004
