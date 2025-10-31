@@ -38,4 +38,14 @@ public interface IChallengeService {
      * @author uyh
      */
     List<UserBadgeStatusResponse> getAllBadgesWithUserStatus(String userId);
+    
+    /**
+     * 특정 뱃지의 획득 히스토리를 조회 (ex. 이달의 독서왕)
+     * @param userId 사용자 ID
+     * @param badgeId 뱃지 ID
+     * @return 해당 뱃지의 획득 내역 (최신순)
+     * @author kys
+     */
+    List<UserBadgeResponse> getBadgeHistory(String userId, int badgeId);
+
 }

@@ -67,81 +67,76 @@ public class ChallengeService implements IChallengeService {
         boolean hasIntro = (user != null && StringUtils.hasText(user.getIntroduction()));
 
         for (Badge badge : allBadges) {
-            if (userBadgeIds.contains(badge.getBadgeId())) continue; // 이미 획득한 뱃지 건너뛰기
+            int badgeId = badge.getBadgeId();
+            if (userBadgeIds.contains(badgeId)) continue; // 이미 획득한 뱃지 건너뛰기
 
             boolean achieved = false;
             String badgeName = badge.getBadgeName();
 
             try {
-                // ===  리뷰 관련 뱃지 ===
+                // === 리뷰 관련 뱃지 ===
                 if (List.of("첫 발자국", "독서가", "애독가", "열혈 독서가", "책의 지배자").contains(badgeName)) {
                     achieved = reviewCount >= badge.getBadgeConditions();
                 }
-
-                // ===  카테고리 집중형 뱃지 ===
+                // === 카테고리 집중형 뱃지 ===
                 else if (List.of("한 우물 파기 I", "한 우물 파기 II", "한 우물 파기 III", "한 우물 파기 IV").contains(badgeName)) {
                     achieved = (maxReviewInSingleCategory != null && maxReviewInSingleCategory >= badge.getBadgeConditions());
                 }
-
-                // ===  탐험가 계열 (다양한 카테고리) ===
+                // === 탐험가 계열 ===
                 else if (List.of("작은 탐험가", "넓은 탐험가", "위대한 탐험가").contains(badgeName)) {
                     int categoryCount = badgeRepository.getCategoryCountWithMinReviews(userId, badge.getBadgeConditions());
                     achieved = categoryCount >= badge.getBadgeConditions();
                 }
-
-                // ===  첫 공감 (좋아요) ===
+                // === 첫 공감 ===
                 else if ("첫 공감".equals(badgeName)) {
                     achieved = likeCount >= badge.getBadgeConditions();
                 }
-
-                // ===  첫 소통 (댓글) ===
+                // === 첫 소통 ===
                 else if ("첫 소통".equals(badgeName)) {
                     achieved = commentCount >= badge.getBadgeConditions();
                 }
-
-                // ===  첫 인연 (팔로우) ===
+                // === 첫 인연 ===
                 else if ("첫 인연".equals(badgeName)) {
                     achieved = followCount >= badge.getBadgeConditions();
                 }
-
-                // ===  첫 발견 (책 스크랩) ===
+                // === 첫 발견 ===
                 else if ("첫 발견".equals(badgeName)) {
                     achieved = scrapCount >= badge.getBadgeConditions();
                 }
-
-                // ===  첫인사 (프로필 작성) ===
+                // === 첫인사 ===
                 else if ("첫인사".equals(badgeName)) {
                     achieved = hasIntro;
                 }
-
-                // ===  개척자 (새로운 도서의 첫 리뷰) ===
+                // === 개척자 ===
                 else if ("개척자".equals(badgeName)) {
-                    // 별도 checkPioneerBadge()에서만 지급
-                    continue;
+                    continue; // 별도 checkPioneerBadge()에서 처리
                 }
-
             } catch (Exception e) {
-                log.error(" Error evaluating badge '{}' for user {}: {}", badgeName, userId, e.getMessage());
+                log.error("Error evaluating badge '{}' for user {}: {}", badgeName, userId, e.getMessage());
             }
 
-            // 뱃지 달성 시 처리
+            // 달성된 경우만 처리
             if (achieved) {
-                badgeRepository.awardBadgeToUser(userId, badge.getBadgeId());
-                log.info(" User '{}' achieved new badge: {}", userId, badgeName);
+                // INSERT IGNORE 결과 확인 (중복 방지)
+                int result = badgeRepository.awardBadgeToUser(userId, badgeId);
 
-                // 알림 발송
-                NotificationRequest req = new NotificationRequest();
-                req.setType("badge");
-                req.setSenderType("users");
-                req.setSenderId(badge.getBadgeId());
-                req.setDetailSenderId(badge.getBadgeId());
-                req.setUserId(userId);
-                req.setSenderUserId(userId);
-                notificationService.sendNotification(req);
+                if (result > 0) { // 실제로 새로 insert된 경우만 알림 발송
+                    log.info("User '{}' achieved new badge: {}", userId, badgeName);
+
+                    NotificationRequest req = new NotificationRequest();
+                    req.setType("badge");
+                    req.setSenderType("users");
+                    req.setSenderId(badgeId);
+                    req.setDetailSenderId(badgeId);
+                    req.setUserId(userId);
+                    req.setSenderUserId(userId);
+                    notificationService.sendNotification(req);
+                } else {
+                    log.debug("[중복 방지] {} 이미 보유한 뱃지, insert 무시됨", badgeName);
+                }
             }
         }
     }
-
 
     /**
      * 개척자 뱃지 (새로운 도서의 첫 리뷰) 별도 처리
@@ -154,18 +149,21 @@ public class ChallengeService implements IChallengeService {
             if (reviewCount == 1) {
                 Badge pioneerBadge = badgeRepository.findBadgeByName("개척자");
                 if (pioneerBadge != null) {
-                    badgeRepository.awardBadgeToUser(userId, pioneerBadge.getBadgeId());
-                    log.info(" User '{}' achieved new badge: {}", userId, pioneerBadge.getBadgeName());
+                    int result = badgeRepository.awardBadgeToUser(userId, pioneerBadge.getBadgeId());
+                    if (result > 0) { // 중복 무시 처리
+                        log.info("User '{}' achieved new badge: {}", userId, pioneerBadge.getBadgeName());
 
-                    // 알림 발송
-                    NotificationRequest req = new NotificationRequest();
-                    req.setType("badge");
-                    req.setSenderType("users");
-                    req.setSenderId(pioneerBadge.getBadgeId());
-                    req.setDetailSenderId(pioneerBadge.getBadgeId());
-                    req.setUserId(userId);
-                    req.setSenderUserId(userId);
-                    notificationService.sendNotification(req);
+                        NotificationRequest req = new NotificationRequest();
+                        req.setType("badge");
+                        req.setSenderType("users");
+                        req.setSenderId(pioneerBadge.getBadgeId());
+                        req.setDetailSenderId(pioneerBadge.getBadgeId());
+                        req.setUserId(userId);
+                        req.setSenderUserId(userId);
+                        notificationService.sendNotification(req);
+                    } else {
+                        log.debug("[중복 방지] 개척자 이미 보유, insert 무시됨");
+                    }
                 }
             }
         } catch (Exception e) {
@@ -207,8 +205,13 @@ public class ChallengeService implements IChallengeService {
     public List<UserBadgeStatusResponse> getAllBadgesWithUserStatus(String userId) {
         List<Badge> allBadges = badgeRepository.findAllBadges();
         List<UserBadgeResponse> acquired = getBadgesByUserId(userId);
+        // 중복 시 가장 최근 것만 유지 (이미 ORDER BY succeeded_at DESC)
         Map<Integer, UserBadgeResponse> acquiredMap = acquired.stream()
-                .collect(Collectors.toMap(UserBadgeResponse::getBadgeId, Function.identity()));
+                .collect(Collectors.toMap(
+                        UserBadgeResponse::getBadgeId,
+                        Function.identity(),
+                        (existing, replacement) -> existing  // 첫 번째(최근) 유지
+                ));
 
         return allBadges.stream().map(badge -> {
             UserBadgeResponse acquiredBadge = acquiredMap.get(badge.getBadgeId());
@@ -260,4 +263,10 @@ public class ChallengeService implements IChallengeService {
             default -> 0;
         };
     }
+    
+    @Override
+    public List<UserBadgeResponse> getBadgeHistory(String userId, int badgeId) {
+        return badgeRepository.findBadgeHistoryByUserIdAndBadgeId(userId, badgeId);
+    }
+
 }

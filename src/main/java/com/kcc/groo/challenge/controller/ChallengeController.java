@@ -53,4 +53,23 @@ public class ChallengeController {
         List<UserBadgeStatusResponse> badges = challengeService.getAllBadgesWithUserStatus(userId);
         return ResponseEntity.ok(badges);
     }
+
+    /**
+     * @param @param userId
+     * @param @param badgeId
+     * @param @return
+     * @return ResponseEntity<List<UserBadgeResponse>>
+     * @author uyh
+     * @created 2025. 10. 31
+     */
+    @Operation(summary = "특정 사용자 뱃지 획득 기록 조회", description = "특정 사용자가 뱃지를 언제 획득 했는지 조회")
+    @GetMapping("/users/{userId}/badges/{badgeId}/history")
+    public ResponseEntity<List<UserBadgeResponse>> getBadgeHistory(
+            @PathVariable String userId,
+            @PathVariable int badgeId
+    ) {
+        return ResponseEntity.ok(challengeService.getBadgeHistory(userId, badgeId));
+    }
+
+
 }

@@ -158,7 +158,6 @@ public class BookScrapController {
 	
 	/**
 	 * @param bookshelfId
-	 * @param requestBody
 	 * @param request
 	 * @return
 	 * @author kys
