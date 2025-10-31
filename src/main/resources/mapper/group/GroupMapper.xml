@@ -4,9 +4,9 @@
 
     <insert id="insertGroup" parameterType="com.kcc.groo.group.data.model.Group" useGeneratedKeys="true"
             keyProperty="groupId">
-        INSERT INTO `groups` (group_name, book_title, headcount_min, headcount_max,
+        INSERT INTO `groups` (group_name, book_title, isbn, headcount_min, headcount_max,
                               content, style, status, end_date, user_id, code_id)
-        VALUES (#{groupName}, #{bookTitle}, #{headcountMin}, #{headcountMax},
+        VALUES (#{groupName}, #{bookTitle}, #{isbn}, #{headcountMin}, #{headcountMax},
                 #{content}, #{style}, #{status}, #{endDate}, #{userId}, #{codeId})
     </insert>
 
@@ -14,6 +14,7 @@
         SELECT group_id,
         group_name,
         book_title,
+        isbn,
         headcount_min,
         headcount_max,
         content,
@@ -82,6 +83,7 @@
         SELECT group_id,
                group_name,
                book_title,
+               isbn,
                headcount_min,
                headcount_max,
                content,
@@ -101,6 +103,7 @@
         <set>
             <if test="groupName != null">group_name = #{groupName},</if>
             <if test="bookTitle != null">book_title = #{bookTitle},</if>
+            <if test="isbn != null">isbn = #{isbn},</if>
             <if test="headcountMin != null">headcount_min = #{headcountMin},</if>
             <if test="headcountMax != null">headcount_max = #{headcountMax},</if>
             <if test="content != null">content = #{content},</if>
@@ -108,14 +111,13 @@
             <if test="status != null">status = #{status},</if>
             <if test="endDate != null">end_date = #{endDate},</if>
         </set>
-        WHERE
-        group_id = #{groupId}
+        WHERE group_id = #{groupId} AND user_id = #{userId}
     </update>
 
     <delete id="deleteGroupByGroupId" parameterType="int">
         DELETE
         FROM `groups`
-        WHERE group_id = #{groupId}
+        WHERE group_id = #{groupId} AND user_id = #{userId}
     </delete>
 
 </mapper>

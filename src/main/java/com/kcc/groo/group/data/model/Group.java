@@ -45,4 +45,6 @@ public class Group {
     private String userId;  // 사용자 ID
 
     private Integer codeId;  // 코드 ID
+    
+    private String isbn; //isbn
 }

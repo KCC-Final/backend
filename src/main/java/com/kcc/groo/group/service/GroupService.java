@@ -53,6 +53,7 @@ public class GroupService implements IGroupService {
         newGroup.setUserId(userId);
         newGroup.setGroupName(group.getGroupName());
         newGroup.setBookTitle(group.getBookTitle());
+        newGroup.setIsbn(group.getIsbn()); //isbn 추가
         newGroup.setHeadcountMin(group.getHeadcountMin());
         newGroup.setHeadcountMax(group.getHeadcountMax());
         newGroup.setContent(group.getContent());
@@ -172,6 +173,7 @@ public class GroupService implements IGroupService {
         // 수정할 독서 모임 게시글 정보 설정
         targetGroup.setGroupName(group.getGroupName());
         targetGroup.setBookTitle(group.getBookTitle());
+        targetGroup.setIsbn(group.getIsbn()); //isbn 추가
         targetGroup.setHeadcountMin(group.getHeadcountMin());
         targetGroup.setHeadcountMax(group.getHeadcountMax());
         targetGroup.setContent(group.getContent());
