@@ -4,6 +4,7 @@ import com.kcc.groo.review.data.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -287,4 +288,15 @@ public interface IReviewRepository {
             @Param("currentUserId") String currentUserId,
             @Param("targetUserId") String targetUserId
     );
+
+    /**
+     * 특정 기간 동안 리뷰를 가장 많이 작성한 사용자 ID 조회
+     * @param startDate 시작일 (YYYY-MM-DD)
+     * @param endDate 종료일 (YYYY-MM-DD)
+     * @author uyh
+     * @return 리뷰 최다 작성자 userId
+     */
+    String findTopReviewerByPeriod(@Param("startDate") LocalDate startDate,
+                                   @Param("endDate") LocalDate endDate);
+
 }

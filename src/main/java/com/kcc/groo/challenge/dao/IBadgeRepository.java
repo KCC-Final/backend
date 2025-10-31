@@ -105,4 +105,25 @@ public interface IBadgeRepository {
      * 뱃지명 확인
      */
     String getBadgeNameByBadgeId (@Param("badgeId") int badgeId);
+
+    /**
+     * 특정 달(YYYY-MM)에 이미 월간 배지를 받은 적이 있는지 확인
+     */
+    boolean existsMonthlyBadge(@Param("userId") String userId,
+                               @Param("badgeId") int badgeId,
+                               @Param("month") String month);
+
+    /**
+     * @param @param userId
+     * @param @param badgeId
+     * @param @return
+     * @return List<UserBadgeResponse>
+     * @author uyh
+     * @created 2025. 10. 31. TODO
+     */
+    List<UserBadgeResponse> findBadgeHistoryByUserIdAndBadgeId(
+            @Param("userId") String userId,
+            @Param("badgeId") int badgeId
+    );
+
 }

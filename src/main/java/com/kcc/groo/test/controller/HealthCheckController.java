@@ -25,7 +25,7 @@ public class HealthCheckController {
     @PostMapping("/api/test/run-monthly-scheduler")
     public ResponseEntity<String> runMonthlyScheduler() {
         // 스케줄러의 public 메소드를 직접 호출
-        monthlyBadgeScheduler.awardReaderOfMonthBadge();
+        monthlyBadgeScheduler.assignMonthlyKingBadge();
         return ResponseEntity.ok("Monthly badge scheduler has been triggered successfully. Check the server logs for details.");
     }
 }

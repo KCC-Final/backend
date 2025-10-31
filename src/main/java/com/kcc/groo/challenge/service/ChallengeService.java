@@ -205,8 +205,13 @@ public class ChallengeService implements IChallengeService {
     public List<UserBadgeStatusResponse> getAllBadgesWithUserStatus(String userId) {
         List<Badge> allBadges = badgeRepository.findAllBadges();
         List<UserBadgeResponse> acquired = getBadgesByUserId(userId);
+        // 중복 시 가장 최근 것만 유지 (이미 ORDER BY succeeded_at DESC)
         Map<Integer, UserBadgeResponse> acquiredMap = acquired.stream()
-                .collect(Collectors.toMap(UserBadgeResponse::getBadgeId, Function.identity()));
+                .collect(Collectors.toMap(
+                        UserBadgeResponse::getBadgeId,
+                        Function.identity(),
+                        (existing, replacement) -> existing  // 첫 번째(최근) 유지
+                ));
 
         return allBadges.stream().map(badge -> {
             UserBadgeResponse acquiredBadge = acquiredMap.get(badge.getBadgeId());
@@ -258,4 +263,10 @@ public class ChallengeService implements IChallengeService {
             default -> 0;
         };
     }
+    
+    @Override
+    public List<UserBadgeResponse> getBadgeHistory(String userId, int badgeId) {
+        return badgeRepository.findBadgeHistoryByUserIdAndBadgeId(userId, badgeId);
+    }
+
 }

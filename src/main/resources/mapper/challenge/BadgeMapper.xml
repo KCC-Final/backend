@@ -76,4 +76,27 @@
     SELECT badge_name AS badgeName FROM badges WHERE badge_id = #{badgeId}
     </select>
 
+    <select id="existsMonthlyBadge" parameterType="map" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM challenge
+        WHERE user_id = #{userId}
+          AND badge_id = #{badgeId}
+          AND DATE_FORMAT(succeeded_at, '%Y-%m') = #{month}
+    </select>
+
+<select id="findBadgeHistoryByUserIdAndBadgeId"
+        resultType="com.kcc.groo.challenge.data.dto.UserBadgeResponse">
+  SELECT
+    b.badge_id AS badgeId,
+    b.badge_name AS badgeName,
+    b.badge_description AS badgeDescription,
+    c.succeeded_at AS succeededAt
+  FROM challenge c
+  JOIN badges b ON b.badge_id = c.badge_id
+  WHERE c.user_id = #{userId}
+    AND c.badge_id = #{badgeId}
+  ORDER BY c.succeeded_at DESC
+</select>
+	
+
 </mapper>

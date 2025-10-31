@@ -409,4 +409,15 @@ LIMIT #{limit}
     ORDER BY rc.created_at DESC
     ]]>
     </select>
+
+    <select id="findTopReviewerByPeriod" resultType="string">
+        SELECT user_id
+        FROM reviews
+        WHERE temporary = 0
+          AND DATE(created_at) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY user_id
+        ORDER BY COUNT(*) DESC
+            LIMIT 1
+    </select>
+
 </mapper>
