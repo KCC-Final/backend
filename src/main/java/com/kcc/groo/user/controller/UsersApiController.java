@@ -523,5 +523,16 @@ public class UsersApiController {
         return ResponseEntity.ok(feed);
     }
 
-
+	/**
+	 * @param request
+	 * @return ResponseEntity<CommonResponse<?>>
+	 * @author kys
+	 * @created 2025-10-02 현재 로그인한 사용자 정보 조회
+	 */
+	@GetMapping("/users/{userId}")
+	public ResponseEntity<CommonResponse<?>> getUserNickname (@PathVariable("userId") String userId) {
+		String nickname = userService.getUserNicknameByUserId(userId);
+		return ResponseEntity.ok().body(new CommonResponse<>("get userNicknameByUserId", nickname));
+	}
+	
 }

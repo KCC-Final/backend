@@ -98,6 +98,10 @@ public interface IGroupRepository {
      * @return 삭제된 행의 수
      * @author YunSung
      * @created 2025-10-22
+     * 
+     * @modified 2025-11-01
+     * @author kys
+     * param에 userId 추가
      */
-    int deleteGroupByGroupId(int groupId);
+    int deleteGroupByGroupId(@Param("groupId") int groupId, @Param("userId") String userId);
 }

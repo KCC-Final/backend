@@ -46,7 +46,7 @@
         WHERE comment_id = #{commentId} AND user_id = #{userId}
     </update>
 
-    <delete id="deleteGroupCommentByCommentId" parameterType="int">
+    <delete id="deleteGroupCommentByCommentId">
         DELETE
         FROM group_comments
         WHERE comment_id = #{commentId} AND user_id = #{userId}

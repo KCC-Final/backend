@@ -96,9 +96,15 @@ public class GroupController {
 
         // JWT 토큰에서 사용자 ID 추출
         String userId = jwtTokenProvider.getUserId(jwtTokenProvider.resolveAccessToken(request));
+        
+        //페이지네이션 계산 추가
+        int limit = 6;
+        int offset = (page - 1) * limit;
 
-        // 독서 모임 게시글 DB에서 조회
-        GroupListResponseDTO groupsWithCount = groupService.readAllGroups(style, status, location, scrap, search, page, userId);
+        // 독서 모임 게시글 DB에서 조회 (page -> offset으로 수정)
+        GroupListResponseDTO groupsWithCount = groupService.readAllGroups(
+                style, status, location, scrap, search, limit, offset, userId
+            );
 
         // 200 응답. 독서 모임 게시글 목록 반환
         return ResponseEntity.ok(new CommonResponse<>("독서 모임 게시글 목록 조회 성공", groupsWithCount));
