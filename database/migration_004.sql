@@ -139,8 +139,87 @@ PREPARE stmt7 FROM @sql7;
 EXECUTE stmt7;
 DEALLOCATE PREPARE stmt7;
 
+-- ================================================
+-- 8. group_comments 및 group_scraps FK 재정의
+-- ================================================
+
+-- group_comments → groups
+SET @fk_exist := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = 'kcc'
+    AND CONSTRAINT_NAME = 'fk_group_comments_group'
+);
+
+SET @sql8 := IF(
+  @fk_exist > 0,
+  'ALTER TABLE group_comments DROP FOREIGN KEY fk_group_comments_group;',
+  'SELECT " fk_group_comments_group 존재하지 않아 DROP 생략";'
+);
+PREPARE stmt8 FROM @sql8;
+EXECUTE stmt8;
+DEALLOCATE PREPARE stmt8;
+
+ALTER TABLE group_comments
+    ADD CONSTRAINT fk_group_comments_group
+        FOREIGN KEY (group_id)
+            REFERENCES `groups` (group_id)
+            ON DELETE CASCADE;
+
+
+
+-- group_comments → parent_id (self reference)
+SET @fk_exist2 := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = 'kcc'
+    AND CONSTRAINT_NAME = 'fk_group_comments_parent'
+);
+
+SET @sql9 := IF(
+  @fk_exist2 > 0,
+  'ALTER TABLE group_comments DROP FOREIGN KEY fk_group_comments_parent;',
+  'SELECT " fk_group_comments_parent 존재하지 않아 DROP 생략";'
+);
+PREPARE stmt9 FROM @sql9;
+EXECUTE stmt9;
+DEALLOCATE PREPARE stmt9;
+
+ALTER TABLE group_comments
+    ADD CONSTRAINT fk_group_comments_parent
+        FOREIGN KEY (parent_id)
+            REFERENCES group_comments(comment_id)
+            ON DELETE CASCADE;
+
+
+
+-- group_scraps → groups
+SET @fk_exist3 := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = 'kcc'
+    AND CONSTRAINT_NAME = 'fk_group_scraps_group'
+);
+
+SET @sql10 := IF(
+  @fk_exist3 > 0,
+  'ALTER TABLE group_scraps DROP FOREIGN KEY fk_group_scraps_group;',
+  'SELECT " fk_group_scraps_group 존재하지 않아 DROP 생략";'
+);
+PREPARE stmt10 FROM @sql10;
+EXECUTE stmt10;
+DEALLOCATE PREPARE stmt10;
+
+ALTER TABLE group_scraps
+    ADD CONSTRAINT fk_group_scraps_group
+        FOREIGN KEY (group_id)
+            REFERENCES `groups` (group_id)
+            ON DELETE CASCADE;
+
+COMMIT;
 
 
 -- ================================================
 -- END OF MIGRATION_004
 -- ================================================
+
