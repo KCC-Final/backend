@@ -111,5 +111,11 @@ UPDATE users SET profile_image = NULL WHERE user_id = #{userId}
     ]]>
 </select>
 
+<select id="getUserNickName" resultType="string">
+<![CDATA[
+SELECT nickname FROM users WHERE user_id=#{userId}
+]]>
+</select>
+
 </mapper>
 

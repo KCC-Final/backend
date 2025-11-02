@@ -121,6 +121,15 @@ public interface IUsersRepository {
 	 * 회원 프로필 이미지 컬럼 값 update (=null)
 	 */
 	int deleteUserProfileImage(Users user);
+	
+	/**
+	 * @param userId
+	 * @return
+	 * @author kys
+	 * @created 2025-11-01
+	 * 회원 닉네임 조회
+	 */
+	String getUserNickName (@Param("userId") String userId);
 
 	
 }

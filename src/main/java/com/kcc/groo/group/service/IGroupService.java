@@ -37,8 +37,12 @@ public interface IGroupService {
      * @return 독서 모임 게시글 리스트
      * @author YunSung
      * @created 2025-10-22
+     * 
+     * @modified 2025-11-01
+     * @author kys
+     * page -> int limit, int offset
      */
-    GroupListResponseDTO readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String search, Integer page, String userId);
+    GroupListResponseDTO readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String search, int limit, int offset, String userId);
 
     /**
      * 독서 모임 ID를 통한 독서 모임 게시글 상세 조회

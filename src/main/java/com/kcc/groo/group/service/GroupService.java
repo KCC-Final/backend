@@ -53,6 +53,7 @@ public class GroupService implements IGroupService {
         newGroup.setUserId(userId);
         newGroup.setGroupName(group.getGroupName());
         newGroup.setBookTitle(group.getBookTitle());
+        newGroup.setIsbn(group.getIsbn()); //isbn 추가
         newGroup.setHeadcountMin(group.getHeadcountMin());
         newGroup.setHeadcountMax(group.getHeadcountMax());
         newGroup.setContent(group.getContent());
@@ -82,31 +83,30 @@ public class GroupService implements IGroupService {
      * query parameter 필터링 기능 구현, 페이징 처리 추가, 응답에 전체 게시글 수 포함
      */
     @Override
-    public GroupListResponseDTO readAllGroups(String style, Boolean status, Integer location, Boolean scrap, String search, Integer page, String userId) {
-        // style 필터링 값 매핑
-        String mappedStyle = (style != null) ? STYLE_MAP.get(style) : null;
+    public GroupListResponseDTO readAllGroups(String style,
+            Boolean status,
+            Integer location,
+            Boolean scrap,
+            String search,
+            int limit,
+            int offset,
+            String userId) {
 
-        // 페이지 값이 null인 경우 기본값 1 설정
-        if (page == null) {
-            page = 1;
-        }
+// style 필터링 값 매핑
+String mappedStyle = (style != null) ? STYLE_MAP.get(style) : null;
 
-        // 페이징 처리
-        int limit = 10;
-        int offset = (page - 1) * limit;
+// 필터링 및 페이징 적용된 게시글 목록 조회
+List<Group> groups = groupRepository.selectAllGroups(mappedStyle, status, location, scrap, search, limit, offset, userId);
 
-        // 필터링 및 페이징 적용된 게시글 목록 조회
-        List<Group> groups = groupRepository.selectAllGroups(mappedStyle, status, location, scrap, search, limit, offset, userId);
+//필터링된 전체 게시글 수 조회
+int count = groupRepository.countAllGroups(mappedStyle, status, location, scrap, search, userId);
 
-        // 필터링된 전체 게시글 수 조회
-        int count = groupRepository.countAllGroups(mappedStyle, status, location, scrap, search, userId);
-
-        // 응답 DTO 생성 및 반환
-        return GroupListResponseDTO.builder()
-                .groups(groups)
-                .count(count)
-                .build();
-    }
+// 응답 DTO 생성 및 반환
+return GroupListResponseDTO.builder()
+.groups(groups)
+.count(count)
+.build();
+}
 
     /**
      * 독서 모임 ID를 통한 독서 모임 게시글 상세 조회
@@ -172,6 +172,7 @@ public class GroupService implements IGroupService {
         // 수정할 독서 모임 게시글 정보 설정
         targetGroup.setGroupName(group.getGroupName());
         targetGroup.setBookTitle(group.getBookTitle());
+        targetGroup.setIsbn(group.getIsbn()); //isbn 추가
         targetGroup.setHeadcountMin(group.getHeadcountMin());
         targetGroup.setHeadcountMax(group.getHeadcountMax());
         targetGroup.setContent(group.getContent());
@@ -216,7 +217,7 @@ public class GroupService implements IGroupService {
         }
 
         // 독서 모임 게시글 삭제
-        int result = groupRepository.deleteGroupByGroupId(groupId);
+        int result = groupRepository.deleteGroupByGroupId(groupId, userId);
 
         // 삭제 실패 시 예외 발생
         if (result == 0) {

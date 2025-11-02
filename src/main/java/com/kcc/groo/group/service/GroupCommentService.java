@@ -167,7 +167,7 @@ public class GroupCommentService implements IGroupCommentService {
         }
 
         // 독서 모임 게시글의 특정 댓글 삭제
-        int result = groupCommentRepository.deleteGroupCommentByCommentId(commentId);
+        int result = groupCommentRepository.deleteGroupCommentByCommentId(commentId, userId);
 
         // 삭제 실패 시 예외 발생
         if (result == 0) {

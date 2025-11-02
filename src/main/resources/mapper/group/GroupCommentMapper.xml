@@ -43,13 +43,13 @@
             group_comments
         SET content = #{content},
             flag    = #{flag}
-        WHERE comment_id = #{commentId}
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
     </update>
 
-    <delete id="deleteGroupCommentByCommentId" parameterType="int">
+    <delete id="deleteGroupCommentByCommentId">
         DELETE
         FROM group_comments
-        WHERE comment_id = #{commentId}
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
     </delete>
 
 </mapper>

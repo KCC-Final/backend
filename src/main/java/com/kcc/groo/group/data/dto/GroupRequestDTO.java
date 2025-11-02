@@ -29,6 +29,8 @@ public class GroupRequestDTO {
 
     @Size(max = 200, message = "[GRP-105]: 독서모임 도서명은 1~200자 이내로 입력해주세요")
     private String bookTitle;
+    
+    private String isbn; //isbn -> 도서 선택 시 자동 주입?
 
     @Min(value = 1, message = "[GRP-110]: 모집 최소 인원은 1명 이상이어야 합니다")
     private Integer headcountMin;

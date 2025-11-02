@@ -2,6 +2,7 @@ package com.kcc.groo.group.dao;
 
 import com.kcc.groo.group.data.model.GroupComment;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -64,5 +65,5 @@ public interface IGroupCommentRepository {
      * @author YunSung
      * @created 2025-10-22
      */
-    int deleteGroupCommentByCommentId(int commentId);
+    int deleteGroupCommentByCommentId(@Param("commentId") int commentId, @Param("userId") String userId);
 }

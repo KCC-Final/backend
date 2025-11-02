@@ -267,4 +267,10 @@ public UserFeedDTO getUserFeed(String currentUserId, String targetUserId) {
     return feedDTO;
 }
 
+	@Override
+	public String getUserNicknameByUserId(String userId) {
+		// TODO Auto-generated method stub
+		return usersRepository.getUserNickName(userId);
+	}
+
 }

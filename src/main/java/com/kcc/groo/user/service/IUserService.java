@@ -128,4 +128,13 @@ public interface IUserService {
      * 사용자 피드 통합 정보 조회 (프로필 + 통계 + 독후감 + 좋아요)
      */
     UserFeedDTO getUserFeed(String currentUserId, String targetUserId);
+    
+    /**
+     * @param userId
+     * @return
+     * @author kys
+     * @created 2025-11-01
+     * 사용자 id를 통해 nickname get
+     */
+    String getUserNicknameByUserId(String userId);
 }
