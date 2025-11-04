@@ -23,7 +23,7 @@ RUN ./gradlew build -x test
 # =================================================================
 # Stage 2: 실행 스테이지
 # =================================================================
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # ⚠️ 변경: 빌드된 JAR 파일의 경로를 Gradle의 기본 출력 경로(build/libs)로 수정
