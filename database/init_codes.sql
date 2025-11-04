@@ -1,7 +1,12 @@
 -- ================================================
--- init_codes_ai_ci.sql
--- 완전 통합 초기화 스크립트 (utf8mb4_0900_ai_ci 통일 + FK 정리 + 중복 데이터 제거)
+-- noinspection SqlDialectInspectionForFile
+-- noinspection SqlNoDataSourceInspectionForFile
+-- init_codes_integrated.sql
+-- Author: uyh
+-- 완전 통합 초기화 스크립트 (migration_001, migration_004 내용 포함)
+-- utf8mb4_0900_ai_ci 통일 + FK 정리 + 모든 마이그레이션 반영
 -- ================================================
+
 -- 0. 데이터베이스 생성 및 선택
 CREATE DATABASE IF NOT EXISTS kcc
   CHARACTER SET utf8mb4
@@ -22,36 +27,14 @@ ALTER DATABASE kcc CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 -- ================================================
 CREATE TABLE IF NOT EXISTS users
 (
-    user_id
-    VARCHAR
-(
-    50
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '사용자 아이디',
-    password VARCHAR
-(
-    255
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '비밀번호',
-    email VARCHAR
-(
-    100
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '이메일',
-    nickname VARCHAR
-(
-    50
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '닉네임',
+    user_id VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '사용자 아이디',
+    password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '비밀번호',
+    email VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '이메일',
+    nickname VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '닉네임',
     profile_image LONGBLOB NULL COMMENT '프로필 이미지',
-    introduction VARCHAR
-(
-    255
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '자기소개',
-    gender CHAR
-(
-    1
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '성별',
-    name VARCHAR
-(
-    50
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '이름',
+    introduction VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '자기소개',
+    gender CHAR(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '성별',
+    name VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '이름',
     birth DATE NULL COMMENT '생년월일',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '계정 생성일',
     withdrawal_status BOOLEAN DEFAULT FALSE COMMENT '회원탈퇴 상태 (TRUE=탈퇴, FALSE=활성)',
@@ -65,7 +48,9 @@ CREATE TABLE IF NOT EXISTS users
     CONSTRAINT chk_users_gender CHECK (gender IS NULL OR UPPER(gender) IN ('F', 'M'))
     ) COMMENT='사용자 테이블';
 
+-- ================================================
 -- 2. 팔로우 테이블 (users 참조)
+-- ================================================
 CREATE TABLE IF NOT EXISTS follows (
                                        follow_id INT NOT NULL AUTO_INCREMENT COMMENT '팔로우 아이디',
                                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '팔로우 생성일',
@@ -76,7 +61,9 @@ CREATE TABLE IF NOT EXISTS follows (
     CONSTRAINT fk_followed_user_id FOREIGN KEY (followed) REFERENCES users(user_id)
     ) COMMENT = '팔로우 테이블';
 
+-- ================================================
 -- 3. 코드 그룹 테이블 생성 (기본 테이블, 외래키 없음)
+-- ================================================
 CREATE TABLE IF NOT EXISTS code_groups (
                                            group_code VARCHAR(50) NOT NULL COMMENT '그룹코드',
     group_name VARCHAR(100) NULL COMMENT '그룹이름',
@@ -84,7 +71,9 @@ CREATE TABLE IF NOT EXISTS code_groups (
     PRIMARY KEY (group_code)
     ) COMMENT='코드그룹';
 
+-- ================================================
 -- 4. 코드 테이블 생성 (code_groups 참조)
+-- ================================================
 CREATE TABLE IF NOT EXISTS codes (
                                      code_id INT NOT NULL AUTO_INCREMENT COMMENT '코드 ID',
                                      code_value VARCHAR(50) NOT NULL COMMENT '코드값',
@@ -95,7 +84,9 @@ CREATE TABLE IF NOT EXISTS codes (
     CONSTRAINT fk_codes_group FOREIGN KEY (group_code) REFERENCES code_groups(group_code)
     ) COMMENT='코드';
 
+-- ================================================
 -- 5. 독후감 테이블 생성 (users, codes 참조)
+-- ================================================
 CREATE TABLE IF NOT EXISTS reviews (
                                        review_id INT NOT NULL AUTO_INCREMENT COMMENT '독후감 ID',
                                        ISBN VARCHAR(20) NOT NULL COMMENT 'ISBN',
@@ -112,7 +103,9 @@ CREATE TABLE IF NOT EXISTS reviews (
     CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(user_id)
     ) COMMENT='독후감';
 
+-- ================================================
 -- 6. 좋아요 테이블 생성 (users, reviews 참조)
+-- ================================================
 CREATE TABLE IF NOT EXISTS likes (
                                      user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
     review_id INT NOT NULL COMMENT '독후감 ID',
@@ -122,28 +115,27 @@ CREATE TABLE IF NOT EXISTS likes (
     CONSTRAINT fk_likes_review FOREIGN KEY (review_id) REFERENCES reviews(review_id)
     ) COMMENT='좋아요';
 
--- 독후감 댓글 테이블 생성 (reviews, users 참조, 자기 참조)
+-- ================================================
+-- 7. 독후감 댓글 테이블 생성 (reviews, users 참조, 자기 참조)
 -- CASCADE DELETE 적용: 부모 댓글 삭제 시 대댓글 자동 삭제, 리뷰 삭제 시 댓글 자동 삭제
+-- ================================================
 CREATE TABLE IF NOT EXISTS review_comments (
-                                               comment_id  INT          NOT NULL AUTO_INCREMENT COMMENT '댓글 ID',
-                                               content     VARCHAR(500) NOT NULL COMMENT '댓글 내용',
-    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
-    updated_at  DATETIME     NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
-    review_id   INT          NOT NULL COMMENT '독후감 ID',
-    user_id     VARCHAR(50)  NOT NULL COMMENT '사용자 ID',
-    parent_id   INT          NULL COMMENT '부모 댓글 ID',
+                                               comment_id INT NOT NULL AUTO_INCREMENT COMMENT '댓글 ID',
+                                               content VARCHAR(500) NOT NULL COMMENT '댓글 내용',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+    review_id INT NOT NULL COMMENT '독후감 ID',
+    user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
+    parent_id INT NULL COMMENT '부모 댓글 ID',
     PRIMARY KEY (comment_id),
-    CONSTRAINT fk_comments_review FOREIGN KEY (review_id)
-    REFERENCES reviews(review_id)
-                                  ON DELETE CASCADE,  -- 리뷰 삭제 시 해당 리뷰의 모든 댓글 자동 삭제
-    CONSTRAINT fk_comments_user FOREIGN KEY (user_id)
-    REFERENCES users(user_id),
-    CONSTRAINT fk_comments_parent FOREIGN KEY (parent_id)
-    REFERENCES review_comments(comment_id)
-                                  ON DELETE CASCADE  -- 부모 댓글 삭제 시 대댓글(자식 댓글) 자동 삭제
+    CONSTRAINT fk_comments_review FOREIGN KEY (review_id) REFERENCES reviews(review_id) ON DELETE CASCADE,
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(user_id),
+    CONSTRAINT fk_comments_parent FOREIGN KEY (parent_id) REFERENCES review_comments(comment_id) ON DELETE CASCADE
     ) COMMENT='독후감 댓글';
 
+-- ================================================
 -- 8. 도전과제 뱃지 테이블 (기본 테이블, 외래키 없음)
+-- ================================================
 CREATE TABLE IF NOT EXISTS badges (
                                       badge_id INT NOT NULL AUTO_INCREMENT COMMENT '뱃지 ID',
                                       badge_name VARCHAR(100) NOT NULL COMMENT '뱃지명',
@@ -152,86 +144,87 @@ CREATE TABLE IF NOT EXISTS badges (
     PRIMARY KEY (badge_id)
     ) COMMENT='도전과제 뱃지';
 
+-- ================================================
 -- 9. 도전과제 달성 내역 테이블 (badges, users 참조)
+-- [변경] PK를 (user_id, badge_id) 복합키로 변경하여 중복 방지
+-- ================================================
 CREATE TABLE IF NOT EXISTS challenge (
-                                         challenge_id INT NOT NULL AUTO_INCREMENT COMMENT '챌린지 ID',
                                          badge_id INT NOT NULL COMMENT '뱃지 ID',
                                          user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
     succeeded_at DATETIME NULL COMMENT '성공 시점',
-    PRIMARY KEY (challenge_id),
+    PRIMARY KEY (user_id, badge_id),
     CONSTRAINT fk_challenge_badge FOREIGN KEY (badge_id) REFERENCES badges(badge_id),
     CONSTRAINT fk_challenge_user FOREIGN KEY (user_id) REFERENCES users(user_id)
-) COMMENT='도전과제 달성 내역';
+    ) COMMENT='도전과제 달성 내역';
 
+-- ================================================
 -- 10. 오늘의 한 문장 테이블 (기본 테이블, 외래키 없음)
+-- [변경] selected_date 컬럼이 이미 포함됨
+-- ================================================
 CREATE TABLE IF NOT EXISTS sentences (
-  sentence_id INT NOT NULL AUTO_INCREMENT COMMENT '오늘의 문장 ID',
-  sentence_content VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '문장',
-  ISBN VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT 'ISBN',
-  selected_date DATE NULL COMMENT '오늘의 문장으로 선택된 날짜',
-  PRIMARY KEY (sentence_id)
-) COMMENT='오늘의 한 문장'
-  CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
+                                         sentence_id INT NOT NULL AUTO_INCREMENT COMMENT '오늘의 문장 ID',
+                                         sentence_content VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '문장',
+    ISBN VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT 'ISBN',
+    selected_date DATE NULL COMMENT '오늘의 문장으로 선택된 날짜',
+    PRIMARY KEY (sentence_id)
+    ) COMMENT='오늘의 한 문장'
+    CHARACTER SET = utf8mb4
+    COLLATE = utf8mb4_0900_ai_ci;
 
--- 버전 호환형 인덱스 생성 (중복 방지)
-SET @idx_exist := (
-  SELECT COUNT(*)
-  FROM INFORMATION_SCHEMA.STATISTICS
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'sentences'
-    AND INDEX_NAME = 'idx_sentences_selected_date'
+-- selected_date 컬럼 추가 (없을 경우)
+SET @col_exist := (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'sentences'
+      AND COLUMN_NAME = 'selected_date'
 );
-SET @sql := IF(@idx_exist = 0,
-  'CREATE INDEX idx_sentences_selected_date ON sentences(selected_date)',
-  'SELECT "idx_sentences_selected_date already exists"');
+SET @sql := IF(@col_exist = 0,
+    'ALTER TABLE sentences ADD COLUMN selected_date DATE NULL COMMENT "오늘의 문장으로 선택된 날짜" AFTER ISBN',
+    'SELECT "selected_date column already exists"');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- selected_date 인덱스 생성 (없을 경우)
+SET @idx_exist := (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'sentences'
+      AND INDEX_NAME = 'idx_sentences_selected_date'
+);
+SET @sql := IF(@idx_exist = 0,
+    'CREATE INDEX idx_sentences_selected_date ON sentences(selected_date)',
+    'SELECT "idx_sentences_selected_date already exists"');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- ================================================
 -- 11. 알림 테이블 (users 참조)
+-- [변경] sent_at → send_at로 변경
+-- [추가] alerts_check_status 컬럼 추가
+-- [추가] sender_user_id 컬럼 추가
+-- ================================================
 CREATE TABLE IF NOT EXISTS alerts (
                                       alert_id INT NOT NULL AUTO_INCREMENT COMMENT '알림 식별값',
                                       type VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '알림 구분',
     content VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '내용',
-    sent_at DATETIME NULL COMMENT '전송일',
+    send_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '전송일',
     sender_type VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '알림 발생자 분류',
     sender_id INT NOT NULL COMMENT '알림 발생자 ID',
     detail_sender_id INT NULL COMMENT '알림 발생자 세부 ID',
     user_id VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '사용자 ID',
+    alerts_check_status BOOLEAN NOT NULL DEFAULT FALSE COMMENT '알림 확인 상태 (0: 미확인, 1: 확인됨)',
+    sender_user_id VARCHAR(50) NULL COMMENT '전송자 id',
     PRIMARY KEY (alert_id),
     CONSTRAINT fk_alerts_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='알림';
 
-
 -- ================================================
--- 10. 오늘의 한 문장 테이블 (기본 테이블, 외래키 없음)
--- ================================================
-CREATE TABLE IF NOT EXISTS sentences (
-  sentence_id INT NOT NULL AUTO_INCREMENT COMMENT '오늘의 문장 ID',
-  sentence_content VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '문장',
-  ISBN VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT 'ISBN',
-  selected_date DATE NULL COMMENT '오늘의 문장으로 선택된 날짜',
-  PRIMARY KEY (sentence_id)
-) COMMENT='오늘의 한 문장'
-  CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
-
--- 11. 알림 테이블 (users 참조)
-CREATE TABLE IF NOT EXISTS alerts (
-                                      alert_id INT NOT NULL AUTO_INCREMENT COMMENT '알림 식별값',
-                                      type VARCHAR(50) NULL COMMENT '알림 구분',
-    content VARCHAR(500) NULL COMMENT '내용',
-    sent_at DATETIME NULL COMMENT '전송일',
-    sender_type VARCHAR(50) NULL COMMENT '알림 발생자 분류',
-    sender_id INT NOT NULL COMMENT '알림 발생자 ID',
-    detail_sender_id INT NULL COMMENT '알림 발생자 세부 ID',
-    user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
-    PRIMARY KEY (alert_id),
-    CONSTRAINT fk_alerts_user FOREIGN KEY (user_id) REFERENCES users(user_id)
-    ) COMMENT='알림';
-
 -- 12. 책장 테이블 (users 참조)
+-- ================================================
 CREATE TABLE IF NOT EXISTS bookshelf (
                                          bookshelf_id INT NOT NULL AUTO_INCREMENT COMMENT '책장 ID',
                                          name VARCHAR(100) NULL COMMENT '책장명',
@@ -242,16 +235,24 @@ CREATE TABLE IF NOT EXISTS bookshelf (
     CONSTRAINT fk_bookshelf_user FOREIGN KEY (user_id) REFERENCES users(user_id)
     ) COMMENT='책장';
 
+-- ================================================
 -- 13. 스크랩 도서 테이블 (bookshelf 참조)
+-- [추가] user_id 컬럼 추가 및 FK 설정
+-- ================================================
 CREATE TABLE IF NOT EXISTS book (
                                     ISBN VARCHAR(20) NOT NULL COMMENT 'ISBN',
     bookshelf_id INT NOT NULL COMMENT '책장 ID',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
+    user_id VARCHAR(50) NOT NULL COMMENT '사용자 아이디',
     PRIMARY KEY (ISBN, bookshelf_id),
-    CONSTRAINT fk_book_bookshelf FOREIGN KEY (bookshelf_id) REFERENCES bookshelf(bookshelf_id)
+    CONSTRAINT fk_book_bookshelf FOREIGN KEY (bookshelf_id) REFERENCES bookshelf(bookshelf_id),
+    CONSTRAINT fk_book_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     ) COMMENT='스크랩 도서';
 
+-- ================================================
 -- 14. 독서모임 테이블 (users, codes 참조)
+-- [추가] isbn 컬럼 추가
+-- ================================================
 CREATE TABLE IF NOT EXISTS `groups` (
                                         group_id INT NOT NULL AUTO_INCREMENT COMMENT '게시글 ID',
                                         group_name VARCHAR(100) NULL COMMENT '모임명',
@@ -266,22 +267,29 @@ CREATE TABLE IF NOT EXISTS `groups` (
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
     user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
     code_id INT NOT NULL COMMENT '코드 ID',
+    isbn VARCHAR(20) NULL COMMENT '도서 ISBN (10자리 또는 13자리)',
     PRIMARY KEY (group_id),
     CONSTRAINT fk_groups_user FOREIGN KEY (user_id) REFERENCES users(user_id),
     CONSTRAINT fk_groups_code FOREIGN KEY (code_id) REFERENCES codes(code_id)
     ) COMMENT='독서모임';
 
+-- ================================================
 -- 15. 독서모임 스크랩 테이블 (users, groups 참조)
+-- [변경] FK에 ON DELETE CASCADE 추가
+-- ================================================
 CREATE TABLE IF NOT EXISTS group_scraps (
                                             user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
     group_id INT NOT NULL COMMENT '게시글 ID',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
     PRIMARY KEY (user_id, group_id),
     CONSTRAINT fk_group_scraps_user FOREIGN KEY (user_id) REFERENCES users(user_id),
-    CONSTRAINT fk_group_scraps_group FOREIGN KEY (group_id) REFERENCES `groups`(group_id)
+    CONSTRAINT fk_group_scraps_group FOREIGN KEY (group_id) REFERENCES `groups`(group_id) ON DELETE CASCADE
     ) COMMENT='독서모임 스크랩';
 
+-- ================================================
 -- 16. 독서모임 댓글 테이블 (groups, users 참조, 자기 참조)
+-- [변경] FK에 ON DELETE CASCADE 추가
+-- ================================================
 CREATE TABLE IF NOT EXISTS group_comments (
                                               comment_id INT NOT NULL AUTO_INCREMENT COMMENT '댓글 ID',
                                               content VARCHAR(500) NULL COMMENT '댓글 내용',
@@ -292,11 +300,14 @@ CREATE TABLE IF NOT EXISTS group_comments (
     user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
     parent_id INT NULL COMMENT '부모 댓글',
     PRIMARY KEY (comment_id),
-    CONSTRAINT fk_group_comments_group FOREIGN KEY (group_id) REFERENCES `groups`(group_id),
+    CONSTRAINT fk_group_comments_group FOREIGN KEY (group_id) REFERENCES `groups`(group_id) ON DELETE CASCADE,
     CONSTRAINT fk_group_comments_user FOREIGN KEY (user_id) REFERENCES users(user_id),
-    CONSTRAINT fk_group_comments_parent FOREIGN KEY (parent_id) REFERENCES group_comments(comment_id)
+    CONSTRAINT fk_group_comments_parent FOREIGN KEY (parent_id) REFERENCES group_comments(comment_id) ON DELETE CASCADE
     ) COMMENT='독서모임 댓글';
 
+-- ================================================
+-- END OF INTEGRATED INIT SCRIPT
+-- ================================================
 -- 코드 그룹 데이터 삽입 (중복 무시)
 
 -- 1. 지역 코드 그룹 및 데이터 추가

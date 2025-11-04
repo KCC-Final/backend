@@ -54,9 +54,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/api/v1/email",
 
             /*sse*/
-            "/api/v1/notifications/subscribe",
-            "/api/v1/alerts/subscribe",
-            "/api/v1/sse/subscribe"
+            "/api/v1/alarms/subscribe"
     };
 
     @Override
