@@ -58,8 +58,7 @@ public class SpringSecurityConfig {
                 ).permitAll()
 
                 .requestMatchers(
-                        "/api/v1/notifications/subscribe",
-                        "/api/v1/alerts/subscribe",
+                        "/api/v1/alarms/subscribe",
                         "/api/v1/sse/subscribe"
                 ).permitAll()
 

@@ -216,8 +216,28 @@ ALTER TABLE group_scraps
             REFERENCES `groups` (group_id)
             ON DELETE CASCADE;
 
-COMMIT;
+-- ================================================
+-- 9. groups 테이블에 isbn 컬럼 추가 (존재하지 않을 경우)
+-- ================================================
 
+SET @isbn_col_exist := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = 'kcc'
+    AND TABLE_NAME = 'groups'
+    AND COLUMN_NAME = 'isbn'
+);
+
+SET @sql11 := IF(
+  @isbn_col_exist = 0,
+  'ALTER TABLE `groups` ADD COLUMN isbn VARCHAR(20) NULL COMMENT "도서 ISBN (10자리 또는 13자리)";',
+  'SELECT " groups.isbn 컬럼이 이미 존재하여 ALTER 생략";'
+);
+PREPARE stmt11 FROM @sql11;
+EXECUTE stmt11;
+DEALLOCATE PREPARE stmt11;
+
+COMMIT;
 
 -- ================================================
 -- END OF MIGRATION_004
