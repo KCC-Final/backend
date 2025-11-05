@@ -25,11 +25,14 @@ public class QuoteService implements IQuoteService {
 
 	private TodayQuoteDto todayQuoteDto; // 스케줄링 정보 저장용
 
+	@Scheduled(cron = "0 0 0 * * *") // 자정마다 캐시 초기화
 	@Override
-	 @Scheduled(cron = "0 0 0 * * *") //매일 00시 업데이트용 스케줄링
-	//@Scheduled(cron = "0 * * * * *")// 1분 단위 테스트용 스케줄링
 	public void updateTodayQuote() {
 		Quotes quotes = quoteRepository.getNextQuote();
+		if (quotes == null) {
+			quoteRepository.resetAllSelectedDates();
+			quotes = quoteRepository.getNextQuote();
+		}
 		if (quotes != null) {// DTO로 변환
 			QuoteDto nextSentence = new QuoteDto();
 			nextSentence.setSentenceId(quotes.getSentenceId());
@@ -45,26 +48,37 @@ public class QuoteService implements IQuoteService {
 
 			// 저장
 			todayQuoteDto = new TodayQuoteDto(nextSentence, book);
-
-			log.info("TodayQuote: {}", nextSentence.getSentenceContent());
+		} else {
+			todayQuoteDto = null;
 		}
 	}
 
 	public TodayQuoteDto getTodayQuote() {
-		if (todayQuoteDto == null) {
-			Quotes quotes = quoteRepository.getTodayQuote();
-			if (quotes != null) {
-				QuoteDto sentence = new QuoteDto();
-				sentence.setSentenceId(quotes.getSentenceId());
-				sentence.setSentenceContent(quotes.getSentenceContent());
-				sentence.setISBN(quotes.getISBN());
-				sentence.setSelectedDate(quotes.getSelectedDate());
 
-				BookInfoDto book = aladinBookService.getBookByIsbn(sentence.getISBN());
-				todayQuoteDto = new TodayQuoteDto(sentence, book);
-			}
-		}
-		return todayQuoteDto;
+		LocalDate today = LocalDate.now();
+
+		if (todayQuoteDto == null ||
+				todayQuoteDto.getSentence() == null
+	            || todayQuoteDto.getSentence().getSelectedDate() == null
+	            || !todayQuoteDto.getSentence().getSelectedDate().equals(today)) {
+			Quotes quotes = quoteRepository.getTodayQuote();
+
+	        if (quotes != null) {
+	            QuoteDto sentence = new QuoteDto();
+	            sentence.setSentenceId(quotes.getSentenceId());
+	            sentence.setSentenceContent(quotes.getSentenceContent());
+	            sentence.setISBN(quotes.getISBN());
+	            sentence.setSelectedDate(quotes.getSelectedDate());
+
+	            BookInfoDto book = aladinBookService.getBookByIsbn(sentence.getISBN());
+	            todayQuoteDto = new TodayQuoteDto(sentence, book);
+
+	        } else {
+	            todayQuoteDto = null;
+	        }
+	    }
+
+	    return todayQuoteDto;
 	}
 
 }
