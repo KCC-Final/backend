@@ -44,21 +44,37 @@ public class NotificationController {
      * @author kys
      * @author uyh
      * @created 2025-10-21
-     * @updated 2025-10-30
+     * @updated 2025-11-05
      * SSE 구독
+     * 엑세스 토큰 없을 시 맆프레쉬 토큰으로 사용
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(HttpServletRequest request) {
-        // 쿠키 기반 액세스 토큰 추출
-        String accessToken = jwtTokenProvider.resolveAccessTokenFromCookie(request);
+        String token = null;
 
-        // 토큰이 없으면 예외 처리
-        if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
+        // 1. accessToken 우선 시도
+        String accessToken = jwtTokenProvider.resolveAccessTokenFromCookie(request);
+        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+            token = accessToken;
+            log.info("SSE 구독: accessToken 사용");
+        }
+        // 2. accessToken이 없거나 만료되면 refreshToken 시도
+        else {
+            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+            if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+                token = refreshToken;
+                log.info("SSE 구독: refreshToken 사용 (accessToken 없음 또는 만료)");
+            }
+        }
+
+        // 3. 둘 다 없거나 만료된 경우
+        if (token == null) {
+            log.error("SSE 구독 실패: 유효한 토큰이 없습니다");
             throw new RuntimeException("Invalid or missing token");
         }
 
-        String userId = jwtTokenProvider.getUserId(accessToken);
-        log.info(" SSE 구독 요청 userId={}", userId);
+        String userId = jwtTokenProvider.getUserId(token);
+        log.info("SSE 구독 요청 userId={}", userId);
 
         return notificationService.subscribe(userId);
     }
