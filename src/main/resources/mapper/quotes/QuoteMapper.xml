@@ -2,46 +2,51 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kcc.groo.quote.dao.IQuoteRepository">
 
-<resultMap id="quoteMap" type="com.kcc.groo.quote.data.model.Quotes">
-        <id property="sentenceId" column="sentence_id"/>
-        <result property="sentenceContent" column="sentence_content"/>
-        <result property="ISBN" column="isbn"/>
-        <result property="selectedDate" column="selected_date"/>
-    </resultMap>
+	<resultMap id="quoteMap"
+		type="com.kcc.groo.quote.data.model.Quotes">
+		<id property="sentenceId" column="sentence_id" />
+		<result property="sentenceContent" column="sentence_content" />
+		<result property="ISBN" column="isbn" />
+		<result property="selectedDate" column="selected_date" />
+	</resultMap>
 
-    <select id="getTodayQuote" resultMap="quoteMap">
-   <![CDATA[     SELECT sentence_id, sentence_content, isbn, selected_date
-        FROM sentences
-        WHERE selected_date = CURDATE()
-        ORDER BY sentence_id ASC
-    	LIMIT 1 ]]>
-    </select>
-    
-    <select id="getTodayQuoteList" resultMap="quoteMap">
+	<select id="getTodayQuote" resultMap="quoteMap" useCache="false">
+  <![CDATA[
+    SELECT sentence_id, sentence_content, isbn, selected_date
+    FROM sentences
+    ORDER BY selected_date ASC
+    LIMIT 1
+  ]]>
+	</select>
+
+	<select id="getTodayQuoteList" resultMap="quoteMap">
     <![CDATA[    SELECT sentence_id, sentence_content, isbn, selected_date
         FROM sentences
         WHERE selected_date = CURDATE()
         ORDER BY sentence_id ASC
         LIMIT 1 ]]>
-    </select>
+	</select>
 
-    <update id="updateSelectedDate">
+	<update id="updateSelectedDate">
     <![CDATA[    UPDATE sentences
         SET selected_date = #{selectedDate}
         WHERE sentence_id = #{sentenceId} ]]>
-    </update>
+	</update>
 
-    <select id="getNextQuote" resultMap="quoteMap">
-     <![CDATA[   SELECT sentence_id, sentence_content, isbn
-        FROM sentences
-        WHERE selected_date IS NULL
-        ORDER BY sentence_id ASC
-        LIMIT 1 ]]>
-    </select>
+	<select id="getNextQuote" resultMap="quoteMap">
+  <![CDATA[
+    SELECT sentence_id, sentence_content, isbn, selected_date
+    FROM sentences
+    WHERE selected_date IS NULL
+       OR selected_date < CURDATE()
+    ORDER BY sentence_id ASC
+    LIMIT 1
+  ]]>
+	</select>
 
-    <update id="resetAllSelectedDates">
+	<update id="resetAllSelectedDates">
      <![CDATA[   UPDATE sentences
         SET selected_date = NULL ]]>
-    </update>
+	</update>
 
 </mapper>
