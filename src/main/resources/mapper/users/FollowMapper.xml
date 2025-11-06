@@ -14,7 +14,7 @@
 		<id property="followId" column="follow_id" />
 		<result property="userId" column="user_id" />
 		<result property="nickname" column="nickname" />
-		<result property="profileImage" column="profile_image" />
+        <result property="profileImage" column="profile_image" typeHandler="com.kcc.groo.config.Base64TypeHandler" />
 		<result property="followedAt" column="followed_at" />
 	</resultMap>
 
