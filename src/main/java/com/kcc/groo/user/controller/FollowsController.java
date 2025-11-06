@@ -59,19 +59,27 @@ public class FollowsController {
 	 * @return
 	 * @author kys
 	 * @created 2025-10-07
-	 * 로그인한 사용자가 팔로우한 사람 확인
+     * @author uyh
+     * @modified 2025-11-06
+     * 로그인한 사용자가 팔로우한 사람 확인 (null 처리 추가)
 	 */
-	@GetMapping("/follows/{targetId}")
-	public ResponseEntity<CommonResponse<?>> getFollowInfo(HttpServletRequest request,
-			@PathVariable("targetId") String targetId) {
-		String accessToken = jwtTokenProvider.resolveAccessToken(request);
-		String userId = jwtTokenProvider.getUserId(accessToken);
-		
-		FollowResponse followResponse = followService.getFollowInfo(userId, targetId);
-		
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new CommonResponse<>("Follow information", followResponse));
-	}
+    @GetMapping("/follows/{targetId}")
+    public ResponseEntity<CommonResponse<?>> getFollowInfo(HttpServletRequest request,
+                                                           @PathVariable("targetId") String targetId) {
+        String accessToken = jwtTokenProvider.resolveAccessToken(request);
+        String userId = jwtTokenProvider.getUserId(accessToken);
+
+        // 자기 자신을 조회하는 경우
+        if (userId.equals(targetId)) {
+            return ResponseEntity.ok()
+                    .body(new CommonResponse<>("Cannot follow yourself", null));
+        }
+
+        FollowResponse followResponse = followService.getFollowInfo(userId, targetId);
+
+        return ResponseEntity.ok()
+                .body(new CommonResponse<>("Follow information", followResponse));
+    }
 	
 	/**
 	 * @param request

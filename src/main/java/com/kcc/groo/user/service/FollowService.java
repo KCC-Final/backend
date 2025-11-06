@@ -98,10 +98,26 @@ public class FollowService implements IFollowService {
 
     @Override
     public FollowResponse getFollowInfo(String currentUserId, String targetUserId) {
+        // 자기 자신을 조회하는 경우 예외 처리
+        if (currentUserId.equals(targetUserId)) {
+            return null;
+        }
+
         Follows follow = followsRepository.selectFollowInfo(currentUserId, targetUserId);
+
+        // follow가 null인 경우 (팔로우 관계가 없는 경우)
+        if (follow == null) {
+            return null;
+        }
+
         boolean isMutual = followsRepository.isMutualFollow(currentUserId, targetUserId) > 0;
-        return new FollowResponse(follow.getFollowId(), follow.getFollower(), follow.getFollowed(), isMutual,
-                follow.getCreatedAt());
+        return new FollowResponse(
+                follow.getFollowId(),
+                follow.getFollower(),
+                follow.getFollowed(),
+                isMutual,
+                follow.getCreatedAt()
+        );
     }
 
     @Override
