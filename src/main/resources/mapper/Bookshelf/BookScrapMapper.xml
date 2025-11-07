@@ -2,71 +2,92 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kcc.groo.bookshelf.dao.IBookScrapRepository">
 
-<resultMap id="bookScrapMap" type="com.kcc.groo.bookshelf.data.model.BookScrap">
+    <resultMap id="bookScrapMap" type="com.kcc.groo.bookshelf.data.model.BookScrap">
         <id property="ISBN" column="ISBN"/>
         <id property="bookshelfId" column="bookshelf_id"/>
         <result property="userId" column="user_id"/>
         <result property="createdAt" column="created_at"/>
-</resultMap>
+    </resultMap>
 
-<insert id="createBookScrap" parameterType="com.kcc.groo.bookshelf.data.model.BookScrap">
+    <insert id="createBookScrap" parameterType="com.kcc.groo.bookshelf.data.model.BookScrap">
 <![CDATA[
-INSERT INTO book (bookshelf_id, ISBN, user_id) VALUES (#{bookshelfId},#{ISBN}, #{userId})
-]]>
+        INSERT INTO book (bookshelf_id, ISBN, user_id)
+        VALUES (#{bookshelfId}, #{ISBN}, #{userId})
+        ]]>
 </insert>
 
-<delete id="deleteBookScrap">
+    <delete id="deleteBookScrap">
 <![CDATA[
-DELETE FROM book WHERE user_id=#{userId} AND ISBN=#{ISBN}
-]]>
+        DELETE
+        FROM book
+        WHERE user_id = #{userId}
+          AND ISBN = #{ISBN}
+        ]]>
 </delete>
 
-<select id="selectBookScrap" resultMap="bookScrapMap">
+    <select id="selectBookScrap" resultMap="bookScrapMap">
 <![CDATA[
-SELECT * FROM book WHERE ISBN=#{ISBN} AND user_id = #{userId}
-]]>
+        SELECT *
+        FROM book
+        WHERE ISBN = #{ISBN}
+          AND user_id = #{userId}
+        ]]>
 </select>
 
-<select id="BookScrapList" resultMap="bookScrapMap">
+    <select id="BookScrapList" resultMap="bookScrapMap">
 <![CDATA[
-SELECT * FROM book WHERE bookshelf_id=#{bookshelfId} AND user_id = #{userId}
-]]>
+        SELECT *
+        FROM book
+        WHERE bookshelf_id = #{bookshelfId}
+          AND user_id = #{userId}
+        ]]>
 </select>
 
     <select id="checkExistsBookByUserIdAndbookshelfId" resultType="int">
         <![CDATA[
-    SELECT COUNT(*)
-    FROM book b
-    JOIN bookshelf s ON b.bookshelf_id = s.bookshelf_id
-    WHERE s.user_id = #{userId}
-      AND b.bookshelf_id = #{bookshelfId}
-      AND b.ISBN = #{ISBN}
-]]>
+        SELECT COUNT(*)
+        FROM book b
+                 JOIN bookshelf s ON b.bookshelf_id = s.bookshelf_id
+        WHERE s.user_id = #{userId}
+          AND b.bookshelf_id = #{bookshelfId}
+          AND b.ISBN = #{ISBN}
+        ]]>
     </select>
 
 
-<select id="countBookScrap" resultType="int">
+    <select id="countBookScrap" resultType="int">
 <![CDATA[
-	SELECT count(*) FROM book WHERE bookshelf_id=#{bookshelfId} AND user_id=#{userId}
-]]>
+        SELECT count(*)
+        FROM book
+        WHERE bookshelf_id = #{bookshelfId}
+          AND user_id = #{userId}
+        ]]>
 </select>
 
-<delete id="deleteBooksByIsbnList" parameterType="map">
-	DELETE FROM book
-    WHERE user_id = #{userId}
-      AND bookshelf_id = #{bookshelfId}
-      AND ISBN IN
-      <foreach item="isbn" collection="isbnList" open="(" separator="," close=")">
-          #{isbn}
-      </foreach>
-</delete>
+    <delete id="deleteBooksByIsbnList" parameterType="map">
+        DELETE FROM book
+        WHERE user_id = #{userId}
+        AND bookshelf_id = #{bookshelfId}
+        AND ISBN IN
+        <foreach item="isbn" collection="isbnList" open="(" separator="," close=")">
+            #{isbn}
+        </foreach>
+    </delete>
 
 
-<select id="countTotalBookScrapByUserId" parameterType="String" resultType="int">
-    SELECT count(b.ISBN)
-    FROM book b
-    JOIN bookshelf bs ON b.bookshelf_id = bs.bookshelf_id
-    WHERE bs.user_id = #{userId}
-</select>
+    <select id="countTotalBookScrapByUserId" parameterType="String" resultType="int">
+        SELECT count(b.ISBN)
+        FROM book b
+                 JOIN bookshelf bs ON b.bookshelf_id = bs.bookshelf_id
+        WHERE bs.user_id = #{userId}
+    </select>
+
+    <select id="getBookScrapCountByISBN" resultType="int">
+    <![CDATA[
+        SELECT COUNT(*)
+        FROM book
+        WHERE ISBN = #{ISBN}
+        ]]>
+    </select>
 
 </mapper>
