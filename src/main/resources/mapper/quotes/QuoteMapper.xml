@@ -10,14 +10,16 @@
 		<result property="selectedDate" column="selected_date" />
 	</resultMap>
 
-	<select id="getTodayQuote" resultMap="quoteMap" useCache="false">
+    <select id="getTodayQuote" resultMap="quoteMap" useCache="false">
   <![CDATA[
-    SELECT sentence_id, sentence_content, isbn, selected_date
-    FROM sentences
-    ORDER BY selected_date ASC
-    LIMIT 1
-  ]]>
-	</select>
+        SELECT sentence_id, sentence_content, isbn, selected_date
+        FROM sentences
+        WHERE selected_date = CURDATE()
+        ORDER BY sentence_id ASC
+            LIMIT 1
+        ]]>
+</select>
+
 
 	<select id="getTodayQuoteList" resultMap="quoteMap">
     <![CDATA[    SELECT sentence_id, sentence_content, isbn, selected_date
