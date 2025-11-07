@@ -30,6 +30,7 @@ public class ReviewWithCommentResponseDto {
     private Integer likeCount;
     private Integer commentCount;
     private Boolean liked;
+    private String customThumbnail;  // 추가
 
     // 내가 작성한 댓글 정보
     private Integer myCommentId;

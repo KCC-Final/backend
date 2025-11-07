@@ -27,6 +27,7 @@ public class ReviewResponse {
     private Integer commentCount; // 댓글 개수
     private String authorNickname;
     private String authorProfileImage;
+    private String customThumbnail;  // 추가
 
 
     public static ReviewResponse fromModel(Review review) {
@@ -52,6 +53,7 @@ public class ReviewResponse {
         res.setUserId(review.getUserId());
         res.setCategory(review.getCategory());
         res.setLikeCount(review.getLikeCount());
+        res.setCustomThumbnail(review.getCustomThumbnail());  // 추가
 
         return res;
     }

@@ -17,4 +17,7 @@ public class ReviewUpdateRequest {
 
     @Schema(description = "임시저장 여부", example = "false")
     private Boolean temporary;
+
+    @Schema(description = "커스텀 썸네일 (base64)", example = "data:image/jpeg;base64,/9j/4AAQSkZJRg...")
+    private String customThumbnail;
 }
