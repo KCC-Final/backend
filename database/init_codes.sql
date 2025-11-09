@@ -293,7 +293,7 @@ CREATE TABLE IF NOT EXISTS group_scraps (
 CREATE TABLE IF NOT EXISTS group_comments (
                                               comment_id INT NOT NULL AUTO_INCREMENT COMMENT '댓글 ID',
                                               content VARCHAR(500) NULL COMMENT '댓글 내용',
-    created_at DATETIME NULL COMMENT '작성일',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
     flag BOOLEAN NULL COMMENT '비밀 댓글',
     group_id INT NOT NULL COMMENT '게시글 ID',
