@@ -19,6 +19,7 @@ public class Review {
     private Date updatedAt;
     private String userId;
     private String category;
+    private String customThumbnail;  // 추가
 
     // 좋아요 개수
     private Integer likeCount;
@@ -27,13 +28,14 @@ public class Review {
     public static Review fromCreateRequest(String userId, ReviewCreateRequest request) {
         Review review = new Review();
         review.setUserId(userId);
-        review.setIsbn(request.getIsbn());  // 올바른 getter/setter 호출
+        review.setIsbn(request.getIsbn());
         review.setReviewTitle(request.getReviewTitle());
         review.setReviewContent(request.getReviewContent());
-        review.setSecret(Boolean.TRUE.equals(request.getSecret())); 
+        review.setSecret(Boolean.TRUE.equals(request.getSecret()));
         review.setTemporary(Boolean.TRUE.equals(request.getTemporary()));
         review.setStatus(true);
         review.setCategory(request.getCategory());
+        review.setCustomThumbnail(request.getCustomThumbnail());  // 추가
         return review;
     }
 
@@ -46,6 +48,7 @@ public class Review {
         if (request.getReviewContent() != null) review.setReviewContent(request.getReviewContent());
         if (request.getSecret() != null) review.setSecret(request.getSecret());
         if (request.getTemporary() != null) review.setTemporary(request.getTemporary());
+        if (request.getCustomThumbnail() != null) review.setCustomThumbnail(request.getCustomThumbnail());  // 추가
         review.setUpdatedAt(new Date());
         return review;
     }

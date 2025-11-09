@@ -88,21 +88,21 @@ CREATE TABLE IF NOT EXISTS codes (
 -- 5. 독후감 테이블 생성 (users, codes 참조)
 -- ================================================
 CREATE TABLE IF NOT EXISTS reviews (
-                                       review_id INT NOT NULL AUTO_INCREMENT COMMENT '독후감 ID',
-                                       ISBN VARCHAR(20) NOT NULL COMMENT 'ISBN',
-    review_title VARCHAR(200) NOT NULL COMMENT '제목',
-    review_content TEXT NOT NULL COMMENT '내용',
-    secret BOOLEAN NULL DEFAULT FALSE COMMENT '비밀글',
-    status BOOLEAN NULL DEFAULT TRUE COMMENT '삭제 상태',
-    temporary BOOLEAN NULL DEFAULT FALSE COMMENT '임시 저장 여부',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
-    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
-    user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
-    category VARCHAR(50) NOT NULL COMMENT '도서 카테고리',
-    PRIMARY KEY (review_id),
-    CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(user_id)
-    ) COMMENT='독후감';
-
+   review_id INT NOT NULL AUTO_INCREMENT COMMENT '독후감 ID',
+   ISBN VARCHAR(20) NOT NULL COMMENT 'ISBN',
+   review_title VARCHAR(200) NOT NULL COMMENT '제목',
+   review_content TEXT NOT NULL COMMENT '내용',
+   secret BOOLEAN NULL DEFAULT FALSE COMMENT '비밀글',
+   status BOOLEAN NULL DEFAULT TRUE COMMENT '삭제 상태',
+   temporary BOOLEAN NULL DEFAULT FALSE COMMENT '임시 저장 여부',
+   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
+   updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+   user_id VARCHAR(50) NOT NULL COMMENT '사용자 ID',
+   category VARCHAR(50) NOT NULL COMMENT '도서 카테고리',
+   custom_thumbnail LONGTEXT NULL COMMENT '커스텀 썸네일 (base64)',
+   PRIMARY KEY (review_id),
+   CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(user_id)
+) COMMENT='독후감';
 -- ================================================
 -- 6. 좋아요 테이블 생성 (users, reviews 참조)
 -- ================================================

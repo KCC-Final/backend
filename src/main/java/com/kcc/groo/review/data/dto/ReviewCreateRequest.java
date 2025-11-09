@@ -23,4 +23,7 @@ public class ReviewCreateRequest {
 
     @Schema(description = "카테고리", example = "1")
     private String category;
+
+    @Schema(description = "커스텀 썸네일 (base64)", example = "data:image/jpeg;base64,/9j/4AAQSkZJRg...")
+    private String customThumbnail;
 }
