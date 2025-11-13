@@ -140,5 +140,30 @@
     <select id="selectLastInsertedCommentId" resultType="int">
         SELECT LAST_INSERT_ID()
     </select>
+    
+    <!-- 댓글 검색 인덱싱 -->
+<select id="selectCommentByIdForIndexing" resultType="com.kcc.groo.review.data.dto.CommentResponse">
+<![CDATA[
+    SELECT 
+        c.comment_id AS commentId,
+        c.content AS content,
+        c.user_id AS userId,
+        c.created_at AS createdAt,
+        c.updated_at AS updatedAt,
+        c.parent_id AS parentId,
+        c.review_id AS reviewId,
+
+        -- 추가된 컬럼들
+        u.nickname AS authorNickname,
+        u.profile_image AS authorProfileImage,
+        r.review_title AS reviewTitle
+
+    FROM review_comments c
+    LEFT JOIN users u ON c.user_id = u.user_id
+    LEFT JOIN reviews r ON c.review_id = r.review_id
+    WHERE c.comment_id = #{commentId}
+]]>
+</select>
+    
 
 </mapper>

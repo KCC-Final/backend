@@ -1,5 +1,11 @@
 package com.kcc.groo.review.service;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kcc.groo.challenge.service.IChallengeService;
 import com.kcc.groo.common.exception.GrooException;
 import com.kcc.groo.notification.data.dto.NotificationRequest;
@@ -10,14 +16,12 @@ import com.kcc.groo.review.data.dto.ReviewCreateRequest;
 import com.kcc.groo.review.data.dto.ReviewResponse;
 import com.kcc.groo.review.data.dto.ReviewUpdateRequest;
 import com.kcc.groo.review.data.dto.ReviewWithCommentResponseDto;
+import com.kcc.groo.review.data.model.Review;
 import com.kcc.groo.review.exception.ReviewErrorCode;
+import com.kcc.groo.search.service.ISearchService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.List;
 
 
 @Slf4j
@@ -29,6 +33,7 @@ public class ReviewService implements IReviewService {
     private final IReviewCommentRepository commentRepository;
     private final IChallengeService challengeService; // 의존성 주입
     private final INotificationService notificationService; //added 2025-10-21 kys
+    private final ISearchService searchService; //added 2025-11-13 kys
 
     @Transactional
     @Override
@@ -41,6 +46,12 @@ public class ReviewService implements IReviewService {
             reviewRepository.insertReview(userId, request);
             log.info("[createReview] userId: {}, temporary: {}", userId, request.getTemporary());
 
+            //생성된 reviewId 조회
+            Integer reviewId = reviewRepository.getLastInsertedReviewId();
+            ReviewResponse review = reviewRepository.selectReviewById(userId, reviewId);
+            searchService.insertReviewIndex(review);
+            log.info("[Indexed] reviewId={} inserted to search_index", reviewId);
+            
             // 임시저장 글이 아닐 경우, 도전과제 달성 여부 확인
             if (request.getTemporary() == null || !request.getTemporary()) {
                 // 모든 리뷰 관련 뱃지 검사 (첫 발자국, 독서가, 한 우물 파기, 탐험가 등)
@@ -85,6 +96,13 @@ public class ReviewService implements IReviewService {
         try {
             reviewRepository.updateReview(userId, reviewId, request);
             log.info("[updateReview] reviewId: {}, userId: {}", reviewId, userId);
+         // 수정된 최신 리뷰 엔티티 다시 조회
+            ReviewResponse updated = reviewRepository.selectReviewById(userId, reviewId);
+
+            // 검색 인덱스 업데이트
+            searchService.updateReviewIndex(updated);
+
+            log.info("[updateReview] Updated reviewId: {}", reviewId);
         } catch (Exception e) {
             log.error("[updateReview] Failed - reviewId: {}, userId: {}, error: {}",
                     reviewId, userId, e.getMessage());

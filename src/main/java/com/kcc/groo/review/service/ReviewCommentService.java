@@ -10,6 +10,8 @@ import com.kcc.groo.review.data.dto.CommentRequest;
 import com.kcc.groo.review.data.dto.CommentResponse;
 import com.kcc.groo.review.data.dto.ReviewResponse;
 import com.kcc.groo.review.exception.ReviewErrorCode;
+import com.kcc.groo.search.service.ISearchService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class ReviewCommentService implements IReviewCommentService {
     private final IReviewRepository reviewRepository;
     private final INotificationService notificationService;
     private final IChallengeService challengeService;
+    private final ISearchService searchService; //added 2025-11-13 kys
 
     @Transactional
     @Override
@@ -86,6 +89,9 @@ public class ReviewCommentService implements IReviewCommentService {
 
             // 알림 발송 (기존 코드 그대로)
             int commentId = commentRepository.selectLastInsertedCommentId();
+            //added 2025-11-13 kys
+            CommentResponse saved = commentRepository.selectCommentById(commentId);
+            searchService.insertCommentIndex(saved);
             if (!review.getUserId().equals(userId)) {
                 try {
                     NotificationRequest notificationRequest = new NotificationRequest();
@@ -125,7 +131,7 @@ public class ReviewCommentService implements IReviewCommentService {
             throw new GrooException(ReviewErrorCode.INVALID_REVIEW_REQUEST, "Invalid comment ID");
         }
 
-        // 👇 댓글 내용 검증 (validateCommentContent 사용)
+        // 댓글 내용 검증 (validateCommentContent 사용)
         validateCommentContent(content);
 
         // 댓글 존재 확인
@@ -141,6 +147,8 @@ public class ReviewCommentService implements IReviewCommentService {
 
         try {
             commentRepository.updateComment(commentId, userId, content);
+            CommentResponse updated = commentRepository.selectCommentById(commentId);
+            searchService.updateCommentIndex(updated);
             log.info("[updateComment] commentId: {}, userId: {}", commentId, userId);
         } catch (Exception e) {
             log.error("[updateComment] Failed - commentId: {}, userId: {}, error: {}",

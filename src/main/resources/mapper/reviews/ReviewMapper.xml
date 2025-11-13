@@ -428,5 +428,9 @@ LIMIT #{limit}
         ORDER BY COUNT(*) DESC
             LIMIT 1
     </select>
+    <!-- added 2025-11-13 최근 insert 된 id -->
+    <select id="getLastInsertedReviewId" resultType="int">
+    SELECT LAST_INSERT_ID();
+</select>
 
 </mapper>

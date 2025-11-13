@@ -1,12 +1,19 @@
 package com.kcc.groo.review.dao;
 
-import com.kcc.groo.review.data.dto.*;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import com.kcc.groo.review.data.dto.CommentResponse;
+import com.kcc.groo.review.data.dto.ReviewCreateRequest;
+import com.kcc.groo.review.data.dto.ReviewResponse;
+import com.kcc.groo.review.data.dto.ReviewUpdateRequest;
+import com.kcc.groo.review.data.dto.ReviewWithCommentResponseDto;
+import com.kcc.groo.review.data.dto.TopReviewerDto;
+import com.kcc.groo.review.data.model.Review;
 
 @Mapper
 public interface IReviewRepository {
@@ -298,5 +305,16 @@ public interface IReviewRepository {
      */
     String findTopReviewerByPeriod(@Param("startDate") LocalDate startDate,
                                    @Param("endDate") LocalDate endDate);
+    
+    
+    /**
+     * @param userId
+     * @return
+     * @author kys
+     * @created 2025-11-13
+     * 방금 생성된 reviewId 조회
+     */
+    Integer getLastInsertedReviewId();
+
 
 }

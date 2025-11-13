@@ -6,6 +6,7 @@ import java.util.List;
 import com.kcc.groo.challenge.service.IChallengeService;
 import com.kcc.groo.review.dao.IReviewRepository;
 import com.kcc.groo.review.data.dto.ReviewResponse;
+import com.kcc.groo.search.service.ISearchService;
 import com.kcc.groo.user.dao.IFollowsRepository;
 import com.kcc.groo.user.data.dto.UserFeedDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,11 @@ import com.kcc.groo.user.data.dto.UserProfileUpdateRequest;
 import com.kcc.groo.user.data.dto.UserUpdateRequest;
 import com.kcc.groo.user.data.model.Users;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
 @Transactional
+@Slf4j
 public class UserService implements IUserService {
 
 	@Autowired
@@ -48,6 +52,9 @@ public class UserService implements IUserService {
 
     @Autowired
     private IChallengeService challengeService;
+    
+    @Autowired
+    private ISearchService searchService;
 
 	@Override
 	public Users loginUser(String userId, String password) {
@@ -82,12 +89,16 @@ public class UserService implements IUserService {
 		newUser.setEmailVerified(true);
 
 		int result = usersRepository.insertUser(newUser);
-
-		if (result > 0) {
-			return usersRepository.selectUserByUserId(newUser.getUserId());
-		} else {
+		
+		if (result <= 0) {
 			throw new RuntimeException("failed signup");
 		}
+		
+		Users savedUser = usersRepository.selectUserByUserId(newUser.getUserId());
+		log.info(">>> calling searchService.insertUserIndex");
+		searchService.insertUserIndex(savedUser);
+		log.info(">>> after searchService.insertUserIndex");
+		return savedUser;
 	}
 
 	@Override
@@ -185,6 +196,10 @@ public class UserService implements IUserService {
                 System.err.println("Failed to check badge after profile update: " + e.getMessage());
             }
 
+            Users updatedUser = usersRepository.selectUserByUserId(updateUser.getUserId());
+    		log.info(">>> calling searchService.updateUserIndex");
+    		searchService.updateUserIndex(updatedUser);
+    		log.info(">>> after searchService.updateUserIndex");
             return usersRepository.selectUserByUserId(userId);
         } else { // fail
             throw new RuntimeException("failed update user information");
