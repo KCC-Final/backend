@@ -19,7 +19,8 @@
         <result property="category" column="category"/>
         <result property="status" column="status"/>
         <result property="authorNickname" column="authorNickname"/>
-        <result property="authorProfileImage" column="authorProfileImage"/>
+        <result property="authorProfileImage" column="authorProfileImage"
+                typeHandler="com.kcc.groo.config.Base64TypeHandler"/>
         <result property="likeCount" column="likeCount"/>
         <result property="commentCount" column="commentCount"/>
         <result property="liked" column="liked"/>
@@ -49,55 +50,58 @@
     <!-- ========================= INSERT / UPDATE / DELETE ========================= -->
 
     <insert id="insertReview">
-        INSERT INTO reviews (
-            ISBN, review_title, review_content,
-            secret, status, temporary, created_at,
-            user_id, category, custom_thumbnail
-        ) VALUES (
-                     #{req.isbn}, #{req.reviewTitle}, #{req.reviewContent},
-                     #{req.secret}, TRUE, #{req.temporary}, NOW(),
-                     #{userId}, #{req.category}, #{req.customThumbnail}
-                 )
+        INSERT INTO reviews (ISBN, review_title, review_content,
+                             secret, status, temporary, created_at,
+                             user_id, category, custom_thumbnail)
+        VALUES (#{req.isbn}, #{req.reviewTitle}, #{req.reviewContent},
+                #{req.secret}, TRUE, #{req.temporary}, NOW(),
+                #{userId}, #{req.category}, #{req.customThumbnail})
     </insert>
 
     <update id="updateReview">
     <![CDATA[
         UPDATE reviews
-        SET review_title = #{req.reviewTitle},
-            review_content = #{req.reviewContent},
-            secret = #{req.secret},
-            temporary = #{req.temporary},
+        SET review_title     = #{req.reviewTitle},
+            review_content   = #{req.reviewContent},
+            secret           = #{req.secret},
+            temporary        = #{req.temporary},
             custom_thumbnail = #{req.customThumbnail},
-            created_at = CASE
-            WHEN temporary = TRUE AND #{req.temporary} = FALSE
+            created_at       = CASE
+                                   WHEN temporary = TRUE AND #{req.temporary} = FALSE
             THEN NOW()
             ELSE created_at
-        END,
+        END
+        ,
         updated_at = NOW()
-    WHERE review_id = #{reviewId}
-        AND user_id = #{userId}
+    WHERE review_id =
+        #{reviewId}
+        AND
+        user_id
+        =
+        #{userId}
         ]]>
 </update>
     <update id="deleteReview">
         <![CDATA[
-    UPDATE reviews
-    SET status = FALSE, updated_at = NOW()
-    WHERE review_id = #{reviewId} AND user_id = #{userId}
-    ]]>
+        UPDATE reviews
+        SET status     = FALSE,
+            updated_at = NOW()
+        WHERE review_id = #{reviewId}
+          AND user_id = #{userId}
+        ]]>
     </update>
 
     <!-- ========================= SELECT ========================= -->
 
     <!-- 리뷰 단건 조회 예시 -->
     <select id="selectReviewById" resultMap="ReviewResponseMap">
-        SELECT
-            r.review_id AS reviewId,
-            r.ISBN AS isbn,
-            r.review_title AS reviewTitle,
-            r.review_content AS reviewContent,
-            r.secret AS secret,
-            r.status AS status,
-            r.temporary AS temporary,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary,
         r.created_at AS createdAt,
         r.updated_at AS updatedAt,
         r.user_id AS userId,
@@ -109,38 +113,39 @@
         (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
         (EXISTS(SELECT 1 FROM likes l WHERE l.review_id = r.review_id AND l.user_id = #{userId})) AS liked
         FROM reviews r
-            LEFT JOIN users u ON r.user_id = u.user_id
+            LEFT JOIN users u
+        ON r.user_id = u.user_id
         WHERE r.review_id = #{reviewId}
           AND r.status = TRUE
-          AND (r.secret = FALSE OR r.user_id = #{userId})
+          AND (r.secret = FALSE
+           OR r.user_id = #{userId})
     </select>
 
     <!-- 댓글 조회 -->
     <select id="selectCommentsByReview" resultType="com.kcc.groo.review.data.dto.CommentResponse">
-        SELECT
-        c.comment_id AS commentId,
-        c.content AS content,
-        c.user_id AS userId,
-        c.created_at AS createdAt,
-        c.updated_at AS updatedAt,
-        c.parent_id AS parentId
+        SELECT c.comment_id AS commentId,
+               c.content    AS content,
+               c.user_id    AS userId,
+               c.created_at AS createdAt,
+               c.updated_at AS updatedAt,
+               c.parent_id  AS parentId
         FROM review_comments c
-        JOIN reviews r ON c.review_id = r.review_id
-        WHERE c.review_id = #{reviewId} AND r.status = TRUE
+                 JOIN reviews r ON c.review_id = r.review_id
+        WHERE c.review_id = #{reviewId}
+          AND r.status = TRUE
         ORDER BY c.created_at ASC
     </select>
 
     <!-- 전체 조회 예시 -->
     <select id="selectAllReviews" resultMap="ReviewResponseMap">
     <![CDATA[
-        SELECT
-            r.review_id AS reviewId,
-            r.ISBN AS isbn,
-            r.review_title AS reviewTitle,
-            r.review_content AS reviewContent,
-            r.secret AS secret,
-            r.status AS status,
-            r.temporary AS temporary,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary,
         r.created_at AS createdAt,
         r.updated_at AS updatedAt,
         r.user_id AS userId,
@@ -152,7 +157,8 @@
         (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
         CASE WHEN #{userId} IS NOT NULL AND EXISTS (
             SELECT 1 FROM likes l2 WHERE l2.review_id = r.review_id AND l2.user_id = #{userId}
-            ) THEN true ELSE false END AS liked
+            ) THEN true ELSE false
+        END AS liked
     FROM reviews r
     LEFT JOIN users u ON r.user_id = u.user_id
     WHERE r.status = TRUE AND r.temporary = FALSE AND r.secret = FALSE
@@ -163,8 +169,12 @@
     <!-- 임시저장 목록 -->
     <select id="selectDrafts" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
     <![CDATA[
-        SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-               r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
                r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
            r.user_id AS userId, r.category AS category, r.custom_thumbnail AS customThumbnail
         FROM reviews r
@@ -176,104 +186,164 @@
     <!-- 임시저장 단건 -->
     <select id="selectDraft" resultType="com.kcc.groo.review.data.dto.ReviewResponse">
         <![CDATA[
-    SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-           r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
-           r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
            r.custom_thumbnail AS customThumbnail,
            r.user_id AS userId, r.category AS category
-    FROM reviews r
-    WHERE r.review_id = #{id} AND r.user_id = #{userId} AND r.temporary = TRUE AND r.status = TRUE
-    ]]>
+        FROM reviews r
+        WHERE r.review_id = #{id}
+          AND r.user_id = #{userId}
+          AND r.temporary = TRUE
+          AND r.status = TRUE
+        ]]>
     </select>
 
     <update id="deleteDraft">
         <![CDATA[
-    UPDATE reviews SET status = FALSE, updated_at = NOW()
-    WHERE review_id = #{id} AND user_id = #{userId} AND temporary = TRUE
-    ]]>
+        UPDATE reviews
+        SET status     = FALSE,
+            updated_at = NOW()
+        WHERE review_id = #{id}
+          AND user_id = #{userId}
+          AND temporary = TRUE
+        ]]>
     </update>
 
     <!-- ========================= 좋아요 ========================= -->
 
     <insert id="insertLike">
         <![CDATA[
-    INSERT INTO likes (user_id, review_id, created_at) VALUES (#{userId}, #{reviewId}, NOW())
-    ON DUPLICATE KEY UPDATE created_at = NOW()
-    ]]>
+        INSERT INTO likes (user_id, review_id, created_at)
+        VALUES (#{userId}, #{reviewId}, NOW()) ON DUPLICATE KEY
+        UPDATE created_at = NOW()
+        ]]>
     </insert>
 
     <delete id="deleteLike">
         <![CDATA[
-    DELETE FROM likes WHERE user_id = #{userId} AND review_id = #{reviewId}
-    ]]>
+        DELETE
+        FROM likes
+        WHERE user_id = #{userId}
+          AND review_id = #{reviewId}
+        ]]>
     </delete>
 
     <select id="existsLike" resultType="int">
         <![CDATA[
-    SELECT COUNT(1) FROM likes WHERE user_id = #{userId} AND review_id = #{reviewId}
-    ]]>
+        SELECT COUNT(1)
+        FROM likes
+        WHERE user_id = #{userId}
+          AND review_id = #{reviewId}
+        ]]>
     </select>
 
     <select id="selectLikedReviews" resultMap="ReviewResponseMap">
         <![CDATA[
-    SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-           r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
-           r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
            r.user_id AS userId, r.category AS category,
            r.custom_thumbnail AS customThumbnail,
            u.nickname AS authorNickname, u.profile_image AS authorProfileImage,
            (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
            (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
            true AS liked
-    FROM reviews r
-    INNER JOIN likes l ON r.review_id = l.review_id
-    LEFT JOIN users u ON r.user_id = u.user_id
-    WHERE l.user_id = #{userId} AND r.status = TRUE AND r.secret = FALSE
-    ORDER BY l.created_at DESC
-    ]]>
+        FROM reviews r
+            INNER JOIN likes l
+        ON r.review_id = l.review_id
+            LEFT JOIN users u ON r.user_id = u.user_id
+        WHERE l.user_id = #{userId} AND r.status = TRUE AND r.secret = FALSE
+        ORDER BY l.created_at DESC
+        ]]>
     </select>
 
     <select id="canLikeReview" resultType="boolean">
         <![CDATA[
-    SELECT COUNT(1) > 0 FROM reviews
-    WHERE review_id = #{reviewId} AND status = TRUE AND temporary = FALSE
-    ]]>
+        SELECT COUNT(1) > 0
+        FROM reviews
+        WHERE review_id = #{reviewId}
+          AND status = TRUE
+          AND temporary = FALSE
+        ]]>
     </select>
 
     <!-- 팔로잉 독후감 -->
     <select id="selectReviewsByFollowing" resultMap="ReviewResponseMap">
         <![CDATA[
-SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-       r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
-       r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
        r.custom_thumbnail AS customThumbnail,
        r.user_id AS userId, r.category AS category,
        u.nickname AS authorNickname, u.profile_image AS authorProfileImage,
        (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
        (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
        CASE WHEN EXISTS (SELECT 1 FROM likes l2 WHERE l2.review_id = r.review_id AND l2.user_id = #{userId})
-            THEN true ELSE false END AS liked
+            THEN true ELSE false
+        END AS liked
 FROM reviews r
 INNER JOIN follows f ON r.user_id = f.followed
 LEFT JOIN users u ON r.user_id = u.user_id
-WHERE f.follower = #{userId} AND r.status = TRUE AND r.temporary = FALSE AND r.secret = FALSE
-ORDER BY r.created_at DESC
-]]>
+WHERE f.follower =
+        #{userId}
+        AND
+        r
+        .
+        status
+        =
+        TRUE
+        AND
+        r
+        .
+        temporary
+        =
+        FALSE
+        AND
+        r
+        .
+        secret
+        =
+        FALSE
+        ORDER
+        BY
+        r
+        .
+        created_at
+        DESC
+        ]]>
     </select>
 
     <!-- 전체 유저 독후감 좋아요 많은 순 (1주일간, 비밀글 완전 제외) -->
     <select id="selectAllReviewsOrderByLikes" resultMap="ReviewResponseMap">
         <![CDATA[
-SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-       r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
-       r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
        r.custom_thumbnail AS customThumbnail,
        r.user_id AS userId, r.category AS category,
        u.nickname AS authorNickname, u.profile_image AS authorProfileImage,
        COUNT(l.user_id) AS likeCount,
        (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
        CASE WHEN #{userId} IS NOT NULL AND EXISTS (SELECT 1 FROM likes l2 WHERE l2.review_id = r.review_id AND l2.user_id = #{userId})
-            THEN true ELSE false END AS liked
+            THEN true ELSE false
+        END AS liked
 FROM reviews r
 LEFT JOIN users u ON r.user_id = u.user_id
 LEFT JOIN likes l ON r.review_id = l.review_id AND l.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
@@ -283,55 +353,118 @@ GROUP BY r.review_id, r.ISBN, r.review_title, r.review_content, r.secret, r.stat
          r.temporary, r.created_at, r.updated_at, r.user_id, r.category,
          u.nickname, u.profile_image
 ORDER BY likeCount DESC, r.created_at DESC
-]]>
+        ]]>
     </select>
 
     <!-- ISBN으로 독후감 조회 -->
     <select id="selectReviewsByIsbn" resultMap="ReviewResponseMap">
         <![CDATA[
-SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-       r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
-       r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
        r.user_id AS userId, r.category AS category,
        r.custom_thumbnail AS customThumbnail,
        u.nickname AS authorNickname, u.profile_image AS authorProfileImage,
        (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
        (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
        CASE WHEN #{userId} IS NOT NULL AND EXISTS (SELECT 1 FROM likes l2 WHERE l2.review_id = r.review_id AND l2.user_id = #{userId})
-            THEN true ELSE false END AS liked
+            THEN true ELSE false
+        END AS liked
 FROM reviews r
 LEFT JOIN users u ON r.user_id = u.user_id
-WHERE r.ISBN = #{isbn} AND r.status = TRUE AND r.temporary = FALSE AND r.secret = FALSE
-ORDER BY r.created_at DESC
-]]>
+WHERE r.ISBN =
+        #{isbn}
+        AND
+        r
+        .
+        status
+        =
+        TRUE
+        AND
+        r
+        .
+        temporary
+        =
+        FALSE
+        AND
+        r
+        .
+        secret
+        =
+        FALSE
+        ORDER
+        BY
+        r
+        .
+        created_at
+        DESC
+        ]]>
     </select>
 
     <!-- 카테고리로 독후감 조회 -->
     <select id="selectReviewsByCategory" resultMap="ReviewResponseMap">
         <![CDATA[
-SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-       r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
-       r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
        r.custom_thumbnail AS customThumbnail,
        r.user_id AS userId, r.category AS category,
        u.nickname AS authorNickname, u.profile_image AS authorProfileImage,
        (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
        (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
        CASE WHEN #{userId} IS NOT NULL AND EXISTS (SELECT 1 FROM likes l2 WHERE l2.review_id = r.review_id AND l2.user_id = #{userId})
-            THEN true ELSE false END AS liked
+            THEN true ELSE false
+        END AS liked
 FROM reviews r
 LEFT JOIN users u ON r.user_id = u.user_id
-WHERE r.category = #{category} AND r.status = TRUE AND r.temporary = FALSE AND r.secret = FALSE
-ORDER BY r.created_at DESC
-LIMIT #{limit}
-]]>
+WHERE r.category =
+        #{category}
+        AND
+        r
+        .
+        status
+        =
+        TRUE
+        AND
+        r
+        .
+        temporary
+        =
+        FALSE
+        AND
+        r
+        .
+        secret
+        =
+        FALSE
+        ORDER
+        BY
+        r
+        .
+        created_at
+        DESC
+        LIMIT
+        #{limit}
+        ]]>
     </select>
 
     <!-- 특정 유저의 독후감 조회 -->
     <select id="selectReviewsByUser" resultMap="ReviewResponseMap">
     <![CDATA[
-        SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-               r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
                r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
            r.user_id AS userId, r.category AS category,
            r.custom_thumbnail AS customThumbnail,
@@ -340,7 +473,8 @@ LIMIT #{limit}
            (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
            false AS liked
         FROM reviews r
-            LEFT JOIN users u ON r.user_id = u.user_id
+            LEFT JOIN users u
+        ON r.user_id = u.user_id
         WHERE r.user_id = #{userId} AND r.status = TRUE AND r.temporary = FALSE
         ORDER BY r.created_at DESC
         ]]>
@@ -349,96 +483,141 @@ LIMIT #{limit}
     <!-- 특정 유저가 좋아요한 독후감 조회 -->
     <select id="selectLikedReviewsByUser" resultMap="ReviewResponseMap">
         <![CDATA[
-    SELECT r.review_id AS reviewId, r.ISBN AS isbn, r.review_title AS reviewTitle,
-           r.review_content AS reviewContent, r.secret AS secret, r.status AS status,
-           r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary, r.created_at AS createdAt, r.updated_at AS updatedAt,
            r.custom_thumbnail AS customThumbnail,
            r.user_id AS userId, r.category AS category,
            u.nickname AS authorNickname, u.profile_image AS authorProfileImage,
            (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
            (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
            CASE WHEN #{currentUserId} IS NOT NULL AND EXISTS (SELECT 1 FROM likes l2 WHERE l2.review_id = r.review_id AND l2.user_id = #{currentUserId})
-                THEN true ELSE false END AS liked
+            THEN true ELSE false
+        END AS liked
     FROM reviews r
     INNER JOIN likes l ON r.review_id = l.review_id
     LEFT JOIN users u ON r.user_id = u.user_id
-    WHERE l.user_id = #{targetUserId} AND r.status = TRUE AND r.temporary = FALSE AND r.secret = FALSE
-    ORDER BY l.created_at DESC
-    ]]>
+    WHERE l.user_id =
+        #{targetUserId}
+        AND
+        r
+        .
+        status
+        =
+        TRUE
+        AND
+        r
+        .
+        temporary
+        =
+        FALSE
+        AND
+        r
+        .
+        secret
+        =
+        FALSE
+        ORDER
+        BY
+        l
+        .
+        created_at
+        DESC
+        ]]>
     </select>
 
     <select id="countLikesByUserId" parameterType="String" resultType="int">
-        <![CDATA[SELECT COUNT(*) FROM likes WHERE user_id = #{userId}]]>
+        <![CDATA[
+        SELECT COUNT(*)
+        FROM likes
+        WHERE user_id = #{userId}
+        ]]>
     </select>
 
     <select id="countReviewsByIsbn" parameterType="String" resultType="int">
-        <![CDATA[SELECT COUNT(*) FROM reviews WHERE ISBN = #{isbn} AND temporary = 0]]>
+        <![CDATA[
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE ISBN = #{isbn} AND temporary = 0
+        ]]>
     </select>
 
     <select id="findTopReviewersByPeriod" resultType="com.kcc.groo.review.data.dto.TopReviewerDto">
         SELECT user_id as userId, COUNT(*) as reviewCount
         FROM reviews
         WHERE created_at BETWEEN #{startTime} AND #{endTime}
-        AND temporary = 0 AND status = 1
+          AND temporary = 0
+          AND status = 1
         GROUP BY user_id
         ORDER BY reviewCount DESC
     </select>
-    
+
     <select id="getReviewTitleByReviewId" parameterType="int" resultType="string">
-    SELECT review_title AS reviewTitle FROM reviews WHERE review_id=#{reviewId}
+        SELECT review_title AS reviewTitle
+        FROM reviews
+        WHERE review_id = #{reviewId}
     </select>
     <select id="selectReviewsWithCommentsByUser" resultMap="ReviewWithCommentResponseMap">
         <![CDATA[
-    SELECT r.review_id AS reviewId,
-           r.ISBN AS isbn,
-           r.review_title AS reviewTitle,
-           r.review_content AS reviewContent,
-           r.created_at AS createdAt,
-           r.updated_at AS updatedAt,
-           r.user_id AS userId,
-           r.category AS category,
-           r.custom_thumbnail AS customThumbnail,
-           u.nickname AS authorNickname,
-           u.profile_image AS authorProfileImage,
-           (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
-           (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
-           CASE WHEN #{currentUserId} IS NOT NULL AND EXISTS (SELECT 1 FROM likes l2 WHERE l2.review_id = r.review_id AND l2.user_id = #{currentUserId})
-                THEN true ELSE false END AS liked,
-           rc.comment_id AS myCommentId,
-           rc.content AS myCommentContent,
-           rc.created_at AS myCommentCreatedAt,
-           rc.updated_at AS myCommentUpdatedAt
-    FROM reviews r
-    LEFT JOIN users u ON r.user_id = u.user_id
-    INNER JOIN review_comments rc ON r.review_id = rc.review_id
-    WHERE rc.user_id = #{targetUserId}
-        AND r.status = TRUE
-        AND r.temporary = FALSE
-        AND r.secret = FALSE
-    ORDER BY rc.created_at DESC
-    ]]>
+        SELECT r.review_id                                                              AS reviewId,
+               r.ISBN                                                                   AS isbn,
+               r.review_title                                                           AS reviewTitle,
+               r.review_content                                                         AS reviewContent,
+               r.created_at                                                             AS createdAt,
+               r.updated_at                                                             AS updatedAt,
+               r.user_id                                                                AS userId,
+               r.category                                                               AS category,
+               r.custom_thumbnail                                                       AS customThumbnail,
+               u.nickname                                                               AS authorNickname,
+               u.profile_image                                                          AS authorProfileImage,
+               (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id)           AS likeCount,
+               (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+               CASE
+                   WHEN #{currentUserId} IS NOT NULL AND EXISTS (SELECT 1
+                                                                 FROM likes l2
+                                                                 WHERE l2.review_id = r.review_id
+                                                                   AND l2.user_id = #{currentUserId})
+                       THEN true
+                   ELSE false END                                                       AS liked,
+               rc.comment_id                                                            AS myCommentId,
+               rc.content                                                               AS myCommentContent,
+               rc.created_at                                                            AS myCommentCreatedAt,
+               rc.updated_at                                                            AS myCommentUpdatedAt
+        FROM reviews r
+                 LEFT JOIN users u ON r.user_id = u.user_id
+                 INNER JOIN review_comments rc ON r.review_id = rc.review_id
+        WHERE rc.user_id = #{targetUserId}
+          AND r.status = TRUE
+          AND r.temporary = FALSE
+          AND r.secret = FALSE
+        ORDER BY rc.created_at DESC
+        ]]>
     </select>
 
     <select id="findTopReviewerByPeriod" resultType="string">
         SELECT user_id
         FROM reviews
         WHERE temporary = 0
-          AND DATE(created_at) BETWEEN #{startDate} AND #{endDate}
+          AND DATE (created_at) BETWEEN #{startDate}
+          AND #{endDate}
         GROUP BY user_id
-        ORDER BY COUNT(*) DESC
+        ORDER BY COUNT (*) DESC
             LIMIT 1
     </select>
 
     <select id="selectReviewsByUserWithAccess" resultMap="ReviewResponseMap">
 <![CDATA[
-        SELECT
-            r.review_id AS reviewId,
-            r.ISBN AS isbn,
-            r.review_title AS reviewTitle,
-            r.review_content AS reviewContent,
-            r.secret AS secret,
-            r.status AS status,
-            r.temporary AS temporary,
+        SELECT r.review_id      AS reviewId,
+               r.ISBN           AS isbn,
+               r.review_title   AS reviewTitle,
+               r.review_content AS reviewContent,
+               r.secret         AS secret,
+               r.status         AS status,
+               r.temporary AS temporary,
         r.created_at AS createdAt,
         r.updated_at AS updatedAt,
         r.user_id AS userId,
@@ -455,17 +634,42 @@ LIMIT #{limit}
             AND l2.user_id = #{currentUserId}
             )
             THEN TRUE ELSE FALSE
-        END AS liked
+        END
+        AS liked
     FROM reviews r
     LEFT JOIN users u ON r.user_id = u.user_id
-    WHERE r.user_id = #{targetUserId}
-        AND r.status = TRUE
-        AND r.temporary = FALSE
-        AND (
-        r.secret = FALSE
-        OR #{currentUserId} = #{targetUserId}
+    WHERE r.user_id =
+        #{targetUserId}
+        AND
+        r
+        .
+        status
+        =
+        TRUE
+        AND
+        r
+        .
+        temporary
+        =
+        FALSE
+        AND
+        (
+        r
+        .
+        secret
+        =
+        FALSE
+        OR
+        #{currentUserId}
+        =
+        #{targetUserId}
         )
-        ORDER BY r.created_at DESC
+        ORDER
+        BY
+        r
+        .
+        created_at
+        DESC
         ]]>
 </select>
 
