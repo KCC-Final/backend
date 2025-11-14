@@ -429,4 +429,45 @@ LIMIT #{limit}
             LIMIT 1
     </select>
 
+    <select id="selectReviewsByUserWithAccess" resultMap="ReviewResponseMap">
+<![CDATA[
+        SELECT
+            r.review_id AS reviewId,
+            r.ISBN AS isbn,
+            r.review_title AS reviewTitle,
+            r.review_content AS reviewContent,
+            r.secret AS secret,
+            r.status AS status,
+            r.temporary AS temporary,
+        r.created_at AS createdAt,
+        r.updated_at AS updatedAt,
+        r.user_id AS userId,
+        r.category AS category,
+        r.custom_thumbnail AS customThumbnail,
+        u.nickname AS authorNickname,
+        u.profile_image AS authorProfileImage,
+        (SELECT COUNT(*) FROM likes l WHERE l.review_id = r.review_id) AS likeCount,
+        (SELECT COUNT(*) FROM review_comments c WHERE c.review_id = r.review_id) AS commentCount,
+        CASE
+            WHEN #{currentUserId} IS NOT NULL AND EXISTS (
+            SELECT 1 FROM likes l2
+            WHERE l2.review_id = r.review_id
+            AND l2.user_id = #{currentUserId}
+            )
+            THEN TRUE ELSE FALSE
+        END AS liked
+    FROM reviews r
+    LEFT JOIN users u ON r.user_id = u.user_id
+    WHERE r.user_id = #{targetUserId}
+        AND r.status = TRUE
+        AND r.temporary = FALSE
+        AND (
+        r.secret = FALSE
+        OR #{currentUserId} = #{targetUserId}
+        )
+        ORDER BY r.created_at DESC
+        ]]>
+</select>
+
+
 </mapper>
