@@ -18,36 +18,52 @@
         VALUES (#{userId}, #{badgeId}, NOW())
     </insert>
 
+    <!-- @author uyh -->
+    <!-- 소프트 삭제된 독후감 제외를 위해 status = 1 조건 추가 -->
     <select id="countReviewsByUserId" parameterType="String" resultType="int">
         SELECT COUNT(*)
         FROM reviews
-        WHERE user_id = #{userId} AND temporary = 0
+        WHERE user_id = #{userId}
+          AND temporary = 0
+          AND status = 1
     </select>
 
+    <!-- @author uyh -->
+    <!-- 소프트 삭제된 독후감 제외를 위해 status = 1 조건 추가 -->
     <select id="countDistinctCategoriesByUserId" parameterType="String" resultType="int">
         SELECT COUNT(DISTINCT category)
         FROM reviews
-        WHERE user_id = #{userId} AND temporary = 0
+        WHERE user_id = #{userId}
+          AND temporary = 0
+          AND status = 1
     </select>
-    
+
+    <!-- @author uyh -->
+    <!-- 소프트 삭제된 독후감 제외를 위해 status = 1 조건 추가 -->
     <select id="getMaxReviewCountForSingleCategory" parameterType="String" resultType="Integer">
         SELECT COUNT(*) as review_count
         FROM reviews
-        WHERE user_id = #{userId} AND temporary = 0
+        WHERE user_id = #{userId}
+          AND temporary = 0
+          AND status = 1
         GROUP BY category
         ORDER BY review_count DESC
-        LIMIT 1
+            LIMIT 1
     </select>
 
+    <!-- @author uyh -->
+    <!-- 소프트 삭제된 독후감 제외를 위해 status = 1 조건 추가 -->
     <select id="getCategoryCountWithMinReviews" resultType="int">
         SELECT COUNT(*)
         FROM (
-            SELECT category
-            FROM reviews
-            WHERE user_id = #{userId} AND temporary = 0
-            GROUP BY category
-            HAVING COUNT(*) >= #{minReviewCount}
-        ) as category_counts
+                 SELECT category
+                 FROM reviews
+                 WHERE user_id = #{userId}
+                   AND temporary = 0
+                   AND status = 1
+                 GROUP BY category
+                 HAVING COUNT(*) >= #{minReviewCount}
+             ) as category_counts
     </select>
 
     <select id="findBadgeByName" parameterType="String" resultType="com.kcc.groo.challenge.data.model.Badge">
@@ -64,16 +80,16 @@
             c.succeeded_at AS succeededAt
         FROM
             badges b
-        JOIN
+                JOIN
             challenge c ON b.badge_id = c.badge_id
         WHERE
             c.user_id = #{userId}
         ORDER BY
             c.succeeded_at DESC
     </select>
-    
+
     <select id="getBadgeNameByBadgeId" parameterType="int" resultType="string">
-    SELECT badge_name AS badgeName FROM badges WHERE badge_id = #{badgeId}
+        SELECT badge_name AS badgeName FROM badges WHERE badge_id = #{badgeId}
     </select>
 
     <select id="existsMonthlyBadge" parameterType="map" resultType="boolean">
@@ -84,19 +100,19 @@
           AND DATE_FORMAT(succeeded_at, '%Y-%m') = #{month}
     </select>
 
-<select id="findBadgeHistoryByUserIdAndBadgeId"
-        resultType="com.kcc.groo.challenge.data.dto.UserBadgeResponse">
-  SELECT
-    b.badge_id AS badgeId,
-    b.badge_name AS badgeName,
-    b.badge_description AS badgeDescription,
-    c.succeeded_at AS succeededAt
-  FROM challenge c
-  JOIN badges b ON b.badge_id = c.badge_id
-  WHERE c.user_id = #{userId}
-    AND c.badge_id = #{badgeId}
-  ORDER BY c.succeeded_at DESC
-</select>
-	
+    <select id="findBadgeHistoryByUserIdAndBadgeId"
+            resultType="com.kcc.groo.challenge.data.dto.UserBadgeResponse">
+        SELECT
+            b.badge_id AS badgeId,
+            b.badge_name AS badgeName,
+            b.badge_description AS badgeDescription,
+            c.succeeded_at AS succeededAt
+        FROM challenge c
+                 JOIN badges b ON b.badge_id = c.badge_id
+        WHERE c.user_id = #{userId}
+          AND c.badge_id = #{badgeId}
+        ORDER BY c.succeeded_at DESC
+    </select>
+
 
 </mapper>
