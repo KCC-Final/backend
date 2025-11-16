@@ -87,6 +87,14 @@ public interface INotificationService {
 	 * 알림 전체 읽음 처리
 	 */
 	int readAllAlerts(String userId, List<Integer> alertIdList);
-	
-	
+
+    /**
+     * @param userId
+     * @param alertId
+     * @return
+     * @author uyh
+     * @created 2025-11-16
+     * 알림 소프트 삭제
+     */
+    int deleteNotification(String userId, int alertId);
 }

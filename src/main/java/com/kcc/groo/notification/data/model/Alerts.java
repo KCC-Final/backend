@@ -29,5 +29,7 @@ public class Alerts {
 	private String userId; //수신자
 	private String senderUserId; //발신자
 	private boolean alertsCheckStatus;
+    private boolean isDeleted; // 삭제 여부 (소프트 삭제)
+
 
 }

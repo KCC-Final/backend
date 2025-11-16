@@ -160,4 +160,25 @@ public class NotificationService implements INotificationService {
 	    return notificationRepository.readAlertsByAlertIdList(userId, alertIdList, true);
 	}
 
+    /**
+     * @param userId
+     * @param alertId
+     * @return
+     * @author uyh
+     * @created 2025-11-16
+     * 알림 소프트 삭제
+     */
+    @Override
+    @Transactional
+    public int deleteNotification(String userId, int alertId) {
+        int deleted = notificationRepository.softDeleteNotification(userId, alertId);
+
+        if (deleted == 0) {
+            log.warn("알림 삭제 실패: alertId={}, userId={}", alertId, userId);
+        } else {
+            log.info("알림 삭제 완료: alertId={}, userId={}", alertId, userId);
+        }
+
+        return deleted;
+    }
 }

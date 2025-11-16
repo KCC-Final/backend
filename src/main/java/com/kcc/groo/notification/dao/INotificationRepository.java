@@ -93,4 +93,15 @@ public interface INotificationRepository {
 		    @Param("alertsCheckStatus") Boolean alertsCheckStatus
 		);
 
+    /**
+     * @param userId
+     * @param alertId
+     * @return
+     * @author uyh
+     * @created 2025-11-16
+     * 알림 소프트 삭제
+     */
+    int softDeleteNotification(@Param("userId") String userId, @Param("alertId") int alertId);
+
+
 }

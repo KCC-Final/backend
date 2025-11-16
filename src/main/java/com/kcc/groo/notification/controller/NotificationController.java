@@ -6,13 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.kcc.groo.common.dto.CommonResponse;
@@ -215,4 +209,32 @@ public class NotificationController {
 	    );
 	}
 
+    /**
+     * @param alertId
+     * @param request
+     * @return
+     * @author uyh
+     * @created 2025-11-16
+     * 알림 삭제 (소프트 삭제)
+     */
+    @DeleteMapping("/{alertId}")
+    public ResponseEntity<CommonResponse<?>> deleteNotification(
+            @PathVariable("alertId") int alertId,
+            HttpServletRequest request) {
+
+        // userId 추출
+        String accessToken = jwtTokenProvider.resolveAccessToken(request);
+        String userId = jwtTokenProvider.getUserId(accessToken);
+
+        int deleted = notificationService.deleteNotification(userId, alertId);
+
+        if (deleted > 0) {
+            log.info("알림 삭제 완료: alertId={}, userId={}", alertId, userId);
+            return ResponseEntity.ok(new CommonResponse<>("알림이 삭제되었습니다", null));
+        } else {
+            log.warn("알림 삭제 실패: alertId={}, userId={}", alertId, userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CommonResponse<>("알림을 찾을 수 없거나 이미 삭제되었습니다", null));
+        }
+    }
 }
