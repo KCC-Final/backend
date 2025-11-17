@@ -34,8 +34,33 @@ public class SearchController {
 	 * @created 2025-10-22
 	 * 통합검색
 	 */
+//	@GetMapping()
+//    public ResponseEntity<CommonResponse<?>> searchAll(@RequestParam("q") String keyword, HttpServletRequest request) {
+//
+//        String accessToken = jwtTokenProvider.resolveAccessToken(request);
+//        if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new CommonResponse<>("Need to login", null));
+//        }
+//
+//        String userId = jwtTokenProvider.getUserId(accessToken);
+//
+//        List<SearchResult> results = searchService.searchAllByLike(keyword);
+//
+//        return ResponseEntity.ok()
+//                .body(new CommonResponse<>("search results for user: " + userId, results));
+//    }
+	
+	/**
+	 * @param keyword
+	 * @param request
+	 * @return
+	 * @author kys
+	 * @created 2025-10-22
+	 * 통합검색
+	 */
 	@GetMapping
-    public ResponseEntity<CommonResponse<?>> searchAll(@RequestParam("q") String keyword, HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<?>> searchAllByFullText(@RequestParam("q") String keyword, HttpServletRequest request) {
 
         String accessToken = jwtTokenProvider.resolveAccessToken(request);
         if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {

@@ -92,4 +92,13 @@ public interface IReviewCommentRepository {
      * 가장 최근에 insert된 comment id 조회
      */
     int selectLastInsertedCommentId();
+    
+    /**
+     * @param commentId
+     * @return
+     * @author kys
+     * @created 2025-11-13
+     * 인덱싱을 위한 select 추가
+     */
+    CommentResponse selectCommentByIdForIndexing (@Param("commentId") Integer commentId);
 }
