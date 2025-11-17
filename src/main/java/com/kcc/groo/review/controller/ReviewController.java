@@ -339,4 +339,24 @@ public class ReviewController {
         String currentUserId = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(reviewService.getReviewsWithCommentsByUser(currentUserId, userId));
     }
+
+    /**
+     * @param principal 인증된 사용자 정보
+     * @param cursorId 마지막으로 조회한 리뷰 ID (null이면 처음부터)
+     * @param limit 조회할 개수 (기본값: 16)
+     * @return ResponseEntity<List<ReviewResponse>>
+     * @author uyh
+     * @created 2025-11-17
+     * 전체 리뷰를 커서 기반으로 페이징 조회
+     */
+    @Operation(summary = "독후감 커서 기반 페이징 조회", description = "전체 공개 독후감을 커서 기반으로 페이징하여 조회합니다.")
+    @GetMapping("/cursor")
+    public ResponseEntity<List<ReviewResponse>> getAllReviewsWithCursor(
+            Principal principal,
+            @RequestParam(required = false) Integer cursorId,
+            @RequestParam(defaultValue = "16") int limit) {
+        String userId = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(reviewService.getAllReviewsWithCursor(userId, cursorId, limit));
+    }
+
 }

@@ -13,6 +13,8 @@ import com.kcc.groo.review.data.dto.ReviewWithCommentResponseDto;
 import com.kcc.groo.review.exception.ReviewErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class ReviewService implements IReviewService {
     private final IChallengeService challengeService; // 의존성 주입
     private final INotificationService notificationService; //added 2025-10-21 kys
 
+    @CacheEvict(value = "reviews:cursor", allEntries = true)
     @Transactional
     @Override
     public void createReview(String userId, ReviewCreateRequest request) {
@@ -56,6 +59,7 @@ public class ReviewService implements IReviewService {
         }
     }
 
+    @CacheEvict(value = "reviews:cursor", allEntries = true)  // 이거 추가!
     @Transactional
     @Override
     public void updateReview(String userId, Integer reviewId, ReviewUpdateRequest request) {
@@ -92,6 +96,7 @@ public class ReviewService implements IReviewService {
         }
     }
 
+    @CacheEvict(value = "reviews:cursor", allEntries = true)  // 이거 추가!
     @Transactional
     @Override
     public void deleteReview(String userId, Integer reviewId) {
@@ -550,4 +555,19 @@ public class ReviewService implements IReviewService {
     public List<ReviewWithCommentResponseDto> getReviewsWithCommentsByUser(String currentUserId, String targetUserId) {
         return reviewRepository.selectReviewsWithCommentsByUser(currentUserId, targetUserId);
     }
+
+    /**
+     * @author uyh
+     * @created 2025-11-17
+     */
+    @Cacheable(
+            value = "reviews:cursor",
+            key = "(#cursorId != null ? #cursorId : 'null') + ':' + #limit",
+            unless = "#result == null || #result.isEmpty()"
+    )
+    @Override
+    public List<ReviewResponse> getAllReviewsWithCursor(String userId, Integer cursorId, int limit) {
+        return reviewRepository.selectAllReviewsWithCursor(userId, cursorId, limit);
+    }
+
 }
