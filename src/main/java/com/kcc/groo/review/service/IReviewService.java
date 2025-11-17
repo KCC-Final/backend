@@ -200,4 +200,14 @@ public interface IReviewService {
      */
     List<ReviewWithCommentResponseDto> getReviewsWithCommentsByUser(String currentUserId, String targetUserId);
 
+    /**
+     * @param userId 조회하는 사용자 ID (null 가능)
+     * @param cursorId 마지막으로 조회한 리뷰 ID (null이면 처음부터)
+     * @param limit 조회할 개수
+     * @return List<ReviewResponse>
+     * @author uyh
+     * @created 2025-11-17
+     * 전체 리뷰를 커서 기반으로 페이징 조회
+     */
+    List<ReviewResponse> getAllReviewsWithCursor(String userId, Integer cursorId, int limit);
 }

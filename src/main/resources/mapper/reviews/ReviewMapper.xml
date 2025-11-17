@@ -673,5 +673,58 @@ WHERE r.category =
         ]]>
 </select>
 
+    <!-- @author uyh -->
+    <!-- @created 2025-11-17 -->
+    <!-- 서브쿼리 제거 버전 - 훨씬 빠름 -->
+    <select id="selectAllReviewsWithCursor" resultMap="ReviewResponseMap">
+        SELECT
+        r.review_id      AS reviewId,
+        r.ISBN           AS isbn,
+        r.review_title   AS reviewTitle,
+        r.review_content AS reviewContent,
+        r.secret         AS secret,
+        r.status         AS status,
+        r.temporary      AS temporary,
+        r.created_at     AS createdAt,
+        r.updated_at     AS updatedAt,
+        r.custom_thumbnail AS customThumbnail,
+        r.user_id        AS userId,
+        r.category       AS category,
+        u.nickname       AS authorNickname,
+        u.profile_image  AS authorProfileImage,
+        COALESCE(lc.like_count, 0) AS likeCount,
+        COALESCE(cc.comment_count, 0) AS commentCount,
+        <choose>
+            <when test="userId != null">
+                CASE WHEN ul.user_id IS NOT NULL THEN true ELSE false END AS liked
+            </when>
+            <otherwise>
+                false AS liked
+            </otherwise>
+        </choose>
+        FROM reviews r
+        LEFT JOIN users u ON r.user_id = u.user_id
+        LEFT JOIN (
+        SELECT review_id, COUNT(*) as like_count
+        FROM likes
+        GROUP BY review_id
+        ) lc ON r.review_id = lc.review_id
+        LEFT JOIN (
+        SELECT review_id, COUNT(*) as comment_count
+        FROM review_comments
+        GROUP BY review_id
+        ) cc ON r.review_id = cc.review_id
+        <if test="userId != null">
+            LEFT JOIN likes ul ON r.review_id = ul.review_id AND ul.user_id = #{userId}
+        </if>
+        WHERE r.status = TRUE
+        AND r.temporary = FALSE
+        AND r.secret = FALSE
+        <if test="cursorId != null">
+            AND r.review_id &lt; #{cursorId}
+        </if>
+        ORDER BY r.review_id DESC
+        LIMIT #{limit}
+    </select>
 
 </mapper>
