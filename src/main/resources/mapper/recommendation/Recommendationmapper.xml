@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kcc.groo.recommendation.dao.IRecommendationRepository">
+
+    <!-- 사용자의 모든 도서 활동 조회 (독후감 + 스크랩) -->
+    <select id="selectUserBookActivities" parameterType="string" resultType="com.kcc.groo.recommendation.data.dto.UserBookActivity">
+        SELECT
+            user_id as userId,
+            isbn,
+            'REVIEW' as activityType,
+            2.0 as weight,
+            created_at as createdAt
+        FROM reviews
+        WHERE user_id = #{userId}
+          AND temporary = 0
+
+        UNION ALL
+
+        SELECT
+            user_id as userId,
+            isbn,
+            'SCRAP' as activityType,
+            1.0 as weight,
+            created_at as createdAt
+        FROM book
+        WHERE user_id = #{userId}
+
+        ORDER BY createdAt DESC
+    </select>
+
+    <!-- 사용자가 활동한 ISBN 목록 조회 -->
+    <select id="selectUserIsbnList" parameterType="string" resultType="string">
+        SELECT DISTINCT isbn
+        FROM (
+                 SELECT isbn FROM reviews
+                 WHERE user_id = #{userId} AND temporary = 0
+
+                 UNION
+
+                 SELECT isbn FROM book
+                 WHERE user_id = #{userId}
+             ) AS user_books
+    </select>
+
+    <!-- 특정 ISBN을 읽은/스크랩한 모든 사용자 조회 -->
+    <select id="selectUsersByIsbn" parameterType="string" resultType="com.kcc.groo.recommendation.data.dto.UserBookActivity">
+        SELECT
+            user_id as userId,
+            isbn,
+            'REVIEW' as activityType,
+            2.0 as weight,
+            created_at as createdAt
+        FROM reviews
+        WHERE isbn = #{isbn}
+          AND temporary = 0
+
+        UNION ALL
+
+        SELECT
+            user_id as userId,
+            isbn,
+            'SCRAP' as activityType,
+            1.0 as weight,
+            created_at as createdAt
+        FROM book
+        WHERE isbn = #{isbn}
+
+        ORDER BY createdAt DESC
+    </select>
+
+    <!-- 모든 사용자의 도서 활동 조회 -->
+    <select id="selectAllUserBookActivities" resultType="com.kcc.groo.recommendation.data.dto.UserBookActivity">
+        SELECT
+            user_id as userId,
+            isbn,
+            'REVIEW' as activityType,
+            2.0 as weight,
+            created_at as createdAt
+        FROM reviews
+        WHERE temporary = 0
+
+        UNION ALL
+
+        SELECT
+            user_id as userId,
+            isbn,
+            'SCRAP' as activityType,
+            1.0 as weight,
+            created_at as createdAt
+        FROM book
+
+        ORDER BY createdAt DESC
+    </select>
+
+    <!-- 사용자가 이미 읽었거나 스크랩한 도서인지 확인 -->
+    <select id="checkUserHasBook" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+                 SELECT 1 FROM reviews
+                 WHERE user_id = #{userId} AND isbn = #{isbn} AND temporary = 0
+
+                 UNION
+
+                 SELECT 1 FROM book
+                 WHERE user_id = #{userId} AND isbn = #{isbn}
+             ) AS book_check
+    </select>
+
+
+    <select id="selectTopIsbnByCount" parameterType="int" resultType="string">
+        SELECT isbn
+        FROM (
+                 SELECT isbn FROM reviews WHERE temporary = 0
+                 UNION ALL
+                 SELECT isbn FROM book
+             ) AS all_books
+        GROUP BY isbn
+        ORDER BY COUNT(*) DESC
+            LIMIT #{limit}
+    </select>
+
+</mapper>
