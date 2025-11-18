@@ -8,10 +8,12 @@ import com.kcc.groo.review.service.IReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Tag(name = "Review API", description = "독후감 CRUD + 임시저장 + 좋아요 API")
@@ -353,10 +355,14 @@ public class ReviewController {
     @GetMapping("/cursor")
     public ResponseEntity<List<ReviewResponse>> getAllReviewsWithCursor(
             Principal principal,
-            @RequestParam(required = false) Integer cursorId,
-            @RequestParam(defaultValue = "16") int limit) {
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime cursorCreatedAt,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
         String userId = principal != null ? principal.getName() : null;
-        return ResponseEntity.ok(reviewService.getAllReviewsWithCursor(userId, cursorId, limit));
+        return ResponseEntity.ok(reviewService.getAllReviewsWithCursor(userId, cursorCreatedAt, limit));
     }
+
 
 }

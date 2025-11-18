@@ -311,7 +311,7 @@ public interface IReviewRepository {
      */
     List<ReviewResponse> selectAllReviewsWithCursor(
             @Param("userId") String userId,
-            @Param("cursorId") Integer cursorId,
+            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
             @Param("limit") int limit
     );
 }

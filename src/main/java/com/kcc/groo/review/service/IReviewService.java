@@ -1,6 +1,8 @@
 package com.kcc.groo.review.service;
 
 import com.kcc.groo.review.data.dto.*;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IReviewService {
@@ -209,5 +211,5 @@ public interface IReviewService {
      * @created 2025-11-17
      * 전체 리뷰를 커서 기반으로 페이징 조회
      */
-    List<ReviewResponse> getAllReviewsWithCursor(String userId, Integer cursorId, int limit);
+    List<ReviewResponse> getAllReviewsWithCursor(String userId, LocalDateTime cursorCreatedAt, int limit);
 }

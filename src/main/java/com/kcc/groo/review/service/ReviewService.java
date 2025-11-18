@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -566,8 +567,9 @@ public class ReviewService implements IReviewService {
             unless = "#result == null || #result.isEmpty()"
     )
     @Override
-    public List<ReviewResponse> getAllReviewsWithCursor(String userId, Integer cursorId, int limit) {
-        return reviewRepository.selectAllReviewsWithCursor(userId, cursorId, limit);
+    public List<ReviewResponse> getAllReviewsWithCursor(String userId, LocalDateTime cursorCreatedAt, int limit) {
+        return reviewRepository.selectAllReviewsWithCursor(userId, cursorCreatedAt, limit);
     }
+
 
 }
